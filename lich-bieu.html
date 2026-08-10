@@ -573,7 +573,8 @@
           routine: typeof parsed.routine === "string" ? parsed.routine : DEFAULT_ROUTINE,
           // bản lưu cũ chưa có danh sách người làm
           people: Array.isArray(parsed.people) ? parsed.people : DEFAULT_PEOPLE.slice(),
-          notify: parsed.notify === true
+          notify: parsed.notify === true,
+          touched: parsed.touched === true
         };
       } catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
     }
@@ -581,7 +582,8 @@
     for (var k in SEED_DAYS) {
       if (Object.prototype.hasOwnProperty.call(SEED_DAYS, k)) days[k] = SEED_DAYS[k];
     }
-    return { days: days, routine: DEFAULT_ROUTINE, people: DEFAULT_PEOPLE.slice(), notify: false };
+    return { days: days, routine: DEFAULT_ROUTINE, people: DEFAULT_PEOPLE.slice(),
+             notify: false, touched: false };
   }
 
   var saveTimer = null;
@@ -1115,8 +1117,76 @@
 
   // Địa chỉ Web app lưu riêng từng máy, không nằm trong dữ liệu xuất ra
   var SYNC_KEY = "lichbieu.sync";
+  var WAY_KEY = "lichbieu.sync.cach";   // "thang" hoặc "vong"
   var syncUrl = "";
-  try { syncUrl = localStorage.getItem(SYNC_KEY) || ""; } catch (e) { syncUrl = ""; }
+  var way = "thang";
+  try {
+    syncUrl = localStorage.getItem(SYNC_KEY) || "";
+    way = localStorage.getItem(WAY_KEY) || "thang";
+  } catch (e) { syncUrl = ""; }
+
+  /* Hai cách gọi sang Google.
+
+     "thang": fetch bình thường. Gọn, đọc được câu trả lời, nhưng trình duyệt
+     hay chặn vì khác tên miền.
+
+     "vong": nhét địa chỉ vào một thẻ script. Thẻ script không bị chặn khác
+     tên miền, đổi lại chỉ gửi được bằng GET nên phần sửa phải đi kèm trong
+     địa chỉ, và mỗi lần chỉ gửi một mẩu cho địa chỉ khỏi quá dài. */
+
+  var MAX_URL = 7000;
+  var jsonpSeq = 0;
+
+  function jsonp(base, params, timeoutMs){
+    return new Promise(function(resolve, reject){
+      var name = "__lb" + (++jsonpSeq) + "_" + Date.now();
+      var bits = ["callback=" + name];
+      for (var k in params) {
+        if (params.hasOwnProperty(k)) {
+          bits.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+        }
+      }
+      var full = base + (base.indexOf("?") > -1 ? "&" : "?") + bits.join("&");
+      if (full.length > MAX_URL) {
+        reject(new Error("Phần gửi đi quá dài"));
+        return;
+      }
+
+      var s = document.createElement("script");
+      var timer = null;
+      var done = false;
+
+      function finish(err, data){
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { delete window[name]; } catch (e) { window[name] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
+        if (err) reject(err); else resolve(data);
+      }
+
+      window[name] = function(data){ finish(null, data); };
+      s.onerror = function(){ finish(new Error("Không gọi được")); };
+      timer = setTimeout(function(){ finish(new Error("Chờ quá lâu")); }, timeoutMs || 25000);
+      s.src = full;
+      document.head.appendChild(s);
+    });
+  }
+
+  function askRead(url, cach){
+    if (cach === "vong") return jsonp(url, { t: Date.now() });
+    return fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
+      .then(function(res){ return res.json(); });
+  }
+
+  function askWrite(url, cach, patch){
+    if (cach === "vong") return jsonp(url, { patch: JSON.stringify(patch), t: Date.now() });
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ patch: patch })
+    }).then(function(res){ return res.json(); });
+  }
 
   var rev = -1;                 // phiên bản đang giữ, -1 là chưa lấy lần nào
   var pendingDays = {};         // ngày nào sửa rồi mà chưa gửi đi
@@ -1136,9 +1206,11 @@
     syncFlag.textContent = text;
   }
 
-  function markDay(iso){ pendingDays[iso] = true; pushSoon(); }
-  function markRoutine(){ pendingRoutine = true; pushSoon(); }
-  function markPeople(){ pendingPeople = true; pushSoon(); }
+  // touched: người dùng đã tự sửa gì chưa, hay vẫn là mấy dòng điền sẵn.
+  // Cần biết để lúc nối vào sheet đã có dữ liệu thì không đè bừa lên.
+  function markDay(iso){ state.touched = true; pendingDays[iso] = true; pushSoon(); }
+  function markRoutine(){ state.touched = true; pendingRoutine = true; pushSoon(); }
+  function markPeople(){ state.touched = true; pendingPeople = true; pushSoon(); }
 
   function pushSoon(){
     if (!syncUrl) return;
@@ -1150,54 +1222,86 @@
     return pendingRoutine || pendingPeople || Object.keys(pendingDays).length > 0;
   }
 
+  // Đi đường vòng thì mỗi lần chỉ gửi được một mẩu nhỏ, nên chia ra
+  function buildPatches(){
+    var list = [];
+    var iso;
+    if (way === "vong") {
+      for (iso in pendingDays) {
+        if (pendingDays.hasOwnProperty(iso)) {
+          var one = { days: {} };
+          one.days[iso] = state.days[iso] || {};
+          list.push(one);
+        }
+      }
+      if (pendingRoutine) list.push({ routine: state.routine });
+      if (pendingPeople) list.push({ people: state.people });
+    } else {
+      var all = { days: {} };
+      for (iso in pendingDays) {
+        if (pendingDays.hasOwnProperty(iso)) all.days[iso] = state.days[iso] || {};
+      }
+      if (pendingRoutine) all.routine = state.routine;
+      if (pendingPeople) all.people = state.people;
+      list.push(all);
+    }
+    return list;
+  }
+
+  // Gửi hụt thì trả lại hàng chờ để lần sau gửi tiếp
+  function putBack(patch){
+    if (patch.days) {
+      for (var iso in patch.days) {
+        if (patch.days.hasOwnProperty(iso)) pendingDays[iso] = true;
+      }
+    }
+    if (patch.routine !== undefined) pendingRoutine = true;
+    if (patch.people !== undefined) pendingPeople = true;
+  }
+
   function push(){
     if (!syncUrl || pushing || !hasPending()) return;
 
-    var patch = { days: {} };
-    for (var iso in pendingDays) {
-      if (pendingDays.hasOwnProperty(iso)) patch.days[iso] = state.days[iso] || {};
-    }
-    if (pendingRoutine) patch.routine = state.routine;
-    if (pendingPeople) patch.people = state.people;
-
+    var queue = buildPatches();
     pendingDays = {};
     pendingRoutine = false;
     pendingPeople = false;
 
     pushing = true;
     showSync("busy", "Đang gửi…");
-    // text/plain để trình duyệt gửi thẳng, Apps Script không nhận preflight
-    fetch(syncUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ patch: patch })
-    }).then(function(res){
-      return res.json();
-    }).then(function(out){
-      pushing = false;
-      if (out && out.ok) {
-        rev = out.rev;
+
+    function sendNext(){
+      if (!queue.length) {
+        pushing = false;
         showSync("ok", "Đã đồng bộ");
         if (hasPending()) pushSoon();
-      } else {
-        showSync("error", "Sheet báo lỗi");
+        else pull();          // lấy phần người khác vừa sửa, khỏi chờ hết vòng
+        return;
       }
-    })["catch"](function(){
-      pushing = false;
-      // gửi hụt thì giữ lại để lần sau gửi tiếp
-      for (var iso in patch.days) {
-        if (patch.days.hasOwnProperty(iso)) pendingDays[iso] = true;
-      }
-      if (patch.routine !== undefined) pendingRoutine = true;
-      if (patch.people !== undefined) pendingPeople = true;
-      showSync("error", "Mất kết nối");
-    });
+      var patch = queue.shift();
+      askWrite(syncUrl, way, patch).then(function(out){
+        if (out && out.ok) {
+          rev = out.rev;
+          sendNext();
+        } else {
+          pushing = false;
+          putBack(patch);
+          showSync("error", "Sheet báo lỗi");
+        }
+      })["catch"](function(err){
+        pushing = false;
+        putBack(patch);
+        while (queue.length) putBack(queue.shift());
+        showSync("error", /dài/.test(String(err.message)) ? "Nội dung quá dài" : "Mất kết nối");
+      });
+    }
+
+    sendNext();
   }
 
   function pull(){
     if (!syncUrl || pushing || hasPending()) return;
-    fetch(syncUrl + (syncUrl.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
-      .then(function(res){ return res.json(); })
+    askRead(syncUrl, way)
       .then(function(out){
         if (!out || !out.state) { showSync("error", "Sheet trả về lạ"); return; }
         if (out.rev === rev) { showSync("ok", "Đã đồng bộ"); return; }
@@ -1305,16 +1409,49 @@
               .replace(/["'>)]+$/, "");
   }
 
-  function connectTo(url){
+  function isEmptyRemote(st){
+    if (!st) return true;
+    var hasDays = st.days && Object.keys(st.days).length > 0;
+    var hasRoutine = (st.routine || "").trim() !== "";
+    var hasPeople = st.people && st.people.length > 0;
+    return !hasDays && !hasRoutine && !hasPeople;
+  }
+
+  function connectTo(url, cach, remote){
     syncUrl = url;
-    try { localStorage.setItem(SYNC_KEY, syncUrl); } catch (e) { /* chế độ riêng tư */ }
-    rev = -1;
-    // lần đầu nối: đẩy luôn những gì đang có lên sheet
-    for (var iso in state.days) {
-      if (state.days.hasOwnProperty(iso)) pendingDays[iso] = true;
+    way = cach;
+    try {
+      localStorage.setItem(SYNC_KEY, syncUrl);
+      localStorage.setItem(WAY_KEY, way);
+    } catch (e) { /* chế độ riêng tư */ }
+
+    var iso;
+    if (isEmptyRemote(remote && remote.state)) {
+      // Sheet còn trống: máy này là người mở hàng, đẩy hết lên
+      rev = -1;
+      for (iso in state.days) {
+        if (state.days.hasOwnProperty(iso)) pendingDays[iso] = true;
+      }
+      pendingRoutine = true;
+      pendingPeople = true;
+    } else {
+      // Sheet đã có dữ liệu của người khác: lấy bản đó làm gốc, không đè lên.
+      // Chỉ giữ thêm những ngày máy này có mà sheet chưa có, và chỉ khi người
+      // dùng thực sự đã sửa gì chứ không phải mấy dòng điền sẵn.
+      var mine = state.touched ? state.days : {};
+      applyRemote(remote.state);
+      rev = remote.rev;
+      var added = false;
+      for (iso in mine) {
+        if (mine.hasOwnProperty(iso) && !state.days[iso]) {
+          state.days[iso] = mine[iso];
+          pendingDays[iso] = true;
+          added = true;
+        }
+      }
+      if (added) { save(); renderAll(); }
     }
-    pendingRoutine = true;
-    pendingPeople = true;
+
     startSync();
     push();
   }
@@ -1344,18 +1481,28 @@
     }
 
     say("info", "Đang thử gọi vào Google Sheet…");
-    fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
-      .then(function(res){ return res.json(); })
-      .then(function(out){
-        if (!out || typeof out.rev !== "number" || !out.state) {
-          say("bad", "Gọi được nhưng Google trả về nội dung lạ. Kiểm tra lại bước 3: " +
-                     "đã dán đúng toàn bộ đoạn mã và bấm lưu chưa?");
-          return;
-        }
-        connectTo(url);
-        say("good", "Nối xong. Từ giờ ai dán đúng địa chỉ này cũng thấy chung một lịch.");
-        setTimeout(closeSyncBox, 1400);
-      })["catch"](function(err){
+
+    function ok(out, cach){
+      if (!out || typeof out.rev !== "number" || !out.state) {
+        say("bad", "Gọi được nhưng Google trả về nội dung lạ. Kiểm tra lại bước 3: " +
+                   "đã dán đúng toàn bộ đoạn mã và bấm lưu chưa?");
+        return false;
+      }
+      connectTo(url, cach, out);
+      say("good", "Nối xong" + (cach === "vong" ? " (đi đường vòng)" : "") +
+                  ". Từ giờ ai dán đúng địa chỉ này cũng thấy chung một lịch.");
+      setTimeout(closeSyncBox, 1600);
+      return true;
+    }
+
+    askRead(url, "thang")
+      .then(function(out){ ok(out, "thang"); })
+      ["catch"](function(){
+        // Trình duyệt chặn cách thẳng thì thử đường vòng trước khi kết luận
+        say("info", "Cách gọi thẳng bị chặn, đang thử đường vòng…");
+        return askRead(url, "vong").then(function(out){ ok(out, "vong"); });
+      })
+      ["catch"](function(err){
         // Trang nằm trong khung của trang khác thì khung đó thường chặn gọi ra
         // ngoài, lúc ấy lỗi không nằm ở phía Google.
         if (inFrame()) {
@@ -1366,9 +1513,12 @@
                      PAGES_URL + "</a>");
           return;
         }
-        say("bad", "Không gọi được vào địa chỉ này. Hay gặp nhất là ở bước 4, ô " +
-                   "<b>Người có quyền truy cập</b> đang để <i>Bất kỳ ai có Tài khoản Google</i> " +
-                   "— phải đổi thành <b>Bất kỳ ai</b>, rồi bấm <b>Triển khai</b> lại.<br>" +
+        say("bad", "Cả hai cách gọi đều không được. Hai chỗ cần xem lại:<br>" +
+                   "<b>1.</b> Đoạn mã trong Apps Script đã là bản mới chưa? Bản cũ không " +
+                   "hiểu cách gọi đường vòng. Dán lại đoạn mã rồi " +
+                   "<b>Triển khai → Quản lý các bản triển khai → bút chì → Phiên bản: Phiên bản mới → Triển khai</b> " +
+                   "(địa chỉ giữ nguyên).<br>" +
+                   "<b>2.</b> Ô <b>Người có quyền truy cập</b> phải là <b>Bất kỳ ai</b>.<br>" +
                    "<a href=\"" + url.replace(/"/g, "%22") + "\" target=\"_blank\" rel=\"noopener\">" +
                    "Bấm đây để mở địa chỉ đó ở tab mới</a>: ra được dòng " +
                    "<code>{\"rev\":…}</code> là địa chỉ đúng, ra trang báo lỗi hay bắt đăng " +

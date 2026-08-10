@@ -114,6 +114,12 @@ Google Sheet dưới dạng bảng, nên mở sheet ra xem hoặc sửa tay cũn
 Vài điều cần biết:
 
 - **Ai có URL đều sửa được**, không cần đăng nhập. Chỉ gửi URL cho người trong nhà.
+- Trình duyệt hay chặn cuộc gọi thẳng sang Google vì khác tên miền. Trang tự nhận ra và
+  chuyển sang gọi vòng qua thẻ `script`, nên vẫn chạy; cách đang dùng được nhớ lại cho
+  những lần sau. Đường vòng chỉ gửi được bằng GET nên mỗi lần đẩy một mẩu nhỏ.
+- Nối vào một sheet đã có dữ liệu thì bản trên sheet được giữ làm gốc, máy mới không đè
+  lên. Ngày nào máy đó có mà sheet chưa có thì được thêm vào, miễn là người dùng thực sự
+  đã sửa chứ không phải mấy dòng điền sẵn.
 - Đang gõ dở ở ô nào thì bản của người khác không giật mất ô đó; con trỏ vẫn nằm nguyên chỗ cũ.
 - Mất mạng thì vẫn gõ được, dữ liệu nằm trong máy và tự gửi lên khi có mạng lại.
 - URL chỉ lưu trên máy đang dùng, không nằm trong file **Xuất JSON**.

@@ -141,6 +141,12 @@
       <p>Mở <a href="https://raw.githubusercontent.com/nguyenthanhitvn87-source/nguyenthanh/main/dong-bo-google-sheet.gs" target="_blank" rel="noopener">đoạn mã ở đây</a>, bôi đen toàn bộ và sao chép.</p>
       <p>Quay lại tab Apps Script: bấm vào vùng mã, nhấn <b class="ui">Ctrl + A</b> để chọn hết, xoá đi, rồi dán đoạn vừa chép vào.</p>
       <p>Nhấn <b class="ui">Ctrl + S</b> để lưu.</p>
+      <div class="warn">
+        <b>Nếu bạn đã cài từ trước.</b> Đoạn mã có bản mới. Dán đè lên bản cũ rồi làm
+        bước 4 theo kiểu cập nhật: <b class="ui">Triển khai</b> →
+        <b class="ui">Quản lý các bản triển khai</b> → bút chì → <em>Phiên bản</em> chọn
+        <b class="ui">Phiên bản mới</b> → <b class="ui">Triển khai</b>. Địa chỉ giữ nguyên.
+      </div>
     </li>
 
     <li>
@@ -204,6 +210,13 @@
         <tr><th>Hiện tượng</th><th>Cách xử lý</th></tr>
       </thead>
       <tbody>
+        <tr>
+          <td>Báo <em>Không gọi được vào địa chỉ này</em> dù dán địa chỉ vào thanh địa chỉ trình duyệt vẫn ra dữ liệu</td>
+          <td>Đoạn mã trong Apps Script là bản cũ. Dán lại đoạn mã mới, rồi
+          <b class="ui">Triển khai</b> → <b class="ui">Quản lý các bản triển khai</b> → bút chì →
+          <em>Phiên bản</em> chọn <b class="ui">Phiên bản mới</b> → <b class="ui">Triển khai</b>.
+          Địa chỉ giữ nguyên, không phải dán lại.</td>
+        </tr>
         <tr>
           <td>Báo <em>Mất kết nối</em></td>
           <td>Gần như chắc chắn là ô <em>Người có quyền truy cập</em> ở bước 4 đang để <em>Bất kỳ ai có Tài khoản Google</em>. Vào lại <b class="ui">Triển khai</b> → <b class="ui">Quản lý các bản triển khai</b>, bấm bút chì để sửa, đổi thành <em>Bất kỳ ai</em>, bấm <b class="ui">Triển khai</b>.</td>
