@@ -1633,6 +1633,7 @@
   var pendingPeople = false;
   var pushTimer = null;
   var pushing = false;
+  var doiKhoLan = 0;      // đổi kho thì tăng lên, câu trả lời của kho cũ bỏ đi
   var syncFlag = document.getElementById("syncFlag");
 
   var localOnly = document.getElementById("localOnly");
@@ -1728,7 +1729,9 @@
         return;
       }
       var patch = queue.shift();
+      var lan = doiKhoLan;
       askWrite(syncUrl, way, patch).then(function(out){
+        if (lan !== doiKhoLan) return;
         if (out && out.ok) {
           rev = out.rev;
           sendNext();
@@ -1738,6 +1741,7 @@
           showSync("error", "Sheet báo lỗi");
         }
       })["catch"](function(err){
+        if (lan !== doiKhoLan) return;
         pushing = false;
         putBack(patch);
         while (queue.length) putBack(queue.shift());
@@ -1750,14 +1754,17 @@
 
   function pull(){
     if (!syncUrl || pushing || hasPending()) return;
+    var lan = doiKhoLan;
     askRead(syncUrl, way)
       .then(function(out){
-        if (!out || !out.state) { showSync("error", "Sheet trả về lạ"); return; }
+        if (lan !== doiKhoLan) return;
+        if (!out || !out.state) { showSync("error", "Kho trả về nội dung lạ"); return; }
         if (out.rev === rev) { showSync("ok", "Đã đồng bộ"); return; }
         rev = out.rev;
         applyRemote(out.state);
         showSync("ok", "Đã đồng bộ");
       })["catch"](function(){
+        if (lan !== doiKhoLan) return;
         showSync("error", "Mất kết nối");
       });
   }
@@ -1796,15 +1803,29 @@
     }
   }
 
-  // Chưa nối gì và cũng chưa tự tay từ chối thì vào thẳng kho gắn sẵn
+  // Vào thẳng kho gắn sẵn, trừ khi máy này đã tự tay ngưng dùng chung.
+  // Máy nào còn bám một kho cũ khác thì kéo về kho gắn sẵn, nếu không mỗi máy
+  // một kho mà máy nào cũng báo "Đã đồng bộ", nhìn ngoài không biết đường nào.
   function tuNoiKhoChung(){
-    if (syncUrl || !KHO_MAC_DINH) return;
+    if (!KHO_MAC_DINH) return;
+    if (syncUrl === KHO_MAC_DINH) return;
     var tuchoi = false;
     try { tuchoi = localStorage.getItem(TUCHOI_KEY) === "1"; } catch (e) { tuchoi = false; }
     if (tuchoi) return;
 
+    var doiKho = !!syncUrl && syncUrl !== KHO_MAC_DINH;
+    if (doiKho) {                      // bỏ kho cũ, dọn hàng chờ của nó đi
+      doiKhoLan++;
+      clearInterval(startSync.timer);
+      startSync.timer = null;
+      pendingDays = {};
+      pendingRoutine = false;
+      pendingPeople = false;
+      pushing = false;
+    }
+
     var cach = laFirebase(KHO_MAC_DINH) ? "firebase" : "thang";
-    showSyncAlways("busy", "Đang vào lịch chung…");
+    showSyncAlways("busy", doiKho ? "Đang chuyển sang lịch chung…" : "Đang vào lịch chung…");
     askRead(KHO_MAC_DINH, cach)
       .then(function(out){ connectTo(KHO_MAC_DINH, cach, out); })
       ["catch"](function(){
@@ -1944,6 +1965,7 @@
   }
 
   function connectTo(url, cach, remote){
+    doiKhoLan++;
     syncUrl = url;
     way = cach;
     try {
@@ -1981,6 +2003,7 @@
     }
 
     startSync();
+    capNhatBanDung();
     push();
   }
 
@@ -2089,6 +2112,7 @@
     localOnly.hidden = false;
     syncInput.value = "";
     document.getElementById("codeWrap").hidden = true;
+    capNhatBanDung();
     say("info", "Đã ngưng dùng chung. Lịch quay về lưu riêng trên máy này.");
   });
 
@@ -2105,16 +2129,28 @@
 
   // Cho biết trang đang chạy có kho chung gắn sẵn hay không. Trình duyệt hay giữ
   // bản cũ trong bộ nhớ đệm, nhìn dòng này là biết ngay máy nào chưa tải bản mới.
-  (function(){
+  function tenKho(url){
+    if (!url) return "";
+    if (laFirebase(url)) {
+      return (url.replace(/^https?:\/\//, "").split(".")[0] || "").replace(/-default-rtdb$/, "");
+    }
+    return "Apps Script " + codeFromUrl(url).slice(0, 8);
+  }
+
+  // Ghi rõ máy này đang nối vào kho nào. Hai máy so dòng này là biết ngay có
+  // đang ở chung một chỗ hay không.
+  function capNhatBanDung(){
     var el = document.getElementById("banDung");
-    if (KHO_MAC_DINH) {
-      var ten = (KHO_MAC_DINH.replace(/^https?:\/\//, "").split(".")[0] || "").replace(/-default-rtdb$/, "");
-      el.innerHTML = "Bản có lịch chung <b>" + ten + "</b>. ";
+    if (syncUrl) {
+      el.innerHTML = "Đang dùng chung kho <b>" + tenKho(syncUrl) + "</b>. ";
+    } else if (KHO_MAC_DINH) {
+      el.innerHTML = "Có kho chung <b>" + tenKho(KHO_MAC_DINH) + "</b> nhưng máy này chưa nối. ";
     } else {
-      el.innerHTML = "<b>Bản chưa có lịch chung</b> — nếu máy khác thấy dòng khác dòng này " +
+      el.innerHTML = "<b>Bản chưa có lịch chung</b> — máy khác thấy dòng khác dòng này " +
                      "thì máy đó đang giữ bản cũ, bấm Ctrl+F5 để tải lại. ";
     }
-  })();
+  }
+  capNhatBanDung();
   flagEl = document.getElementById("savedFlag");
   routineText.value = state.routine;
   peopleText.value = state.people.join("\n");
