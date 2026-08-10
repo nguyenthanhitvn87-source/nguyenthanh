@@ -35,7 +35,8 @@ npx http-server .
 ## Cấu trúc
 
 ```
-index.html   # toàn bộ game: giao diện, style và logic
+index.html      # toàn bộ game: giao diện, style và logic
+lich-bieu.html  # ứng dụng lịch biểu hàng ngày (xem bên dưới)
 README.md
 ```
 
@@ -48,3 +49,31 @@ const MIN_SPEED = 70;      // tốc độ nhanh nhất
 const SPEED_STEP = 9;      // mỗi cấp nhanh thêm bao nhiêu ms
 const FOOD_PER_LEVEL = 5;  // số mồi cần ăn để lên cấp
 ```
+
+---
+
+# 📅 Lịch biểu hàng ngày
+
+Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nhất**, không cần build.
+
+## Tính năng
+
+- Bảng theo tuần: **Ngày · Sáng · Trưa · Chiều · Tối · Notes · Special Note**.
+- Bấm thẳng vào ô để sửa, nội dung **tự lưu** vào `localStorage` (không cần nút Lưu).
+- Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
+- **Thời gian biểu trong ngày** hiển thị dạng timeline, sửa được ở ô văn bản bên cạnh
+  (mỗi dòng một mốc, dạng `giờ: việc cần làm`, chấp nhận cả `7h30 - 8h00:`).
+- **Xuất / Nhập JSON** để sao lưu hoặc chuyển sang máy khác, và **In / PDF**.
+- Tự đổi màu theo giao diện sáng/tối của hệ thống, dùng được trên điện thoại.
+
+## Phím tắt
+
+| Thao tác | Phím |
+| --- | --- |
+| Xuống dòng trong ô | `Enter` |
+| Nhảy sang ô kế tiếp | `Ctrl` + `Enter` (macOS: `⌘` + `Enter`) |
+
+## Lưu ý
+
+Dữ liệu nằm trong trình duyệt đang dùng — xoá dữ liệu duyệt web hoặc đổi máy sẽ mất.
+Nhớ bấm **Xuất JSON** khi cần sao lưu.

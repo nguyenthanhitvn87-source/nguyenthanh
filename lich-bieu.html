@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch biểu hàng ngày</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --panel:#ffffff;
+    --ink:#1d2433;
+    --muted:#6b7488;
+    --line:#e2e6ef;
+    --accent:#2f6df6;
+    --accent-soft:#e8effe;
+    --today:#fff7e0;
+    --today-line:#f2c14e;
+    --weekend:#fbf7ff;
+    --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06);
+    --radius:14px;
+  }
+  /* Nền tối theo hệ thống, trừ khi trang được đặt rõ là nền sáng */
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12151c;
+      --panel:#191d26;
+      --ink:#e8ebf2;
+      --muted:#98a1b4;
+      --line:#2a3040;
+      --accent:#6f9bff;
+      --accent-soft:#1e2637;
+      --today:#2c2718;
+      --today-line:#7d6520;
+      --weekend:#1c1a24;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  /* Chọn nền tối một cách rõ ràng thì luôn thắng, kể cả khi hệ thống để nền sáng */
+  :root[data-theme="dark"]{
+    --bg:#12151c;
+    --panel:#191d26;
+    --ink:#e8ebf2;
+    --muted:#98a1b4;
+    --line:#2a3040;
+    --accent:#6f9bff;
+    --accent-soft:#1e2637;
+    --today:#2c2718;
+    --today-line:#7d6520;
+    --weekend:#1c1a24;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:20px 16px 60px}
+
+  header.top{
+    display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+    margin-bottom:16px;
+  }
+  h1{font-size:20px;margin:0;letter-spacing:-.01em}
+  h1 span{color:var(--muted);font-weight:400;font-size:14px;display:block;margin-top:2px}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{
+    font:inherit;font-size:14px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;
+    box-shadow:var(--shadow);transition:.12s border-color,.12s background;
+  }
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{filter:brightness(1.06)}
+  button.ghost{box-shadow:none;background:transparent}
+  button.danger:hover{border-color:#e5484d;color:#e5484d}
+
+  .weekbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 12px;box-shadow:var(--shadow);margin-bottom:14px;
+  }
+  .weekbar .range{font-weight:600}
+  .weekbar .hint{color:var(--muted);font-size:13px;margin-left:auto}
+  .dot-saved{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+  .dot-saved i{width:8px;height:8px;border-radius:50%;background:#3ec46d;display:inline-block;opacity:0;transition:opacity .2s}
+  .dot-saved.on i{opacity:1}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .table-scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:900px}
+  th,td{border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  thead th{
+    position:sticky;top:0;z-index:2;background:var(--panel);
+    font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    padding:10px 12px;white-space:nowrap;border-bottom:1px solid var(--line);
+  }
+  td.day{
+    padding:10px 12px;white-space:nowrap;width:150px;
+    background:var(--panel);position:sticky;left:0;z-index:1;border-right:1px solid var(--line);
+  }
+  td.day b{display:block;font-size:14px}
+  td.day small{color:var(--muted)}
+  tr.today td.day b{color:var(--accent)}
+  tr.today{background:var(--today)}
+  tr.today td.day{background:var(--today)}
+  tr.weekend{background:var(--weekend)}
+  tr.weekend td.day{background:var(--weekend)}
+  tr.today .badge{
+    display:inline-block;margin-top:4px;font-size:11px;padding:1px 7px;border-radius:999px;
+    background:var(--today-line);color:#3a2c00;font-weight:600;
+  }
+  td.cell{padding:0}
+  .cell textarea{
+    display:block;width:100%;min-height:52px;resize:vertical;
+    border:0;outline:0;background:transparent;color:inherit;
+    font:inherit;padding:10px 12px;
+  }
+  .cell textarea::placeholder{color:var(--muted);opacity:.5}
+  .cell textarea:focus{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+
+  .routine{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:820px){ .routine{grid-template-columns:1fr} }
+  .routine .card{padding:14px 16px}
+  .routine h2{font-size:15px;margin:0 0 10px}
+  .routine p.sub{color:var(--muted);font-size:13px;margin:-6px 0 12px}
+  .routine textarea{
+    width:100%;min-height:280px;resize:vertical;border:1px solid var(--line);border-radius:10px;
+    background:transparent;color:inherit;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    padding:10px 12px;outline:0;
+  }
+  .routine textarea:focus{border-color:var(--accent)}
+  ol.timeline{list-style:none;margin:0;padding:0}
+  ol.timeline li{display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  ol.timeline li:last-child{border-bottom:0}
+  ol.timeline .t{
+    flex:0 0 108px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent);
+    white-space:nowrap;
+  }
+  ol.timeline .d{flex:1}
+  ol.timeline li.empty .t{color:var(--muted);font-weight:400}
+
+  footer.foot{margin-top:26px;color:var(--muted);font-size:13px;text-align:center}
+  footer.foot a{color:var(--accent)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  @media print{
+    body{background:#fff}
+    .toolbar,.weekbar .nav,.hint,.dot-saved,.routine textarea,footer.foot{display:none !important}
+    .card{box-shadow:none;border-color:#ccc}
+    table{min-width:0}
+    .cell textarea{min-height:0;height:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Lịch biểu hàng ngày
+      <span>Bấm vào ô bất kỳ để sửa — nội dung tự lưu trên máy bạn.</span>
+    </h1>
+    <div class="toolbar">
+      <button id="btnToday" class="primary">Hôm nay</button>
+      <button id="btnExport" class="ghost">Xuất JSON</button>
+      <button id="btnImport" class="ghost">Nhập JSON</button>
+      <button id="btnPrint" class="ghost">In / PDF</button>
+      <button id="btnClear" class="ghost danger">Xoá tuần này</button>
+      <input type="file" id="fileInput" accept="application/json" class="sr">
+    </div>
+  </header>
+
+  <div class="weekbar">
+    <div class="nav">
+      <button id="btnPrev" title="Tuần trước">‹ Tuần trước</button>
+      <button id="btnNext" title="Tuần sau">Tuần sau ›</button>
+    </div>
+    <div class="range" id="weekRange"></div>
+    <div class="hint" id="weekHint"></div>
+    <div class="dot-saved" id="savedFlag"><i></i><span>Đã lưu</span></div>
+  </div>
+
+  <div class="card table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Sáng</th>
+          <th>Trưa</th>
+          <th>Chiều</th>
+          <th>Tối</th>
+          <th>Notes</th>
+          <th>Special Note</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <section class="routine">
+    <div class="card">
+      <h2>Thời gian biểu trong ngày</h2>
+      <p class="sub">Xem nhanh — cập nhật ở ô bên cạnh.</p>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+    <div class="card">
+      <h2>Sửa thời gian biểu</h2>
+      <p class="sub">Mỗi dòng một mốc, dạng <code>giờ: việc cần làm</code>.</p>
+      <textarea id="routineText" spellcheck="false"></textarea>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Dữ liệu lưu trong <code>localStorage</code> của trình duyệt này.
+    Dùng <b>Xuất JSON</b> để sao lưu hoặc chuyển sang máy khác.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORE_KEY = "lichbieu.v1";
+  var FIELDS = ["sang","trua","chieu","toi","notes","special"];
+  var DAY_NAMES = ["Chủ Nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+
+  var DEFAULT_ROUTINE = [
+    "7:15 - 7:30: chuẩn bị đồ ăn sáng",
+    "7:30 - 8:00: ăn sáng",
+    "8:00 - 8:45: chơi, ăn trái cây, phô mai nếu có",
+    "9:30: Ngủ giấc 1",
+    "11:00: thức dậy",
+    "11:30: ăn trưa",
+    "12:30: tắm, chơi, ăn trái cây",
+    "13:30: Ngủ giấc 2",
+    "15:00: Dậy, chơi",
+    "16:00: ăn chiều",
+    "17:00: tắm"
+  ].join("\n");
+
+  // Tuần khởi tạo sẵn: 10/8/2026 - 16/8/2026
+  var SEED_DAYS = {
+    "2026-08-11": { chieu:"C-Phuong", toi:"C-Phuong", special:"Chị Phường chiều 4-5h vô tới Sài Gòn" },
+    "2026-08-12": { chieu:"Trứng luộc" },
+    "2026-08-14": { chieu:"C-Phuong" }
+  };
+
+  /* ---------- helpers ---------- */
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+
+  function isoOf(d){
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function parseIso(s){
+    var p = s.split("-");
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+
+  function addDays(d, n){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() + n);
+    return x;
+  }
+
+  // Thứ 2 của tuần chứa ngày d
+  function mondayOf(d){
+    var wd = d.getDay();              // 0 = CN
+    var back = wd === 0 ? 6 : wd - 1; // CN lùi 6 ngày
+    return addDays(d, -back);
+  }
+
+  function fmtVN(d){
+    return d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+  }
+
+  function today(){
+    var n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+
+  /* ---------- state ---------- */
+
+  var state = load();
+  var anchor = mondayOf(today()); // thứ 2 của tuần đang xem
+
+  function load(){
+    var raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { raw = null; }
+    if (raw) {
+      try {
+        var parsed = JSON.parse(raw);
+        return {
+          days: parsed.days && typeof parsed.days === "object" ? parsed.days : {},
+          routine: typeof parsed.routine === "string" ? parsed.routine : DEFAULT_ROUTINE
+        };
+      } catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
+    }
+    var days = {};
+    for (var k in SEED_DAYS) {
+      if (Object.prototype.hasOwnProperty.call(SEED_DAYS, k)) days[k] = SEED_DAYS[k];
+    }
+    return { days: days, routine: DEFAULT_ROUTINE };
+  }
+
+  var saveTimer = null;
+  function save(){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { return; }
+    flashSaved();
+  }
+  function saveSoon(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 350);
+  }
+
+  var flagEl, flagTimer = null;
+  function flashSaved(){
+    if (!flagEl) return;
+    flagEl.classList.add("on");
+    clearTimeout(flagTimer);
+    flagTimer = setTimeout(function(){ flagEl.classList.remove("on"); }, 1200);
+  }
+
+  function dayData(iso){
+    if (!state.days[iso]) state.days[iso] = {};
+    return state.days[iso];
+  }
+
+  // Bỏ những ngày rỗng để dữ liệu gọn
+  function prune(iso){
+    var d = state.days[iso];
+    if (!d) return;
+    for (var i = 0; i < FIELDS.length; i++) {
+      if ((d[FIELDS[i]] || "").trim() !== "") return;
+    }
+    delete state.days[iso];
+  }
+
+  /* ---------- render ---------- */
+
+  var tbody = document.getElementById("tbody");
+
+  function autoGrow(ta){
+    ta.style.height = "auto";
+    ta.style.height = Math.max(52, ta.scrollHeight) + "px";
+  }
+
+  function renderWeek(){
+    var todayIso = isoOf(today());
+    tbody.textContent = "";
+
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(anchor, i);
+      var iso = isoOf(d);
+      var data = state.days[iso] || {};
+
+      var tr = document.createElement("tr");
+      if (iso === todayIso) tr.className = "today";
+      else if (d.getDay() === 0 || d.getDay() === 6) tr.className = "weekend";
+
+      var tdDay = document.createElement("td");
+      tdDay.className = "day";
+      var b = document.createElement("b");
+      b.textContent = DAY_NAMES[d.getDay()];
+      var small = document.createElement("small");
+      small.textContent = fmtVN(d);
+      tdDay.appendChild(b);
+      tdDay.appendChild(small);
+      if (iso === todayIso) {
+        var badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = "Hôm nay";
+        tdDay.appendChild(document.createElement("br"));
+        tdDay.appendChild(badge);
+      }
+      tr.appendChild(tdDay);
+
+      for (var f = 0; f < FIELDS.length; f++) {
+        var field = FIELDS[f];
+        var td = document.createElement("td");
+        td.className = "cell";
+        var ta = document.createElement("textarea");
+        ta.value = data[field] || "";
+        ta.rows = 1;
+        ta.setAttribute("aria-label", DAY_NAMES[d.getDay()] + " " + fmtVN(d) + " — " + field);
+        ta.dataset.iso = iso;
+        ta.dataset.field = field;
+        td.appendChild(ta);
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    }
+
+    // chiều cao ban đầu (sau khi đã gắn vào DOM)
+    var areas = tbody.querySelectorAll("textarea");
+    for (var j = 0; j < areas.length; j++) autoGrow(areas[j]);
+
+    var last = addDays(anchor, 6);
+    document.getElementById("weekRange").textContent =
+      "Tuần " + fmtVN(anchor) + " – " + fmtVN(last);
+
+    var diff = Math.round((anchor - mondayOf(today())) / 86400000 / 7);
+    var hint = diff === 0 ? "Tuần hiện tại"
+             : diff === 1 ? "Tuần sau"
+             : diff === -1 ? "Tuần trước"
+             : (diff > 0 ? diff + " tuần nữa" : Math.abs(diff) + " tuần trước");
+    document.getElementById("weekHint").textContent = hint;
+  }
+
+  // Ghi dữ liệu khi gõ (event delegation)
+  tbody.addEventListener("input", function(ev){
+    var ta = ev.target;
+    if (ta.tagName !== "TEXTAREA") return;
+    autoGrow(ta);
+    var iso = ta.dataset.iso;
+    dayData(iso)[ta.dataset.field] = ta.value;
+    prune(iso);
+    saveSoon();
+  });
+
+  // Enter = xuống dòng, Ctrl/Cmd+Enter = nhảy sang ô kế
+  tbody.addEventListener("keydown", function(ev){
+    if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) {
+      ev.preventDefault();
+      var areas = Array.prototype.slice.call(tbody.querySelectorAll("textarea"));
+      var i = areas.indexOf(ev.target);
+      if (i > -1 && i + 1 < areas.length) areas[i + 1].focus();
+    }
+  });
+
+  /* ---------- routine ---------- */
+
+  var routineText = document.getElementById("routineText");
+  var timeline = document.getElementById("timeline");
+
+  function renderTimeline(){
+    timeline.textContent = "";
+    var lines = state.routine.split("\n");
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var li = document.createElement("li");
+      // "7:15 - 7:30: việc" hoặc "9:30: việc" (chấp nhận cả 7h30)
+      var m = line.match(/^(\d{1,2}[:h]\d{0,2}(?:\s*[-–—]\s*\d{1,2}[:h]\d{0,2})?)\s*[:\-–—]?\s*(.*)$/);
+      if (m && !m[2]) m = null; // chỉ có giờ, không có mô tả
+      var t = document.createElement("span");
+      t.className = "t";
+      var d = document.createElement("span");
+      d.className = "d";
+      if (m) {
+        t.textContent = m[1].trim();
+        d.textContent = m[2].trim();
+      } else {
+        li.className = "empty";
+        t.textContent = "•";
+        d.textContent = line;
+      }
+      li.appendChild(t);
+      li.appendChild(d);
+      timeline.appendChild(li);
+    }
+  }
+
+  routineText.addEventListener("input", function(){
+    state.routine = routineText.value;
+    renderTimeline();
+    saveSoon();
+  });
+
+  /* ---------- toolbar ---------- */
+
+  document.getElementById("btnPrev").addEventListener("click", function(){
+    anchor = addDays(anchor, -7);
+    renderWeek();
+  });
+  document.getElementById("btnNext").addEventListener("click", function(){
+    anchor = addDays(anchor, 7);
+    renderWeek();
+  });
+  document.getElementById("btnToday").addEventListener("click", function(){
+    anchor = mondayOf(today());
+    renderWeek();
+  });
+  document.getElementById("btnPrint").addEventListener("click", function(){
+    window.print();
+  });
+
+  document.getElementById("btnClear").addEventListener("click", function(){
+    var last = addDays(anchor, 6);
+    if (!confirm("Xoá toàn bộ nội dung tuần " + fmtVN(anchor) + " – " + fmtVN(last) + "?")) return;
+    for (var i = 0; i < 7; i++) delete state.days[isoOf(addDays(anchor, i))];
+    save();
+    renderWeek();
+  });
+
+  document.getElementById("btnExport").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "lich-bieu-" + isoOf(today()) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+  });
+
+  var fileInput = document.getElementById("fileInput");
+  document.getElementById("btnImport").addEventListener("click", function(){
+    fileInput.click();
+  });
+  fileInput.addEventListener("change", function(){
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var parsed;
+      try { parsed = JSON.parse(String(reader.result)); }
+      catch (e) { alert("File JSON không hợp lệ."); return; }
+      if (!parsed || typeof parsed !== "object" || typeof parsed.days !== "object") {
+        alert("File không đúng định dạng lịch biểu.");
+        return;
+      }
+      if (!confirm("Nhập dữ liệu này và ghi đè lịch hiện tại?")) return;
+      state.days = parsed.days || {};
+      if (typeof parsed.routine === "string") state.routine = parsed.routine;
+      routineText.value = state.routine;
+      save();
+      renderWeek();
+      renderTimeline();
+    };
+    reader.readAsText(file);
+    fileInput.value = "";
+  });
+
+  /* ---------- start ---------- */
+
+  flagEl = document.getElementById("savedFlag");
+  routineText.value = state.routine;
+  renderWeek();
+  renderTimeline();
+
+  // Sang ngày mới thì tự tô lại "Hôm nay"
+  var shownDay = isoOf(today());
+  setInterval(function(){
+    var now = isoOf(today());
+    if (now !== shownDay) {
+      shownDay = now;
+      anchor = mondayOf(today());
+      renderWeek();
+    }
+  }, 60000);
+})();
+</script>
+</body>
+</html>
