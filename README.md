@@ -101,7 +101,12 @@ Một tuần đầy đủ ra link chừng 600 ký tự.
 
 Người nhận mở link sẽ thấy băng báo *đây là lịch người khác gửi*, xem thử được ngay,
 và tự chọn **Lưu vào máy này** hay **Bỏ, giữ lịch cũ của tôi** — lịch sẵn có của họ
-không bị ghi đè khi chưa đồng ý.
+không bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xuống máy đều bị
+chặn, kể cả lần lưu tự động khi rời trang.
+
+Mỗi lần ghi đè lớn (nhận lịch từ link, nhập JSON, nối vào sheet đã có dữ liệu) đều cất
+bản cũ lại. Link **Khôi phục lịch trước đó** ở cuối trang đổi qua đổi lại giữa hai bản,
+nên bấm nhầm vẫn lấy lại được.
 
 Điểm yếu: link chụp lại lịch ở thời điểm gửi, sửa xong muốn người kia thấy thì gửi
 link mới. Muốn hai bên tự thấy của nhau thì dùng cách dưới đây.
