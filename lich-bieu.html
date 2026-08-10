@@ -377,7 +377,7 @@
   <p class="notice got" id="gotShared" hidden>
     <b>Đây là lịch người khác gửi cho bạn.</b>
     <span id="gotInfo"></span>
-    Bạn đang xem thử, chưa có gì được lưu.
+    Bạn đang xem thử: lịch trên máy bạn chưa bị đụng tới, và sửa lúc này cũng không được giữ.
     <button type="button" class="linkish" id="gotKeep">Lưu vào máy này</button> ·
     <button type="button" class="linkish" id="gotDrop">Bỏ, giữ lịch cũ của tôi</button>
   </p>
@@ -469,6 +469,9 @@
   <footer class="foot">
     Dữ liệu lưu trong <code>localStorage</code> của trình duyệt này.
     Dùng <b>Xuất JSON</b> để sao lưu hoặc chuyển sang máy khác.
+    <span id="restoreWrap" hidden>
+      · <button type="button" class="linkish" id="btnRestore">Khôi phục lịch trước đó</button>
+    </span>
   </footer>
 </div>
 
@@ -477,6 +480,7 @@
   "use strict";
 
   var STORE_KEY = "lichbieu.v1";
+  var BACKUP_KEY = "lichbieu.v1.truoc";
   var FIELDS = ["sang","trua","chieu","toi","notes","special"];
   var ASSIGNABLE = ["sang","trua","chieu","toi"]; // buổi nào cũng gán được người làm
   var DAY_NAMES = ["Chủ Nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
@@ -626,8 +630,20 @@
 
   var saveTimer = null;
   function save(){
+    // Đang xem thử lịch người khác gửi thì tuyệt đối không được ghi đè lịch
+    // đang có trên máy. Chỉ ghi khi người dùng bấm "Lưu vào máy này".
+    if (incoming) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { return; }
     flashSaved();
+  }
+
+  // Giữ lại bản ngay trước mỗi lần ghi đè lớn, để còn đường lùi
+  function backupNow(){
+    try {
+      var cur = localStorage.getItem(STORE_KEY);
+      if (cur) localStorage.setItem(BACKUP_KEY, cur);
+    } catch (e) { /* chế độ riêng tư */ }
+    showRestore();
   }
   function saveSoon(){
     clearTimeout(saveTimer);
@@ -1134,6 +1150,7 @@
         return;
       }
       if (!confirm("Nhập dữ liệu này và ghi đè lịch hiện tại?")) return;
+      backupNow();
       state.days = parsed.days || {};
       if (typeof parsed.routine === "string") state.routine = parsed.routine;
       if (Array.isArray(parsed.people)) state.people = parsed.people;
@@ -1149,6 +1166,43 @@
     };
     reader.readAsText(file);
     fileInput.value = "";
+  });
+
+  /* ---------- khôi phục bản trước ---------- */
+
+  function showRestore(){
+    var wrap = document.getElementById("restoreWrap");
+    var has = false;
+    try { has = !!localStorage.getItem(BACKUP_KEY); } catch (e) { has = false; }
+    wrap.hidden = !has;
+  }
+
+  document.getElementById("btnRestore").addEventListener("click", function(){
+    var raw = null;
+    try { raw = localStorage.getItem(BACKUP_KEY); } catch (e) { raw = null; }
+    if (!raw) { showRestore(); return; }
+
+    var back;
+    try { back = JSON.parse(raw); } catch (e) { alert("Bản lưu trước đã hỏng, không đọc được."); return; }
+    var soNgay = back.days ? Object.keys(back.days).length : 0;
+    if (!confirm("Quay lại bản lịch trước lần ghi đè gần nhất (" + soNgay + " ngày có nội dung)?\n" +
+                 "Lịch đang hiện sẽ được cất đi, bấm lần nữa là đổi ngược lại.")) return;
+
+    var dangCo = null;
+    try { dangCo = localStorage.getItem(STORE_KEY); } catch (e) { dangCo = null; }
+
+    state.days = back.days || {};
+    state.routine = typeof back.routine === "string" ? back.routine : DEFAULT_ROUTINE;
+    state.people = Array.isArray(back.people) ? back.people : DEFAULT_PEOPLE.slice();
+    state.touched = back.touched === true;
+    routineText.value = state.routine;
+    peopleText.value = state.people.join("\n");
+    save();
+
+    // đổi chỗ hai bản, để bấm lần nữa là quay lại được
+    try { if (dangCo) localStorage.setItem(BACKUP_KEY, dangCo); } catch (e) { /* bỏ qua */ }
+    renderAll();
+    showRestore();
   });
 
   /* ---------- gửi lịch bằng đường link ---------- */
@@ -1303,13 +1357,14 @@
   window.addEventListener("hashchange", readIncoming);
 
   document.getElementById("gotKeep").addEventListener("click", function(){
+    backupNow();          // cất lịch cũ đi đã, lỡ bấm nhầm còn lấy lại được
+    incoming = null;      // bỏ cờ xem thử thì save() mới chịu ghi
     save();
     for (var iso in state.days) {
       if (state.days.hasOwnProperty(iso)) markDay(iso);
     }
     markRoutine();
     markPeople();
-    incoming = null;
     gotShared.hidden = true;
     history.replaceState(null, "", location.href.split("#")[0]);
   });
@@ -1423,9 +1478,19 @@
 
   // touched: người dùng đã tự sửa gì chưa, hay vẫn là mấy dòng điền sẵn.
   // Cần biết để lúc nối vào sheet đã có dữ liệu thì không đè bừa lên.
-  function markDay(iso){ state.touched = true; pendingDays[iso] = true; pushSoon(); }
-  function markRoutine(){ state.touched = true; pendingRoutine = true; pushSoon(); }
-  function markPeople(){ state.touched = true; pendingPeople = true; pushSoon(); }
+  // Xem thử thì cũng không được đẩy nội dung đó lên sheet chung
+  function markDay(iso){
+    if (incoming) return;
+    state.touched = true; pendingDays[iso] = true; pushSoon();
+  }
+  function markRoutine(){
+    if (incoming) return;
+    state.touched = true; pendingRoutine = true; pushSoon();
+  }
+  function markPeople(){
+    if (incoming) return;
+    state.touched = true; pendingPeople = true; pushSoon();
+  }
 
   function pushSoon(){
     if (!syncUrl) return;
@@ -1654,6 +1719,7 @@
       // Chỉ giữ thêm những ngày máy này có mà sheet chưa có, và chỉ khi người
       // dùng thực sự đã sửa gì chứ không phải mấy dòng điền sẵn.
       var mine = state.touched ? state.days : {};
+      backupNow();
       applyRemote(remote.state);
       rev = remote.rev;
       var added = false;
@@ -1770,6 +1836,7 @@
   routineText.value = state.routine;
   peopleText.value = state.people.join("\n");
   markNotify();
+  showRestore();
   renderAll();
   readIncoming();
   startSync();
