@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hướng dẫn dùng chung lịch Bé Na</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --panel:#ffffff;
+    --ink:#1d2433;
+    --muted:#6b7488;
+    --line:#e2e6ef;
+    --accent:#2f6df6;
+    --accent-soft:#e8effe;
+    --warn:#fff7e0;
+    --warn-line:#f2c14e;
+    --warn-ink:#5c4708;
+    --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12151c;
+      --panel:#191d26;
+      --ink:#e8ebf2;
+      --muted:#98a1b4;
+      --line:#2a3040;
+      --accent:#6f9bff;
+      --accent-soft:#1e2637;
+      --warn:#2c2718;
+      --warn-line:#7d6520;
+      --warn-ink:#f0d795;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12151c;
+    --panel:#191d26;
+    --ink:#e8ebf2;
+    --muted:#98a1b4;
+    --line:#2a3040;
+    --accent:#6f9bff;
+    --accent-soft:#1e2637;
+    --warn:#2c2718;
+    --warn-line:#7d6520;
+    --warn-ink:#f0d795;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 70px}
+
+  h1{font-size:26px;line-height:1.25;margin:0 0 6px;letter-spacing:-.015em;text-wrap:balance}
+  .lede{color:var(--muted);margin:0 0 8px}
+  .meta{color:var(--muted);font-size:14px;margin:0 0 26px}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+  ol.steps > li{
+    counter-increment:s;position:relative;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px 16px 60px;
+  }
+  ol.steps > li::before{
+    content:counter(s);
+    position:absolute;left:16px;top:16px;
+    width:28px;height:28px;border-radius:50%;
+    background:var(--accent);color:#fff;
+    font-size:14px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  ol.steps h2{font-size:17px;margin:0 0 6px;line-height:1.35}
+  ol.steps p{margin:0 0 8px}
+  ol.steps p:last-child{margin-bottom:0}
+  ol.steps ul{margin:8px 0 0;padding-left:20px}
+  ol.steps li li{margin-bottom:4px}
+
+  b.ui{
+    background:var(--accent-soft);color:var(--accent);
+    padding:1px 7px;border-radius:6px;font-size:14px;font-weight:600;
+    white-space:nowrap;
+  }
+  code{
+    background:var(--accent-soft);padding:1px 6px;border-radius:6px;
+    font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    word-break:break-all;
+  }
+  a{color:var(--accent)}
+
+  .warn{
+    background:var(--warn);border:1px solid var(--warn-line);color:var(--warn-ink);
+    border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:15px;
+  }
+  .warn b{color:inherit}
+
+  .check{
+    background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:10px;padding:10px 14px;margin:10px 0 0;font-size:15px;
+  }
+
+  h2.sec{font-size:19px;margin:34px 0 12px}
+  table{border-collapse:collapse;width:100%;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px}
+  th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  .scroll{overflow-x:auto}
+
+  footer{margin-top:34px;color:var(--muted);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Cho cả nhà cùng nhìn một lịch</h1>
+  <p class="lede">Nối trang lịch Bé Na với một Google Sheet của bạn. Làm một lần, khoảng 5 phút.</p>
+  <p class="meta">Nên làm trên máy tính. Xong rồi thì điện thoại chỉ cần dán một đường link.</p>
+
+  <ol class="steps">
+
+    <li>
+      <h2>Tạo một bảng tính trống</h2>
+      <p>Mở <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a>. Google tạo ngay một bảng tính mới.</p>
+      <p>Đặt tên cho dễ tìm, ví dụ <em>Lịch Bé Na</em>. Không cần gõ gì vào bảng — trang web sẽ tự điền.</p>
+    </li>
+
+    <li>
+      <h2>Mở Apps Script</h2>
+      <p>Trên thanh menu của bảng tính, chọn <b class="ui">Tiện ích mở rộng</b> → <b class="ui">Apps Script</b>.</p>
+      <p>Một tab mới mở ra, trong đó có sẵn mấy dòng chữ <code>function myFunction() {}</code>.</p>
+    </li>
+
+    <li>
+      <h2>Dán đoạn mã vào</h2>
+      <p>Mở <a href="https://raw.githubusercontent.com/nguyenthanhitvn87-source/nguyenthanh/main/dong-bo-google-sheet.gs" target="_blank" rel="noopener">đoạn mã ở đây</a>, bôi đen toàn bộ và sao chép.</p>
+      <p>Quay lại tab Apps Script: bấm vào vùng mã, nhấn <b class="ui">Ctrl + A</b> để chọn hết, xoá đi, rồi dán đoạn vừa chép vào.</p>
+      <p>Nhấn <b class="ui">Ctrl + S</b> để lưu.</p>
+    </li>
+
+    <li>
+      <h2>Triển khai thành ứng dụng web</h2>
+      <p>Góc trên bên phải, bấm <b class="ui">Triển khai</b> → <b class="ui">Bản triển khai mới</b>.</p>
+      <p>Bấm biểu tượng bánh răng cạnh chữ <em>Chọn loại</em>, chọn <b class="ui">Ứng dụng web</b>.</p>
+      <p>Rồi đặt đúng hai ô này:</p>
+      <ul>
+        <li><em>Thực thi với tư cách</em>: <b class="ui">Tôi</b></li>
+        <li><em>Người có quyền truy cập</em>: <b class="ui">Bất kỳ ai</b></li>
+      </ul>
+      <div class="warn">
+        <b>Chỗ hay sai nhất.</b> Ô thứ hai phải là <em>Bất kỳ ai</em>, không phải
+        <em>Bất kỳ ai có Tài khoản Google</em>. Chọn nhầm thì trang lịch sẽ báo
+        “Mất kết nối”.
+      </div>
+      <p style="margin-top:10px">Bấm <b class="ui">Triển khai</b>.</p>
+    </li>
+
+    <li>
+      <h2>Cho phép quyền</h2>
+      <p>Google sẽ hỏi quyền truy cập. Bấm <b class="ui">Cho phép quyền truy cập</b>, chọn tài khoản Google của bạn.</p>
+      <p>Nếu hiện màn hình <em>“Google chưa xác minh ứng dụng này”</em>: bấm <b class="ui">Nâng cao</b> ở góc dưới bên trái, rồi bấm dòng <em>“Chuyển đến … (không an toàn)”</em>, rồi <b class="ui">Cho phép</b>.</p>
+      <div class="warn">
+        Cảnh báo đó chỉ vì đoạn mã do bạn tự dán vào chứ chưa qua kiểm duyệt của Google.
+        Nó chạy trong tài khoản của bạn và chỉ đụng vào đúng bảng tính này.
+      </div>
+    </li>
+
+    <li>
+      <h2>Sao chép đường link</h2>
+      <p>Sau khi triển khai xong, Google hiện một ô <b class="ui">URL ứng dụng web</b>. Bấm <em>Sao chép</em>.</p>
+      <p>Link có dạng <code>https://script.google.com/macros/s/…/exec</code> — phải kết thúc bằng <code>/exec</code>.</p>
+      <div class="check">
+        <b>Thử ngay cho chắc.</b> Dán link đó vào thanh địa chỉ trình duyệt rồi Enter.
+        Thấy một dòng chữ kiểu <code>{"rev":0,"state":{…}}</code> là đúng.
+        Thấy trang báo lỗi thì quay lại bước 4 kiểm tra ô <em>Người có quyền truy cập</em>.
+      </div>
+    </li>
+
+    <li>
+      <h2>Nối trang lịch vào</h2>
+      <p>Mở <a href="https://nguyenthanhitvn87-source.github.io/nguyenthanh/lich-bieu.html" target="_blank" rel="noopener">trang lịch Bé Na</a>, bấm nút <b class="ui">🔗 Dùng chung</b> trên cùng.</p>
+      <p>Dán link vừa chép vào ô hiện ra, bấm OK.</p>
+      <p>Dòng chữ vàng “chỉ nằm trên máy bạn” biến mất, thay bằng một chấm xanh <b class="ui">Đã đồng bộ</b>. Mở lại bảng tính Google sẽ thấy ba trang tính mới: <em>Lịch</em>, <em>Thời gian biểu</em>, <em>Người làm</em>.</p>
+    </li>
+
+    <li>
+      <h2>Đưa cho người khác</h2>
+      <p>Gửi cho vợ/chồng, bà, chị Phường <strong>hai thứ</strong>: đường link trang lịch, và cái link <code>/exec</code> ở bước 6.</p>
+      <p>Mỗi người mở trang lịch, bấm <b class="ui">🔗 Dùng chung</b>, dán đúng link <code>/exec</code> đó vào. Xong.</p>
+      <p>Từ giờ ai sửa gì, khoảng 10 giây sau máy người khác thấy.</p>
+    </li>
+
+  </ol>
+
+  <h2 class="sec">Nếu gặp trục trặc</h2>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Hiện tượng</th><th>Cách xử lý</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Báo <em>Mất kết nối</em></td>
+          <td>Gần như chắc chắn là ô <em>Người có quyền truy cập</em> ở bước 4 đang để <em>Bất kỳ ai có Tài khoản Google</em>. Vào lại <b class="ui">Triển khai</b> → <b class="ui">Quản lý các bản triển khai</b>, bấm bút chì để sửa, đổi thành <em>Bất kỳ ai</em>, bấm <b class="ui">Triển khai</b>.</td>
+        </tr>
+        <tr>
+          <td>Link kết thúc bằng <code>/dev</code></td>
+          <td>Đó là link thử nghiệm, chỉ mình bạn dùng được. Lấy lại link <code>/exec</code> trong <b class="ui">Quản lý các bản triển khai</b>.</td>
+        </tr>
+        <tr>
+          <td>Máy kia vẫn thấy lịch trống</td>
+          <td>Máy đó chưa dán link, hoặc dán nhầm link khác. Bấm <b class="ui">🔗 Dùng chung</b> trên máy đó xem ô hiện ra đang chứa link nào.</td>
+        </tr>
+        <tr>
+          <td>Sửa xong lâu không thấy bên kia</td>
+          <td>Chờ khoảng 10 giây rồi nhìn chấm trạng thái cạnh chữ <em>Đã lưu</em>. Xanh là xong, đỏ là mạng đang trục trặc.</td>
+        </tr>
+        <tr>
+          <td>Muốn thôi không dùng chung nữa</td>
+          <td>Bấm <b class="ui">🔗 Dùng chung</b>, xoá trống ô rồi bấm OK. Lịch quay về lưu riêng trên máy đó.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="sec">Vài điều nên biết</h2>
+  <div class="scroll">
+    <table>
+      <tbody>
+        <tr>
+          <td><b>Ai có link đều sửa được</b></td>
+          <td>Không cần đăng nhập. Chỉ gửi link <code>/exec</code> cho người trong nhà.</td>
+        </tr>
+        <tr>
+          <td><b>Dữ liệu là của bạn</b></td>
+          <td>Nằm trong bảng tính Google của bạn, mở ra xem hay sửa tay đều được.</td>
+        </tr>
+        <tr>
+          <td><b>Mất mạng vẫn gõ được</b></td>
+          <td>Nội dung nằm trong máy trước, có mạng lại thì tự gửi lên.</td>
+        </tr>
+        <tr>
+          <td><b>Đang gõ dở không bị giật</b></td>
+          <td>Người khác sửa cùng lúc cũng không cướp mất ô bạn đang gõ.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Vướng ở bước nào thì chụp màn hình bước đó rồi hỏi lại.</footer>
+</div>
+</body>
+</html>
