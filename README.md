@@ -61,8 +61,16 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 - Bảng theo tuần: **Ngày · Sáng · Trưa · Chiều · Tối · Notes · Special Note**.
 - Bấm thẳng vào ô để sửa, nội dung **tự lưu** vào `localStorage` (không cần nút Lưu).
 - Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
+- **Người làm cho từng buổi**: mỗi ô Sáng/Trưa/Chiều/Tối có ô chọn người phụ trách.
+  Mỗi người một màu riêng, lấy theo thứ tự trong danh sách nên các màu cách xa nhau.
+  Danh sách người sửa ở khung **Người làm**; ai đã bị xoá khỏi danh sách nhưng còn được
+  gán ở đâu đó thì vẫn giữ nguyên, không mất dữ liệu.
 - **Thời gian biểu trong ngày của Bé Na** hiển thị dạng timeline, sửa được ở ô văn bản bên cạnh
-  (mỗi dòng một mốc, dạng `giờ: việc cần làm`, chấp nhận cả `7h30 - 8h00:`).
+  (mỗi dòng một mốc, dạng `giờ: việc cần làm | người làm`, chấp nhận cả `7h30 - 8h00:`).
+  Mốc đang tới giờ được tô sáng, các mốc đã qua thì mờ đi.
+- **Nhắc giờ**: bật nút 🔔 để trình duyệt báo mỗi khi tới một mốc trong thời gian biểu,
+  kèm tên người làm. Chỉ nhắc trong vòng 5 phút kể từ mốc nên mở trang muộn không bị dội
+  thông báo cũ, và mỗi mốc chỉ nhắc một lần trong ngày.
 - **Xuất / Nhập JSON** để sao lưu hoặc chuyển sang máy khác, và **In / PDF**.
 - Tự đổi màu theo giao diện sáng/tối của hệ thống, dùng được trên điện thoại.
 
@@ -77,3 +85,10 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 
 Dữ liệu nằm trong trình duyệt đang dùng — xoá dữ liệu duyệt web hoặc đổi máy sẽ mất.
 Nhớ bấm **Xuất JSON** khi cần sao lưu.
+
+**Chưa dùng chung được giữa nhiều người.** Mỗi thiết bị giữ bản riêng, sửa ở máy này
+máy kia không thấy. Muốn nhiều người cùng nhìn một lịch thì cần thêm nơi lưu chung
+(máy chủ hoặc dịch vụ lưu trữ), chưa có trong bản này.
+
+Nhắc giờ chỉ chạy khi trang đang mở trong trình duyệt. Trên iPhone, Safari chỉ hiện
+thông báo khi trang đã được **Thêm vào màn hình chính**.
