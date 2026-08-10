@@ -113,8 +113,19 @@ link mới. Muốn hai bên tự thấy của nhau thì dùng cách dưới đâ
 
 ## Dùng chung cho cả nhà
 
-Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng sửa và ai cũng nhìn thấy
-thì nối trang với một Google Sheet của bạn — làm một lần, mất chừng 5 phút.
+Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng sửa, ai cũng thấy — kể cả
+những gì người trước đã nhập — thì nối tất cả các máy vào một kho chung. Có hai kho
+dùng được, chọn một:
+
+**Firebase (khuyến nghị, không phải dán mã).** Tạo project trên
+[console.firebase.google.com](https://console.firebase.google.com), tạo Realtime
+Database ở chế độ test mode, sửa hai dòng `.read`/`.write` trong thẻ Rules thành `true`,
+rồi chép địa chỉ kho dán vào nút **🔗 Dùng chung**. Toàn bấm nút, khoảng 4 phút. Trang
+đọc ghi thẳng vào kho qua REST nên không cần máy chủ trung gian; ghi nhiều chỗ một lần
+bằng `PATCH` với đường dẫn làm khoá, và `rev` lấy dấu thời gian của máy chủ.
+
+**Google Sheet.** Chỉ nên chọn nếu bạn muốn dữ liệu nằm trong một bảng tính mở ra xem
+được. Phải dán một đoạn mã vào Apps Script — làm một lần, mất chừng 5 phút.
 
 Mở [`huong-dan-dung-chung.html`](huong-dan-dung-chung.html) để vừa xem vừa làm theo,
 có cả phần xử lý mấy chỗ hay vướng. Nối không được thì mở

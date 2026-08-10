@@ -436,7 +436,8 @@
       <p class="sub">
         Dán <b>mã lịch chung</b> mà người trong nhà gửi cho bạn. Chưa ai có mã thì
         <a href="huong-dan-dung-chung.html" target="_blank" rel="noopener">xem hướng dẫn tạo</a>
-        — dán địa chỉ Web app vào đây cũng được.
+        — cách Firebase không phải dán đoạn mã nào. Địa chỉ kho Firebase hay địa chỉ
+        Web app của Google Sheet, dán vào đây đều nhận.
       </p>
       <input type="text" id="syncInput" autocomplete="off" spellcheck="false"
              placeholder="Mã lịch chung, hoặc địa chỉ https://script.google.com/…/exec"
@@ -1539,13 +1540,77 @@
     });
   }
 
+  /* Cách thứ ba: Firebase. Người dùng không phải dán đoạn mã nào, chỉ bấm tạo
+     kho trên web của Google rồi chép địa chỉ về. Firebase nhận thẳng lệnh đọc
+     ghi qua địa chỉ nên không cần máy chủ trung gian. */
+
+  function laFirebase(url){
+    return /firebasedatabase\.app|firebaseio\.com/i.test(url);
+  }
+
+  function goc(url){
+    return url.replace(/\/+$/, "").replace(/\.json.*$/, "");
+  }
+
+  function fbLoi(res){
+    if (res.status === 401 || res.status === 403) {
+      var e = new Error("Firebase từ chối: kho đang khoá, phải mở quyền đọc ghi trong mục Rules");
+      e.quyen = true;
+      throw e;
+    }
+    if (!res.ok) throw new Error("Firebase trả về mã " + res.status);
+    return res.json();
+  }
+
+  function fbRead(url){
+    return fetch(goc(url) + "/chambena.json?t=" + Date.now())
+      .then(fbLoi)
+      .then(function(o){
+        o = o || {};
+        return {
+          rev: o.rev || 0,
+          state: {
+            days: o.days || {},
+            routine: typeof o.routine === "string" ? o.routine : "",
+            people: o.people || []
+          }
+        };
+      });
+  }
+
+  function fbWrite(url, patch){
+    // Firebase ghi nhiều chỗ một lần bằng cách lấy đường dẫn làm khoá
+    var body = {};
+    if (patch.days) {
+      for (var iso in patch.days) {
+        if (patch.days.hasOwnProperty(iso)) {
+          var d = patch.days[iso];
+          body["days/" + iso] = (d && Object.keys(d).length) ? d : null;
+        }
+      }
+    }
+    if (patch.routine !== undefined) body.routine = patch.routine;
+    if (patch.people !== undefined) body.people = patch.people;
+    body.rev = { ".sv": "timestamp" };
+
+    return fetch(goc(url) + "/chambena.json", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }).then(fbLoi).then(function(){
+      return { ok: true, rev: Date.now() };
+    });
+  }
+
   function askRead(url, cach){
+    if (cach === "firebase") return fbRead(url);
     if (cach === "vong") return jsonp(url, { t: Date.now() });
     return fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
       .then(function(res){ return res.json(); });
   }
 
   function askWrite(url, cach, patch){
+    if (cach === "firebase") return fbWrite(url, patch);
     if (cach === "vong") return jsonp(url, { patch: JSON.stringify(patch), t: Date.now() });
     return fetch(url, {
       method: "POST",
@@ -1791,12 +1856,17 @@
      lập thêm dịch vụ nào để cấp phát. */
 
   function codeFromUrl(url){
+    if (laFirebase(url)) return goc(url);      // Firebase: chính địa chỉ kho là mã
     var m = /\/macros\/s\/([^/]+)\/exec/.exec(url);
     return m ? m[1] : url;
   }
 
   function urlFromCode(txt){
     if (/^https?:\/\//i.test(txt)) return txt;
+    // dán tên kho Firebase trần cũng nhận
+    if (/^[a-z0-9-]+-default-rtdb(\.[a-z0-9-]+)?$/i.test(txt)) {
+      return "https://" + txt + ".firebasedatabase.app";
+    }
     if (/^[A-Za-z0-9_-]{20,}$/.test(txt)) {
       return "https://script.google.com/macros/s/" + txt + "/exec";
     }
@@ -1806,7 +1876,7 @@
   function showCode(url){
     var wrap = document.getElementById("codeWrap");
     var code = codeFromUrl(url);
-    if (code === url) { wrap.hidden = true; return; }   // địa chỉ lạ, không rút mã được
+    if (code === url && !laFirebase(url)) { wrap.hidden = true; return; }  // địa chỉ lạ
     document.getElementById("syncCode").value = code;
     wrap.hidden = false;
   }
@@ -1911,6 +1981,24 @@
       say("good", "Nối xong" + (cach === "vong" ? " (đi đường vòng)" : "") +
                   ". Gửi mã bên dưới cho người trong nhà là họ thấy chung lịch với bạn.");
       return true;
+    }
+
+    if (laFirebase(url)) {
+      askRead(url, "firebase")
+        .then(function(out){ ok(out, "firebase"); })
+        ["catch"](function(err){
+          if (err && err.quyen) {
+            say("bad", "Gọi tới được kho Firebase nhưng nó đang khoá. Mở " +
+                       "<b>Realtime Database → Rules</b>, sửa hai chữ <code>false</code> " +
+                       "thành <code>true</code> rồi bấm <b>Publish</b>.");
+          } else {
+            say("bad", "Không gọi được tới kho Firebase. Kiểm tra lại địa chỉ đã chép " +
+                       "đúng chưa — nó có dạng " +
+                       "<code>https://tên-default-rtdb.khu-vực.firebasedatabase.app</code>." +
+                       "<br><small>Chi tiết: " + String(err && err.message || err) + "</small>");
+          }
+        });
+      return;
     }
 
     askRead(url, "thang")

@@ -131,8 +131,60 @@
     thì gửi link mới. Nếu vậy là đủ dùng thì bạn không cần đọc tiếp phần dưới.
   </div>
 
-  <h2 class="sec" style="margin-top:0">Cách kỹ — hai bên tự thấy của nhau</h2>
-  <p class="lede">Nối trang lịch với một Google Sheet của bạn. Làm một lần, khoảng 5 phút.</p>
+  <h2 class="sec" style="margin-top:0">Cách hai bên tự thấy của nhau — không phải dán mã</h2>
+  <p class="lede">Dùng Firebase, kho dữ liệu miễn phí của Google. Toàn bấm nút, khoảng 4 phút.</p>
+
+  <ol class="steps">
+    <li>
+      <h2>Tạo project</h2>
+      <p>Mở <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>,
+      đăng nhập tài khoản Google. Bấm <b class="ui">Create a project</b> (hoặc <b class="ui">Tạo dự án</b>).</p>
+      <p>Đặt tên tuỳ ý, ví dụ <em>lich-be-na</em>. Tới bước hỏi Google Analytics thì
+      <b>tắt đi</b> cho nhanh. Bấm <b class="ui">Create project</b>, chờ một lát rồi bấm <b class="ui">Continue</b>.</p>
+    </li>
+
+    <li>
+      <h2>Tạo kho dữ liệu</h2>
+      <p>Cột trái, bấm <b class="ui">Build</b> → <b class="ui">Realtime Database</b>.
+      Rồi bấm <b class="ui">Create Database</b>.</p>
+      <p>Chọn vị trí gần nhất (<em>Singapore</em> hoặc <em>asia-southeast1</em>), bấm <b class="ui">Next</b>.</p>
+      <p>Hỏi chế độ bảo mật thì chọn <b class="ui">Start in test mode</b>, bấm <b class="ui">Enable</b>.</p>
+    </li>
+
+    <li>
+      <h2>Mở khoá cho lâu dài</h2>
+      <p>Chế độ test mode tự khoá lại sau 30 ngày. Sửa một lần cho xong:</p>
+      <p>Bấm thẻ <b class="ui">Rules</b> ngay trên bảng dữ liệu. Bạn sẽ thấy vài dòng có
+      chữ <code>false</code> hoặc một dòng ngày tháng. Sửa cả hai dòng
+      <code>".read"</code> và <code>".write"</code> thành <code>true</code>, rồi bấm
+      <b class="ui">Publish</b>.</p>
+      <div class="warn">
+        Đặt <code>true</code> nghĩa là ai biết địa chỉ kho cũng đọc ghi được — giống hệt
+        cách chia sẻ bằng mã ở đây. Chỉ gửi mã cho người trong nhà.
+      </div>
+    </li>
+
+    <li>
+      <h2>Chép địa chỉ kho</h2>
+      <p>Quay lại thẻ <b class="ui">Data</b>. Ngay trên bảng có một dòng địa chỉ dạng
+      <code>https://tên-default-rtdb.asia-southeast1.firebasedatabase.app</code>. Bấm biểu
+      tượng chép ở cạnh nó.</p>
+    </li>
+
+    <li>
+      <h2>Nối vào trang lịch</h2>
+      <p>Mở <a href="https://nguyenthanhitvn87-source.github.io/nguyenthanh/lich-bieu.html" target="_blank" rel="noopener">trang lịch</a>,
+      bấm <b class="ui">🔗 Dùng chung</b>, dán địa chỉ vừa chép, bấm <b class="ui">Kiểm tra và nối</b>.</p>
+      <p>Hiện chữ xanh <em>Nối xong</em> là được. Bên dưới có <b>mã lịch chung</b> — chính
+      là địa chỉ đó. Bấm <b class="ui">Sao chép mã</b> rồi gửi cho vợ, bà, chị Phường.</p>
+      <p>Mỗi người mở trang lịch, bấm <b class="ui">🔗 Dùng chung</b>, dán mã vào. Xong —
+      từ đó ai nhập gì mọi người đều thấy, kể cả những gì người trước đã nhập.</p>
+    </li>
+  </ol>
+
+  <h2 class="sec">Cách cũ dùng Google Sheet — phải dán mã</h2>
+  <p class="lede">Chỉ dùng nếu bạn muốn dữ liệu nằm trong một bảng tính mở ra xem được.
+  Phải dán một đoạn mã vào Apps Script.</p>
   <p class="meta">Nên làm trên máy tính. Xong rồi thì điện thoại chỉ cần dán một đường link.</p>
 
   <ol class="steps">
