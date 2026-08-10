@@ -64,12 +64,15 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 - **Dùng chung cho cả nhà** qua một Google Sheet: nhiều người cùng sửa, ai cũng nhìn thấy.
   Xem mục hướng dẫn bên dưới.
 - Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
-- **Người làm cho từng buổi**: mỗi ô Sáng/Trưa/Chiều/Tối có ô chọn người phụ trách.
+- **Người làm cho từng buổi**: mỗi ô Sáng/Trưa/Chiều/Tối gán được **nhiều người**,
+  bấm `×` trên tên để bỏ. Cả ô được nhuộm theo màu người làm cho dễ nhìn; hai người
+  thì ô pha màu của cả hai và vệt bên trái chia đôi.
   Mỗi người một màu riêng, lấy theo thứ tự trong danh sách nên các màu cách xa nhau.
   Danh sách người sửa ở khung **Người làm**; ai đã bị xoá khỏi danh sách nhưng còn được
   gán ở đâu đó thì vẫn giữ nguyên, không mất dữ liệu.
 - **Thời gian biểu trong ngày của Bé Na** hiển thị dạng timeline, sửa được ở ô văn bản bên cạnh
-  (mỗi dòng một mốc, dạng `giờ: việc cần làm | người làm`, chấp nhận cả `7h30 - 8h00:`).
+  (mỗi dòng một mốc, dạng `giờ: việc cần làm | người làm`, nhiều người thì ngăn bằng dấu phẩy:
+  `7:30: ăn sáng | Mẹ, Bà`; chấp nhận cả `7h30 - 8h00:`).
   Mốc đang tới giờ được tô sáng, các mốc đã qua thì mờ đi.
 - **Nhắc giờ**: bật nút 🔔 để trình duyệt báo mỗi khi tới một mốc trong thời gian biểu,
   kèm tên người làm. Chỉ nhắc trong vòng 5 phút kể từ mốc nên mở trang muộn không bị dội
