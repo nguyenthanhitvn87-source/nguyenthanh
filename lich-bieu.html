@@ -126,8 +126,39 @@
   .cell textarea::placeholder{color:var(--muted);opacity:.5}
   .cell textarea:focus{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
 
-  .routine{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media (max-width:820px){ .routine{grid-template-columns:1fr} }
+  /* Người làm: nền lấy màu theo tên, nhạt khi chưa gán */
+  .who{
+    font:inherit;font-size:12px;line-height:1.4;
+    border:1px solid var(--line);border-radius:999px;padding:2px 22px 2px 9px;
+    background:transparent;color:var(--muted);cursor:pointer;
+    -webkit-appearance:none;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 12px) 50%,calc(100% - 8px) 50%;
+    background-size:4px 4px,4px 4px;background-repeat:no-repeat;
+  }
+  .who:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .who[data-set]{
+    font-weight:600;
+    background-color:hsl(var(--h) 70% 93%);
+    color:hsl(var(--h) 52% 27%);
+    border-color:hsl(var(--h) 55% 80%);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .who[data-set]{
+      background-color:hsl(var(--h) 38% 22%);
+      color:hsl(var(--h) 75% 80%);
+      border-color:hsl(var(--h) 35% 36%);
+    }
+  }
+  :root[data-theme="dark"] .who[data-set]{
+    background-color:hsl(var(--h) 38% 22%);
+    color:hsl(var(--h) 75% 80%);
+    border-color:hsl(var(--h) 35% 36%);
+  }
+  .cell .who{margin:0 12px 10px}
+  .cell .assign{display:flex}
+
+  .routine{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
   .routine .card{padding:14px 16px}
   .routine h2{font-size:15px;margin:0 0 10px}
   .routine p.sub{color:var(--muted);font-size:13px;margin:-6px 0 12px}
@@ -146,6 +177,19 @@
   }
   ol.timeline .d{flex:1}
   ol.timeline li.empty .t{color:var(--muted);font-weight:400}
+  ol.timeline .who{flex:0 0 auto;align-self:flex-start;pointer-events:none;padding-right:9px;background-image:none}
+  ol.timeline li.now{
+    background:var(--accent-soft);border-radius:8px;
+    box-shadow:inset 3px 0 0 var(--accent);padding-left:9px;
+  }
+  ol.timeline li.now .d{font-weight:600}
+  ol.timeline li.done .t,ol.timeline li.done .d{opacity:.45}
+
+  button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+
+  .people{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+  #peopleText{min-height:150px}
+  .people .who{pointer-events:none;padding-right:9px;background-image:none}
 
   footer.foot{margin-top:26px;color:var(--muted);font-size:13px;text-align:center}
   footer.foot a{color:var(--accent)}
@@ -157,6 +201,8 @@
     .card{box-shadow:none;border-color:#ccc}
     table{min-width:0}
     .cell textarea{min-height:0;height:auto}
+    .who:not([data-set]){display:none}
+    .who[data-set]{background-image:none;padding-right:9px}
   }
 </style>
 </head>
@@ -169,6 +215,7 @@
     </h1>
     <div class="toolbar">
       <button id="btnToday" class="primary">Hôm nay</button>
+      <button id="btnNotify" class="ghost" aria-pressed="false">🔔 Nhắc giờ</button>
       <button id="btnExport" class="ghost">Xuất JSON</button>
       <button id="btnImport" class="ghost">Nhập JSON</button>
       <button id="btnPrint" class="ghost">In / PDF</button>
@@ -212,8 +259,14 @@
     </div>
     <div class="card">
       <h2>Sửa thời gian biểu</h2>
-      <p class="sub">Mỗi dòng một mốc, dạng <code>giờ: việc cần làm</code>.</p>
+      <p class="sub">Mỗi dòng một mốc, dạng <code>giờ: việc cần làm | người làm</code>.</p>
       <textarea id="routineText" spellcheck="false"></textarea>
+    </div>
+    <div class="card">
+      <h2>Người làm</h2>
+      <p class="sub">Mỗi dòng một người. Tên ở đây hiện trong ô chọn của từng buổi.</p>
+      <ul class="people" id="peopleList"></ul>
+      <textarea id="peopleText" spellcheck="false" aria-label="Danh sách người làm"></textarea>
     </div>
   </section>
 
@@ -229,27 +282,31 @@
 
   var STORE_KEY = "lichbieu.v1";
   var FIELDS = ["sang","trua","chieu","toi","notes","special"];
+  var ASSIGNABLE = ["sang","trua","chieu","toi"]; // buổi nào cũng gán được người làm
   var DAY_NAMES = ["Chủ Nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+  var SLOT_NAMES = { sang:"Sáng", trua:"Trưa", chieu:"Chiều", toi:"Tối", notes:"Notes", special:"Special Note" };
+
+  var DEFAULT_PEOPLE = ["Mẹ", "Ba", "Bà", "Chị Phường"];
 
   var DEFAULT_ROUTINE = [
-    "7:15 - 7:30: chuẩn bị đồ ăn sáng",
-    "7:30 - 8:00: ăn sáng",
-    "8:00 - 8:45: chơi, ăn trái cây, phô mai nếu có",
-    "9:30: Ngủ giấc 1",
-    "11:00: thức dậy",
-    "11:30: ăn trưa",
-    "12:30: tắm, chơi, ăn trái cây",
-    "13:30: Ngủ giấc 2",
-    "15:00: Dậy, chơi",
-    "16:00: ăn chiều",
-    "17:00: tắm"
+    "7:15 - 7:30: chuẩn bị đồ ăn sáng | Mẹ",
+    "7:30 - 8:00: ăn sáng | Mẹ",
+    "8:00 - 8:45: chơi, ăn trái cây, phô mai nếu có | Bà",
+    "9:30: Ngủ giấc 1 | Bà",
+    "11:00: thức dậy | Bà",
+    "11:30: ăn trưa | Mẹ",
+    "12:30: tắm, chơi, ăn trái cây | Mẹ",
+    "13:30: Ngủ giấc 2 | Bà",
+    "15:00: Dậy, chơi | Bà",
+    "16:00: ăn chiều | Ba",
+    "17:00: tắm | Ba"
   ].join("\n");
 
   // Tuần khởi tạo sẵn: 10/8/2026 - 16/8/2026
   var SEED_DAYS = {
-    "2026-08-11": { chieu:"C-Phuong", toi:"C-Phuong", special:"Chị Phường chiều 4-5h vô tới Sài Gòn" },
+    "2026-08-11": { chieuBy:"Chị Phường", toiBy:"Chị Phường", special:"Chị Phường chiều 4-5h vô tới Sài Gòn" },
     "2026-08-12": { chieu:"Trứng luộc" },
-    "2026-08-14": { chieu:"C-Phuong" }
+    "2026-08-14": { chieuBy:"Chị Phường" }
   };
 
   /* ---------- helpers ---------- */
@@ -287,6 +344,39 @@
     return new Date(n.getFullYear(), n.getMonth(), n.getDate());
   }
 
+  // Mỗi người một màu riêng: lấy theo thứ tự trong danh sách nên các màu cách xa
+  // nhau, ai không có trong danh sách thì suy ra màu từ chính cái tên.
+  var HUES = [212, 150, 28, 322, 265, 96, 4, 186, 45, 240];
+
+  function hueOf(name){
+    var idx = -1;
+    for (var i = 0; i < state.people.length; i++) {
+      if (state.people[i].trim() === name) { idx = i; break; }
+    }
+    if (idx > -1) return HUES[idx % HUES.length];
+    var h = 0;
+    for (var j = 0; j < name.length; j++) h = (h * 31 + name.charCodeAt(j)) % 360;
+    return h;
+  }
+
+  function paintWho(el, name){
+    if (name) {
+      el.setAttribute("data-set", "");
+      el.style.setProperty("--h", hueOf(name));
+    } else {
+      el.removeAttribute("data-set");
+      el.style.removeProperty("--h");
+    }
+  }
+
+  function makeChip(name){
+    var span = document.createElement("span");
+    span.className = "who";
+    span.textContent = name;
+    paintWho(span, name);
+    return span;
+  }
+
   /* ---------- state ---------- */
 
   var state = load();
@@ -300,7 +390,10 @@
         var parsed = JSON.parse(raw);
         return {
           days: parsed.days && typeof parsed.days === "object" ? parsed.days : {},
-          routine: typeof parsed.routine === "string" ? parsed.routine : DEFAULT_ROUTINE
+          routine: typeof parsed.routine === "string" ? parsed.routine : DEFAULT_ROUTINE,
+          // bản lưu cũ chưa có danh sách người làm
+          people: Array.isArray(parsed.people) ? parsed.people : DEFAULT_PEOPLE.slice(),
+          notify: parsed.notify === true
         };
       } catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
     }
@@ -308,7 +401,7 @@
     for (var k in SEED_DAYS) {
       if (Object.prototype.hasOwnProperty.call(SEED_DAYS, k)) days[k] = SEED_DAYS[k];
     }
-    return { days: days, routine: DEFAULT_ROUTINE };
+    return { days: days, routine: DEFAULT_ROUTINE, people: DEFAULT_PEOPLE.slice(), notify: false };
   }
 
   var saveTimer = null;
@@ -338,10 +431,42 @@
   function prune(iso){
     var d = state.days[iso];
     if (!d) return;
-    for (var i = 0; i < FIELDS.length; i++) {
+    var i;
+    for (i = 0; i < FIELDS.length; i++) {
       if ((d[FIELDS[i]] || "").trim() !== "") return;
     }
+    for (i = 0; i < ASSIGNABLE.length; i++) {
+      if ((d[ASSIGNABLE[i] + "By"] || "").trim() !== "") return;
+    }
     delete state.days[iso];
+  }
+
+  // Tên đang được gán ở đâu đó nhưng không còn trong danh sách thì vẫn phải chọn được
+  function optionsFor(current){
+    var names = [];
+    for (var i = 0; i < state.people.length; i++) {
+      var n = state.people[i].trim();
+      if (n && names.indexOf(n) === -1) names.push(n);
+    }
+    if (current && names.indexOf(current) === -1) names.push(current);
+    return names;
+  }
+
+  function fillWhoSelect(sel, current){
+    sel.textContent = "";
+    var blank = document.createElement("option");
+    blank.value = "";
+    blank.textContent = "+ người làm";
+    sel.appendChild(blank);
+    var names = optionsFor(current);
+    for (var i = 0; i < names.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = names[i];
+      opt.textContent = names[i];
+      sel.appendChild(opt);
+    }
+    sel.value = current || "";
+    paintWho(sel, sel.value);
   }
 
   /* ---------- render ---------- */
@@ -390,10 +515,25 @@
         var ta = document.createElement("textarea");
         ta.value = data[field] || "";
         ta.rows = 1;
-        ta.setAttribute("aria-label", DAY_NAMES[d.getDay()] + " " + fmtVN(d) + " — " + field);
+        var label = DAY_NAMES[d.getDay()] + " " + fmtVN(d) + " — " + SLOT_NAMES[field];
+        ta.setAttribute("aria-label", label);
         ta.dataset.iso = iso;
         ta.dataset.field = field;
         td.appendChild(ta);
+
+        if (ASSIGNABLE.indexOf(field) > -1) {
+          var box = document.createElement("div");
+          box.className = "assign";
+          var sel = document.createElement("select");
+          sel.className = "who";
+          sel.dataset.iso = iso;
+          sel.dataset.field = field;
+          sel.setAttribute("aria-label", "Người làm — " + label);
+          fillWhoSelect(sel, data[field + "By"] || "");
+          box.appendChild(sel);
+          td.appendChild(box);
+        }
+
         tr.appendChild(td);
       }
 
@@ -427,6 +567,17 @@
     saveSoon();
   });
 
+  // Chọn người làm cho một buổi
+  tbody.addEventListener("change", function(ev){
+    var sel = ev.target;
+    if (sel.tagName !== "SELECT") return;
+    var iso = sel.dataset.iso;
+    dayData(iso)[sel.dataset.field + "By"] = sel.value;
+    paintWho(sel, sel.value);
+    prune(iso);
+    saveSoon();
+  });
+
   // Enter = xuống dòng, Ctrl/Cmd+Enter = nhảy sang ô kế
   tbody.addEventListener("keydown", function(ev){
     if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) {
@@ -442,30 +593,62 @@
   var routineText = document.getElementById("routineText");
   var timeline = document.getElementById("timeline");
 
-  function renderTimeline(){
-    timeline.textContent = "";
+  // Tách một dòng thời gian biểu thành giờ / việc / người làm.
+  // Dạng đầy đủ: "7:15 - 7:30: chuẩn bị đồ ăn sáng | Mẹ"
+  function parseRoutineLine(line){
+    var who = "";
+    var bar = line.lastIndexOf("|");
+    if (bar > -1) {
+      who = line.slice(bar + 1).trim();
+      line = line.slice(0, bar).trim();
+    }
+    var m = line.match(/^(\d{1,2}[:h]\d{0,2}(?:\s*[-–—]\s*\d{1,2}[:h]\d{0,2})?)\s*[:\-–—]?\s*(.*)$/);
+    if (!m || !m[2]) return { time:"", task:line, who:who };
+    return { time:m[1].trim(), task:m[2].trim(), who:who };
+  }
+
+  // Phút trong ngày của mốc bắt đầu, dùng cho nhắc giờ. -1 nếu không đọc được.
+  function startMinutes(time){
+    var m = time.match(/^(\d{1,2})[:h](\d{0,2})/);
+    if (!m) return -1;
+    var hh = +m[1], mm = m[2] === "" ? 0 : +m[2];
+    if (hh > 23 || mm > 59) return -1;
+    return hh * 60 + mm;
+  }
+
+  function routineItems(){
+    var out = [];
     var lines = state.routine.split("\n");
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i].trim();
       if (!line) continue;
+      var it = parseRoutineLine(line);
+      it.at = it.time ? startMinutes(it.time) : -1;
+      out.push(it);
+    }
+    return out;
+  }
+
+  function renderTimeline(){
+    timeline.textContent = "";
+    var items = routineItems();
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
       var li = document.createElement("li");
-      // "7:15 - 7:30: việc" hoặc "9:30: việc" (chấp nhận cả 7h30)
-      var m = line.match(/^(\d{1,2}[:h]\d{0,2}(?:\s*[-–—]\s*\d{1,2}[:h]\d{0,2})?)\s*[:\-–—]?\s*(.*)$/);
-      if (m && !m[2]) m = null; // chỉ có giờ, không có mô tả
       var t = document.createElement("span");
       t.className = "t";
       var d = document.createElement("span");
       d.className = "d";
-      if (m) {
-        t.textContent = m[1].trim();
-        d.textContent = m[2].trim();
+      if (it.time) {
+        t.textContent = it.time;
       } else {
         li.className = "empty";
         t.textContent = "•";
-        d.textContent = line;
       }
+      d.textContent = it.task;
       li.appendChild(t);
       li.appendChild(d);
+      if (it.who) li.appendChild(makeChip(it.who));
       timeline.appendChild(li);
     }
   }
@@ -473,8 +656,118 @@
   routineText.addEventListener("input", function(){
     state.routine = routineText.value;
     renderTimeline();
+    tickRoutine();
     saveSoon();
   });
+
+  /* ---------- danh sách người làm ---------- */
+
+  var peopleText = document.getElementById("peopleText");
+  var peopleList = document.getElementById("peopleList");
+
+  function renderPeople(){
+    peopleList.textContent = "";
+    for (var i = 0; i < state.people.length; i++) {
+      var name = state.people[i].trim();
+      if (!name) continue;
+      var li = document.createElement("li");
+      li.appendChild(makeChip(name));
+      peopleList.appendChild(li);
+    }
+  }
+
+  // Đổi danh sách thì các ô chọn phải theo, nhưng giữ nguyên người đã gán
+  function refreshWhoSelects(){
+    var sels = tbody.querySelectorAll("select.who");
+    for (var i = 0; i < sels.length; i++) fillWhoSelect(sels[i], sels[i].value);
+  }
+
+  peopleText.addEventListener("input", function(){
+    state.people = peopleText.value.split("\n");
+    renderPeople();
+    refreshWhoSelects();
+    renderTimeline();
+    tickRoutine();
+    saveSoon();
+  });
+
+  /* ---------- nhắc giờ ---------- */
+
+  var btnNotify = document.getElementById("btnNotify");
+  var canNotify = typeof window.Notification === "function";
+  var fired = {};      // { "2026-08-10|3": true } — tránh nhắc lại cùng một mốc
+  var firedDay = "";
+
+  function markNotify(){
+    btnNotify.classList.toggle("on", !!state.notify);
+    btnNotify.setAttribute("aria-pressed", state.notify ? "true" : "false");
+    btnNotify.textContent = state.notify ? "🔔 Đang nhắc giờ" : "🔔 Nhắc giờ";
+  }
+
+  btnNotify.addEventListener("click", function(){
+    if (state.notify) {                 // đang bật -> tắt
+      state.notify = false;
+      markNotify();
+      save();
+      return;
+    }
+    if (!canNotify) {
+      alert("Trình duyệt này không hỗ trợ thông báo.\n" +
+            "Trang vẫn tô sáng việc đang tới giờ trong phần thời gian biểu.");
+      return;
+    }
+    Notification.requestPermission().then(function(perm){
+      if (perm !== "granted") {
+        alert("Bạn chưa cho phép hiện thông báo.\n" +
+              "Mở phần cài đặt thông báo của trình duyệt cho trang này rồi bật lại.");
+        return;
+      }
+      state.notify = true;
+      markNotify();
+      save();
+      new Notification("Đã bật nhắc giờ", {
+        body: "Sẽ báo mỗi khi tới mốc trong thời gian biểu của Bé Na.",
+        tag: "cham-be-na-hello"
+      });
+    });
+  });
+
+  // Tô sáng mốc đang diễn ra, và bắn thông báo khi vừa tới giờ
+  function tickRoutine(){
+    var now = new Date();
+    var mins = now.getHours() * 60 + now.getMinutes();
+    var iso = isoOf(today());
+    if (iso !== firedDay) { fired = {}; firedDay = iso; }
+
+    var items = routineItems();
+    var currentIdx = -1;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].at > -1 && items[i].at <= mins) currentIdx = i;
+    }
+
+    var lis = timeline.children;
+    for (var j = 0; j < lis.length && j < items.length; j++) {
+      lis[j].classList.toggle("now", j === currentIdx);
+      lis[j].classList.toggle("done", items[j].at > -1 && j < currentIdx);
+    }
+
+    if (!state.notify || !canNotify || Notification.permission !== "granted") return;
+    for (var k = 0; k < items.length; k++) {
+      var it = items[k];
+      if (it.at < 0) continue;
+      var key = iso + "|" + k;
+      // chỉ nhắc trong vòng 5 phút kể từ mốc, để mở trang muộn không bị dội thông báo cũ
+      if (!fired[key] && mins >= it.at && mins - it.at <= 5) {
+        fired[key] = true;
+        try {
+          new Notification(it.time + " — " + it.task, {
+            body: it.who ? "Người làm: " + it.who : "Bé Na",
+            tag: key
+          });
+        } catch (e) { /* trình duyệt từ chối thì bỏ qua */ }
+      }
+    }
+  }
 
   /* ---------- toolbar ---------- */
 
@@ -533,10 +826,11 @@
       if (!confirm("Nhập dữ liệu này và ghi đè lịch hiện tại?")) return;
       state.days = parsed.days || {};
       if (typeof parsed.routine === "string") state.routine = parsed.routine;
+      if (Array.isArray(parsed.people)) state.people = parsed.people;
       routineText.value = state.routine;
+      peopleText.value = state.people.join("\n");
       save();
-      renderWeek();
-      renderTimeline();
+      renderAll();
     };
     reader.readAsText(file);
     fileInput.value = "";
@@ -544,10 +838,18 @@
 
   /* ---------- start ---------- */
 
+  function renderAll(){
+    renderWeek();
+    renderTimeline();
+    renderPeople();
+    tickRoutine();
+  }
+
   flagEl = document.getElementById("savedFlag");
   routineText.value = state.routine;
-  renderWeek();
-  renderTimeline();
+  peopleText.value = state.people.join("\n");
+  markNotify();
+  renderAll();
 
   // Sang ngày mới thì tự tô lại "Hôm nay"
   var shownDay = isoOf(today());
@@ -558,7 +860,8 @@
       anchor = mondayOf(today());
       renderWeek();
     }
-  }, 60000);
+    tickRoutine();
+  }, 30000);
 })();
 </script>
 </body>
