@@ -407,12 +407,24 @@
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
       <h2 id="syncTitle">Dùng chung cho cả nhà</h2>
       <p class="sub">
-        Dán địa chỉ Web app của Google Sheet vào đây. Chưa có thì xem
-        <a href="huong-dan-dung-chung.html" target="_blank" rel="noopener">hướng dẫn từng bước</a>.
+        Dán <b>mã lịch chung</b> mà người trong nhà gửi cho bạn. Chưa ai có mã thì
+        <a href="huong-dan-dung-chung.html" target="_blank" rel="noopener">xem hướng dẫn tạo</a>
+        — dán địa chỉ Web app vào đây cũng được.
       </p>
-      <input type="url" id="syncInput" inputmode="url" autocomplete="off" spellcheck="false"
-             placeholder="https://script.google.com/macros/s/…/exec"
-             aria-label="Địa chỉ Web app">
+      <input type="text" id="syncInput" autocomplete="off" spellcheck="false"
+             placeholder="Mã lịch chung, hoặc địa chỉ https://script.google.com/…/exec"
+             aria-label="Mã lịch chung hoặc địa chỉ Web app">
+
+      <div id="codeWrap" hidden>
+        <p class="sub" style="margin:16px 0 6px">
+          <b>Mã lịch chung của bạn.</b> Gửi mã này cho vợ, bà, chị Phường — họ mở trang
+          lịch, bấm 🔗 Dùng chung rồi dán mã vào là thấy chung một lịch với bạn.
+        </p>
+        <textarea id="syncCode" readonly rows="2" aria-label="Mã lịch chung"></textarea>
+        <div class="sheet-actions" style="margin-top:8px">
+          <button id="codeCopy" class="ghost">Sao chép mã</button>
+        </div>
+      </div>
       <p class="msg" id="syncMsg" hidden></p>
       <div class="sheet-actions">
         <button id="syncSave" class="primary">Kiểm tra và nối</button>
@@ -1656,8 +1668,9 @@
   }
 
   function openSyncBox(){
-    syncInput.value = syncUrl;
+    syncInput.value = syncUrl ? codeFromUrl(syncUrl) : "";
     syncMsg.hidden = true;
+    if (syncUrl) showCode(syncUrl); else document.getElementById("codeWrap").hidden = true;
     if (inFrame()) {
       say("bad", "Trang này đang nằm trong khung của một trang khác, mà khung đó chặn " +
                  "gọi ra ngoài nên nối vào Google Sheet sẽ không chạy.<br>" +
@@ -1688,6 +1701,46 @@
               .replace(/^["'<(]+/, "")
               .replace(/["'>)]+$/, "");
   }
+
+  /* Mã lịch chung chính là phần định danh nằm giữa địa chỉ Web app. Gửi cho
+     nhau cái mã thì ngắn hơn và đỡ nhầm hơn gửi nguyên địa chỉ, mà không phải
+     lập thêm dịch vụ nào để cấp phát. */
+
+  function codeFromUrl(url){
+    var m = /\/macros\/s\/([^/]+)\/exec/.exec(url);
+    return m ? m[1] : url;
+  }
+
+  function urlFromCode(txt){
+    if (/^https?:\/\//i.test(txt)) return txt;
+    if (/^[A-Za-z0-9_-]{20,}$/.test(txt)) {
+      return "https://script.google.com/macros/s/" + txt + "/exec";
+    }
+    return "";
+  }
+
+  function showCode(url){
+    var wrap = document.getElementById("codeWrap");
+    var code = codeFromUrl(url);
+    if (code === url) { wrap.hidden = true; return; }   // địa chỉ lạ, không rút mã được
+    document.getElementById("syncCode").value = code;
+    wrap.hidden = false;
+  }
+
+  document.getElementById("codeCopy").addEventListener("click", function(){
+    var box = document.getElementById("syncCode");
+    var btn = this;
+    box.select();
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(box.value);
+      done = true;
+    } else {
+      try { done = document.execCommand("copy"); } catch (e) { done = false; }
+    }
+    btn.textContent = done ? "Đã chép mã" : "Bôi đen rồi chép tay";
+    setTimeout(function(){ btn.textContent = "Sao chép mã"; }, 2500);
+  });
 
   function isEmptyRemote(st){
     if (!st) return true;
@@ -1738,20 +1791,20 @@
   }
 
   document.getElementById("syncSave").addEventListener("click", function(){
-    var url = tidyUrl(syncInput.value);
-    syncInput.value = url;
+    var typed = tidyUrl(syncInput.value);
+    var url = urlFromCode(typed);
+    syncInput.value = typed;
+
+    if (typed && !url) {
+      say("bad", "Chỗ này nhận <b>mã lịch chung</b> (một chuỗi chữ và số dài, không có " +
+                 "khoảng trắng) hoặc <b>địa chỉ Web app</b> bắt đầu bằng <code>https://</code>. " +
+                 "Bạn đang dán: <code>" + typed.slice(0, 60) + "</code>");
+      return;
+    }
 
     if (!url) {
       say("bad", "Chưa có địa chỉ nào. Dán địa chỉ vào ô trên, hoặc bấm " +
                  "<b>Ngưng dùng chung</b> nếu muốn quay về lưu riêng trên máy này.");
-      return;
-    }
-    var okUrl = url.indexOf("https://") === 0 ||
-                url.indexOf("http://localhost") === 0 ||
-                url.indexOf("http://127.0.0.1") === 0;
-    if (!okUrl) {
-      say("bad", "Địa chỉ phải bắt đầu bằng <code>https://</code>. Bạn đang dán: <code>" +
-                 url.slice(0, 60) + "</code>");
       return;
     }
     if (/\/dev$/.test(url)) {
@@ -1770,9 +1823,9 @@
         return false;
       }
       connectTo(url, cach, out);
+      showCode(url);
       say("good", "Nối xong" + (cach === "vong" ? " (đi đường vòng)" : "") +
-                  ". Từ giờ ai dán đúng địa chỉ này cũng thấy chung một lịch.");
-      setTimeout(closeSyncBox, 1600);
+                  ". Gửi mã bên dưới cho người trong nhà là họ thấy chung lịch với bạn.");
       return true;
     }
 
@@ -1820,6 +1873,7 @@
     syncFlag.hidden = true;
     localOnly.hidden = false;
     syncInput.value = "";
+    document.getElementById("codeWrap").hidden = true;
     say("info", "Đã ngưng dùng chung. Lịch quay về lưu riêng trên máy này.");
   });
 
