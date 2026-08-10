@@ -152,8 +152,12 @@
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) ol.tk li{--bar:var(--bar-toi)}
+    :root:not([data-theme="light"]) .cot .day span,
+    :root:not([data-theme="light"]) ul.chu i{--m:var(--m-toi)}
   }
   :root[data-theme="dark"] ol.tk li{--bar:var(--bar-toi)}
+  :root[data-theme="dark"] .cot .day span,
+  :root[data-theme="dark"] ul.chu i{--m:var(--m-toi)}
 
   :root[data-theme="dark"] .who[data-set]{
     background-color:hsl(var(--h) 38% 22%);
@@ -347,6 +351,40 @@
   #peopleText{min-height:150px}
   .people .who{pointer-events:none;padding-right:9px;background-image:none}
 
+  /* Biểu đồ */
+  .charts{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .charts .card{padding:14px 16px}
+  .charts h2{font-size:15px;margin:0 0 4px}
+  .charts p.sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+
+  .cot{display:flex;flex-direction:column;gap:12px}
+  .cot .hang{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:center}
+  .cot .nhan{font-size:13px;color:var(--muted)}
+  .cot .tong{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .cot .day{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);gap:2px}
+  .cot .day span{display:block;background:var(--m);min-width:3px}
+  .cot .day span:first-child{border-radius:7px 0 0 7px}
+  .cot .day span:last-child{border-radius:0 7px 7px 0}
+
+  .svg-boc{overflow-x:auto}
+  .svg-boc svg{width:100%;min-width:300px;height:auto;display:block}
+  .svg-boc .luoi{stroke:var(--line);stroke-width:1}
+  .svg-boc .truc{fill:var(--muted);font-size:11px}
+  .svg-boc rect{transition:opacity .12s}
+  .svg-boc rect:hover{opacity:.8}
+
+  ul.chu{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+  ul.chu li{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  ul.chu i{width:10px;height:10px;border-radius:3px;background:var(--m);flex:0 0 auto}
+
+  .tip{
+    position:fixed;z-index:60;pointer-events:none;
+    background:var(--ink);color:var(--bg);font-size:12px;line-height:1.5;
+    padding:6px 9px;border-radius:8px;max-width:220px;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);
+  }
+  .tip[hidden]{display:none}
+
   footer.foot{margin-top:26px;color:var(--muted);font-size:13px;text-align:center}
   footer.foot a{color:var(--accent)}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -530,6 +568,24 @@
       <textarea id="peopleText" spellcheck="false" aria-label="Danh sách người làm"></textarea>
     </div>
   </section>
+
+  <section class="charts">
+    <div class="card">
+      <h2>Ai lo buổi nào</h2>
+      <p class="sub">Tuần đang xem, tính theo từng buổi trong ngày.</p>
+      <div class="cot" id="bdBuoi"></div>
+      <ul class="chu" id="bdChu"></ul>
+    </div>
+    <div class="card">
+      <h2>Sáu tuần gần đây</h2>
+      <p class="sub">Số buổi mỗi người lo, theo từng tuần.</p>
+      <div class="svg-boc"><svg id="bdTuan" viewBox="0 0 560 240" role="img"
+           aria-label="Biểu đồ số buổi mỗi người theo tuần"></svg></div>
+      <ul class="chu" id="bdChuTuan"></ul>
+    </div>
+  </section>
+
+  <div class="tip" id="tip" hidden></div>
 
   <footer class="foot">
     <span id="banDung"></span>
@@ -934,7 +990,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
-    renderStats();
+    renderStats(); veBieuDo();
   });
 
   // Thêm một người vào buổi
@@ -950,7 +1006,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
-    renderStats();
+    renderStats(); veBieuDo();
   });
 
   // Bỏ một người khỏi buổi
@@ -967,7 +1023,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
-    renderStats();
+    renderStats(); veBieuDo();
   });
 
   // Enter = xuống dòng, Ctrl/Cmd+Enter = nhảy sang ô kế
@@ -1169,6 +1225,226 @@
     if (kq.chuaGan) dong("Chưa có người", kq.chuaGan, "", null, true);
   }
 
+  /* ---------- biểu đồ ---------- */
+
+  var tip = document.getElementById("tip");
+
+  function moTip(ev, chu){
+    tip.textContent = chu;
+    tip.hidden = false;
+    var r = tip.getBoundingClientRect();
+    var x = Math.min(ev.clientX + 12, window.innerWidth - r.width - 8);
+    var y = ev.clientY - r.height - 12;
+    if (y < 8) y = ev.clientY + 16;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = y + "px";
+  }
+  function dongTip(){ tip.hidden = true; }
+
+  // Ai xuất hiện trong tuần đang xem, xếp theo thứ tự danh sách người cho màu ổn định
+  function nguoiTrongTuan(){
+    var kq = demTuan().dem;
+    var ten = [];
+    for (var k in kq) if (kq.hasOwnProperty(k)) ten.push(k);
+    ten.sort(function(a, b){
+      var ia = thuTuNguoi(a), ib = thuTuNguoi(b);
+      if (ia < 0) ia = 99;
+      if (ib < 0) ib = 99;
+      return ia - ib || a.localeCompare(b, "vi");
+    });
+    return ten;
+  }
+
+  function veChuThich(el, ten){
+    el.textContent = "";
+    for (var i = 0; i < ten.length; i++) {
+      var mau = mauThanh(ten[i]);
+      var li = document.createElement("li");
+      var o = document.createElement("i");
+      o.style.setProperty("--m", mau.sang);
+      o.style.setProperty("--m-toi", mau.toi);
+      li.appendChild(o);
+      li.appendChild(document.createTextNode(ten[i]));
+      el.appendChild(li);
+    }
+  }
+
+  /* Biểu đồ 1: mỗi buổi một thanh, chia đoạn theo người */
+  function veBuoi(){
+    var boc = document.getElementById("bdBuoi");
+    boc.textContent = "";
+    var ten = nguoiTrongTuan();
+    veChuThich(document.getElementById("bdChu"), ten);
+
+    // đếm theo buổi
+    var bang = {};
+    for (var f = 0; f < ASSIGNABLE.length; f++) bang[ASSIGNABLE[f]] = {};
+    for (var i = 0; i < 7; i++) {
+      var day = state.days[isoOf(addDays(anchor, i))] || {};
+      for (var g = 0; g < ASSIGNABLE.length; g++) {
+        var slot = ASSIGNABLE[g];
+        var ai = whoList(day, slot);
+        for (var k = 0; k < ai.length; k++) {
+          bang[slot][ai[k]] = (bang[slot][ai[k]] || 0) + 1;
+        }
+      }
+    }
+
+    var lonNhat = 1;
+    for (var s1 = 0; s1 < ASSIGNABLE.length; s1++) {
+      var t = 0, m = bang[ASSIGNABLE[s1]];
+      for (var n1 in m) if (m.hasOwnProperty(n1)) t += m[n1];
+      if (t > lonNhat) lonNhat = t;
+    }
+
+    for (var s2 = 0; s2 < ASSIGNABLE.length; s2++) {
+      var slot2 = ASSIGNABLE[s2], dem = bang[slot2], tong = 0;
+      for (var n2 in dem) if (dem.hasOwnProperty(n2)) tong += dem[n2];
+
+      var hang = document.createElement("div");
+      hang.className = "hang";
+      var nhan = document.createElement("span");
+      nhan.className = "nhan";
+      nhan.textContent = SLOT_NAMES[slot2];
+      var day = document.createElement("span");
+      day.className = "day";
+      day.style.width = Math.max(4, Math.round(tong / lonNhat * 100)) + "%";
+      var soTong = document.createElement("span");
+      soTong.className = "tong";
+      soTong.textContent = tong;
+
+      for (var j = 0; j < ten.length; j++) {
+        var so = dem[ten[j]] || 0;
+        if (!so) continue;
+        var mau = mauThanh(ten[j]);
+        var doan = document.createElement("span");
+        doan.style.setProperty("--m", mau.sang);
+        doan.style.setProperty("--m-toi", mau.toi);
+        doan.style.flex = so + " 1 0";
+        (function(nguoi, n, buoi){
+          doan.addEventListener("mouseenter", function(ev){
+            moTip(ev, buoi + " · " + nguoi + ": " + n + " buổi");
+          });
+          doan.addEventListener("mousemove", function(ev){
+            moTip(ev, buoi + " · " + nguoi + ": " + n + " buổi");
+          });
+          doan.addEventListener("mouseleave", dongTip);
+        })(ten[j], so, SLOT_NAMES[slot2]);
+        day.appendChild(doan);
+      }
+
+      hang.appendChild(nhan);
+      hang.appendChild(day);
+      hang.appendChild(soTong);
+      boc.appendChild(hang);
+    }
+  }
+
+  /* Biểu đồ 2: sáu tuần gần đây, mỗi người một đường */
+  function veTuan(){
+    var svg = document.getElementById("bdTuan");
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var SO_TUAN = 6, W = 560, H = 240, L = 34, R = 12, T = 14, B = 30;
+    var moc = [];
+    for (var i = SO_TUAN - 1; i >= 0; i--) moc.push(addDays(anchor, -7 * i));
+
+    // đếm từng tuần
+    var ai = {};
+    for (var t = 0; t < moc.length; t++) {
+      for (var d = 0; d < 7; d++) {
+        var day = state.days[isoOf(addDays(moc[t], d))] || {};
+        for (var g = 0; g < ASSIGNABLE.length; g++) {
+          var ds = whoList(day, ASSIGNABLE[g]);
+          for (var k = 0; k < ds.length; k++) {
+            if (!ai[ds[k]]) ai[ds[k]] = new Array(SO_TUAN).fill(0);
+            ai[ds[k]][t]++;
+          }
+        }
+      }
+    }
+
+    var ten = [];
+    for (var n in ai) if (ai.hasOwnProperty(n)) ten.push(n);
+    ten.sort(function(a, b){
+      var ia = thuTuNguoi(a), ib = thuTuNguoi(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, "vi");
+    });
+    veChuThich(document.getElementById("bdChuTuan"), ten);
+
+    var dinh = 1;
+    for (var q = 0; q < ten.length; q++) {
+      for (var w = 0; w < SO_TUAN; w++) dinh = Math.max(dinh, ai[ten[q]][w]);
+    }
+    dinh = Math.ceil(dinh / 2) * 2;
+
+    // Thang dải: mỗi tuần một ô rộng bằng nhau, cột và nhãn cùng lấy tâm ô đó.
+    // Trước đây nhãn tính theo kiểu đường nên lệch hẳn khỏi cột.
+    var rongNhom = (W - L - R) / SO_TUAN;
+    var x = function(i){ return L + rongNhom * (i + 0.5); };
+    var y = function(v){ return T + (1 - v / dinh) * (H - T - B); };
+    var NS = "http://www.w3.org/2000/svg";
+    function them(loai, thuoc){
+      var e = document.createElementNS(NS, loai);
+      for (var a in thuoc) if (thuoc.hasOwnProperty(a)) e.setAttribute(a, thuoc[a]);
+      svg.appendChild(e);
+      return e;
+    }
+
+    // lưới ngang và mốc trục dọc
+    for (var g2 = 0; g2 <= 2; g2++) {
+      var v = dinh / 2 * g2;
+      them("line", { x1:L, x2:W - R, y1:y(v), y2:y(v), "class":"luoi" });
+      them("text", { x:L - 8, y:y(v) + 4, "class":"truc", "text-anchor":"end" })
+        .textContent = v;
+    }
+    // nhãn tuần
+    for (var m2 = 0; m2 < SO_TUAN; m2++) {
+      them("text", { x:x(m2), y:H - 8, "class":"truc", "text-anchor":"middle" })
+        .textContent = moc[m2].getDate() + "/" + (moc[m2].getMonth() + 1);
+    }
+
+    if (!ten.length) {
+      them("text", { x:W / 2, y:H / 2, "class":"truc", "text-anchor":"middle" })
+        .textContent = "Chưa có dữ liệu để vẽ";
+      return;
+    }
+
+    var toi = matchMedia("(prefers-color-scheme: dark)").matches;
+    var chon = document.documentElement.getAttribute("data-theme");
+    if (chon === "dark") toi = true;
+    if (chon === "light") toi = false;
+
+    /* Cột nhóm chứ không phải đường: số buổi hay bằng nhau nên các đường chồng
+       khít lên nhau, che mất nhau và không rê chuột vào được. */
+    var chuaCot = Math.min(rongNhom - 10, 46);
+    var rongCot = Math.max(4, (chuaCot - (ten.length - 1) * 2) / ten.length);
+
+    for (var t2 = 0; t2 < SO_TUAN; t2++) {
+      var trai = x(t2) - chuaCot / 2;
+      for (var q2 = 0; q2 < ten.length; q2++) {
+        var so = ai[ten[q2]][t2];
+        var mau = mauThanh(ten[q2]);
+        var cx = trai + q2 * (rongCot + 2);
+        var cao = so === 0 ? 0 : Math.max(3, y(0) - y(so));
+        if (cao > 0) {
+          var cot = them("rect", {
+            x: cx, y: y(0) - cao, width: rongCot, height: cao,
+            rx: Math.min(4, rongCot / 2), fill: toi ? mau.toi : mau.sang
+          });
+          (function(nguoi, n, tuan){
+            var chu = nguoi + ": " + n + " buổi · tuần " + fmtVN(tuan);
+            cot.addEventListener("mouseenter", function(ev){ moTip(ev, chu); });
+            cot.addEventListener("mousemove", function(ev){ moTip(ev, chu); });
+            cot.addEventListener("mouseleave", dongTip);
+          })(ten[q2], so, moc[t2]);
+        }
+      }
+    }
+  }
+
+  function veBieuDo(){ veBuoi(); veTuan(); }
+
   /* ---------- danh sách người làm ---------- */
 
   var peopleText = document.getElementById("peopleText");
@@ -1198,7 +1474,7 @@
     renderPeople();
     refreshWhoSelects();
     renderTimeline();
-    renderStats();
+    renderStats(); veBieuDo();
     tickRoutine();
     saveSoon();
     markPeople();
@@ -1287,17 +1563,17 @@
   document.getElementById("btnPrev").addEventListener("click", function(){
     anchor = addDays(anchor, -7);
     renderWeek();
-    renderStats();
+    renderStats(); veBieuDo();
   });
   document.getElementById("btnNext").addEventListener("click", function(){
     anchor = addDays(anchor, 7);
     renderWeek();
-    renderStats();
+    renderStats(); veBieuDo();
   });
   document.getElementById("btnToday").addEventListener("click", function(){
     anchor = mondayOf(today());
     renderWeek();
-    renderStats();
+    renderStats(); veBieuDo();
   });
   document.getElementById("btnPrint").addEventListener("click", function(){
     window.print();
@@ -1313,7 +1589,7 @@
     }
     save();
     renderWeek();
-    renderStats();
+    renderStats(); veBieuDo();
   });
 
   document.getElementById("btnExport").addEventListener("click", function(){
@@ -2276,7 +2552,7 @@
     renderWeek();
     renderTimeline();
     renderPeople();
-    renderStats();
+    renderStats(); veBieuDo();
     tickRoutine();
   }
 

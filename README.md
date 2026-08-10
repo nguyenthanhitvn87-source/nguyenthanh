@@ -83,6 +83,10 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
   xuống ít, kèm thanh so sánh và một dòng nói ai làm nhiều nhất. Một buổi hai người thì
   mỗi người tính một. Buổi có việc mà chưa gán ai được đếm riêng. Rê chuột lên một dòng
   hiện chi tiết Sáng/Trưa/Chiều/Tối.
+- **Hai biểu đồ** ở cuối trang: *Ai lo buổi nào* xếp chồng theo Sáng/Trưa/Chiều/Tối của tuần
+  đang xem, và *Sáu tuần gần đây* dạng cột nhóm cho thấy mỗi người lo bao nhiêu buổi qua từng
+  tuần. Rê chuột lên một đoạn hay một cột hiện số cụ thể. Có chú thích màu, và tên với số
+  luôn hiện thành chữ nên không phải chỉ dựa vào màu để đọc.
 - **Nhắc giờ**: bật nút 🔔 để trình duyệt báo mỗi khi tới một mốc trong thời gian biểu,
   kèm tên người làm. Chỉ nhắc trong vòng 5 phút kể từ mốc nên mở trang muộn không bị dội
   thông báo cũ, và mỗi mốc chỉ nhắc một lần trong ngày.
