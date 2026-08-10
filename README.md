@@ -35,8 +35,9 @@ npx http-server .
 ## Cấu trúc
 
 ```
-index.html      # toàn bộ game: giao diện, style và logic
-lich-bieu.html  # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
+index.html               # toàn bộ game: giao diện, style và logic
+lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
+dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 README.md
 ```
 
@@ -59,7 +60,9 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 ## Tính năng
 
 - Bảng theo tuần: **Ngày · Sáng · Trưa · Chiều · Tối · Notes · Special Note**.
-- Bấm thẳng vào ô để sửa, nội dung **tự lưu** vào `localStorage` (không cần nút Lưu).
+- Bấm thẳng vào ô để sửa, nội dung **tự lưu** ngay (không cần nút Lưu).
+- **Dùng chung cho cả nhà** qua một Google Sheet: nhiều người cùng sửa, ai cũng nhìn thấy.
+  Xem mục hướng dẫn bên dưới.
 - Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
 - **Người làm cho từng buổi**: mỗi ô Sáng/Trưa/Chiều/Tối có ô chọn người phụ trách.
   Mỗi người một màu riêng, lấy theo thứ tự trong danh sách nên các màu cách xa nhau.
@@ -81,14 +84,38 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 | Xuống dòng trong ô | `Enter` |
 | Nhảy sang ô kế tiếp | `Ctrl` + `Enter` (macOS: `⌘` + `Enter`) |
 
+## Dùng chung cho cả nhà
+
+Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng sửa và ai cũng nhìn thấy
+thì nối trang với một Google Sheet của bạn — làm một lần, mất chừng 5 phút.
+
+1. Vào [sheets.new](https://sheets.new) tạo một bảng tính mới, đặt tên tuỳ ý.
+2. Trong bảng tính, chọn **Tiện ích mở rộng → Apps Script**.
+3. Xoá hết nội dung có sẵn, dán toàn bộ file [`dong-bo-google-sheet.gs`](dong-bo-google-sheet.gs) vào, bấm lưu.
+4. Bấm **Triển khai → Tạo bản triển khai mới**, chọn loại **Ứng dụng web**, rồi đặt:
+   - *Thực thi với tư cách*: **Tôi**
+   - *Người có quyền truy cập*: **Bất kỳ ai**
+5. Bấm **Triển khai**, cho phép quyền khi Google hỏi, rồi **sao chép URL ứng dụng web**
+   (dạng `https://script.google.com/macros/s/..../exec`).
+6. Mở trang lịch biểu, bấm **🔗 Dùng chung**, dán URL đó vào, bấm OK.
+7. Làm bước 6 trên máy của những người khác với **cùng một URL**.
+
+Xong. Ai sửa gì thì khoảng 10 giây sau máy khác thấy, và một chấm trạng thái hiện
+bên cạnh **Đã lưu** cho biết đang đồng bộ hay mất kết nối. Dữ liệu nằm thẳng trong
+Google Sheet dưới dạng bảng, nên mở sheet ra xem hoặc sửa tay cũng được.
+
+Vài điều cần biết:
+
+- **Ai có URL đều sửa được**, không cần đăng nhập. Chỉ gửi URL cho người trong nhà.
+- Đang gõ dở ở ô nào thì bản của người khác không giật mất ô đó; con trỏ vẫn nằm nguyên chỗ cũ.
+- Mất mạng thì vẫn gõ được, dữ liệu nằm trong máy và tự gửi lên khi có mạng lại.
+- URL chỉ lưu trên máy đang dùng, không nằm trong file **Xuất JSON**.
+- Bấm **🔗 Dùng chung** rồi để trống, bấm OK là ngưng dùng chung, quay về lưu riêng.
+
 ## Lưu ý
 
-Dữ liệu nằm trong trình duyệt đang dùng — xoá dữ liệu duyệt web hoặc đổi máy sẽ mất.
-Nhớ bấm **Xuất JSON** khi cần sao lưu.
-
-**Chưa dùng chung được giữa nhiều người.** Mỗi thiết bị giữ bản riêng, sửa ở máy này
-máy kia không thấy. Muốn nhiều người cùng nhìn một lịch thì cần thêm nơi lưu chung
-(máy chủ hoặc dịch vụ lưu trữ), chưa có trong bản này.
+Khi chưa nối Google Sheet, dữ liệu nằm trong trình duyệt đang dùng — xoá dữ liệu
+duyệt web hoặc đổi máy sẽ mất. Nhớ bấm **Xuất JSON** khi cần sao lưu.
 
 Nhắc giờ chỉ chạy khi trang đang mở trong trình duyệt. Trên iPhone, Safari chỉ hiện
 thông báo khi trang đã được **Thêm vào màn hình chính**.
