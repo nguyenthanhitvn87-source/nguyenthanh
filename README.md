@@ -38,6 +38,7 @@ npx http-server .
 index.html               # toàn bộ game: giao diện, style và logic
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
+kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 README.md
 ```
@@ -94,7 +95,9 @@ Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng
 thì nối trang với một Google Sheet của bạn — làm một lần, mất chừng 5 phút.
 
 Mở [`huong-dan-dung-chung.html`](huong-dan-dung-chung.html) để vừa xem vừa làm theo,
-có cả phần xử lý mấy chỗ hay vướng. Tóm tắt các bước:
+có cả phần xử lý mấy chỗ hay vướng. Nối không được thì mở
+[`kiem-tra.html`](kiem-tra.html): trang này chạy bốn phép thử đọc và ghi theo cả hai
+cách gọi, rồi chỉ ra đúng chỗ phải sửa. Tóm tắt các bước:
 
 1. Vào [sheets.new](https://sheets.new) tạo một bảng tính mới, đặt tên tuỳ ý.
 2. Trong bảng tính, chọn **Tiện ích mở rộng → Apps Script**.
