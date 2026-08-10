@@ -507,6 +507,7 @@
   </section>
 
   <footer class="foot">
+    <span id="banDung"></span>
     Lịch này lưu riêng cho địa chỉ <code id="whereAmI"></code> trên trình duyệt này.
     Dùng <b>Xuất JSON</b> để sao lưu hoặc chuyển sang máy khác.
     <span id="restoreWrap" hidden>
@@ -2101,6 +2102,19 @@
   }
 
   document.getElementById("whereAmI").textContent = location.host || "tệp trên máy";
+
+  // Cho biết trang đang chạy có kho chung gắn sẵn hay không. Trình duyệt hay giữ
+  // bản cũ trong bộ nhớ đệm, nhìn dòng này là biết ngay máy nào chưa tải bản mới.
+  (function(){
+    var el = document.getElementById("banDung");
+    if (KHO_MAC_DINH) {
+      var ten = (KHO_MAC_DINH.replace(/^https?:\/\//, "").split(".")[0] || "").replace(/-default-rtdb$/, "");
+      el.innerHTML = "Bản có lịch chung <b>" + ten + "</b>. ";
+    } else {
+      el.innerHTML = "<b>Bản chưa có lịch chung</b> — nếu máy khác thấy dòng khác dòng này " +
+                     "thì máy đó đang giữ bản cũ, bấm Ctrl+F5 để tải lại. ";
+    }
+  })();
   flagEl = document.getElementById("savedFlag");
   routineText.value = state.routine;
   peopleText.value = state.people.join("\n");
