@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiểm tra kết nối Google Sheet</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#fff; --ink:#1d2433; --muted:#6b7488; --line:#e2e6ef;
+    --accent:#2f6df6; --accent-soft:#e8effe;
+    --ok:#1a7f45; --ok-bg:#e8f7ee; --ok-line:#3ec46d;
+    --bad:#a3232a; --bad-bg:#fdecec; --bad-line:#e5484d;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12151c; --panel:#191d26; --ink:#e8ebf2; --muted:#98a1b4; --line:#2a3040;
+      --accent:#6f9bff; --accent-soft:#1e2637;
+      --ok:#a8e6c0; --ok-bg:#16301f; --ok-line:#2f7f4d;
+      --bad:#f3b4b6; --bad-bg:#3a1c1e; --bad-line:#a8383c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12151c; --panel:#191d26; --ink:#e8ebf2; --muted:#98a1b4; --line:#2a3040;
+    --accent:#6f9bff; --accent-soft:#1e2637;
+    --ok:#a8e6c0; --ok-bg:#16301f; --ok-line:#2f7f4d;
+    --bad:#f3b4b6; --bad-bg:#3a1c1e; --bad-line:#a8383c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:26px 18px 70px}
+  h1{font-size:23px;margin:0 0 6px;letter-spacing:-.015em}
+  p.lede{color:var(--muted);margin:0 0 20px}
+  input{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;outline:0}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button{font:inherit;font-size:15px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:10px 15px;cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button:disabled{opacity:.5;cursor:default}
+  ol.tests{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+  ol.tests li{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:13px 16px}
+  ol.tests li[data-r="ok"]{background:var(--ok-bg);border-color:var(--ok-line)}
+  ol.tests li[data-r="bad"]{background:var(--bad-bg);border-color:var(--bad-line)}
+  ol.tests b{display:block;font-size:15px}
+  ol.tests span{font-size:14px;color:var(--muted);word-break:break-word}
+  ol.tests li[data-r="ok"] span{color:var(--ok)}
+  ol.tests li[data-r="bad"] span{color:var(--bad)}
+  .verdict{margin-top:20px;padding:14px 16px;border-radius:var(--radius);
+    background:var(--panel);border:1px solid var(--line);font-size:15px}
+  .verdict[data-r="ok"]{background:var(--ok-bg);border-color:var(--ok-line)}
+  .verdict[data-r="bad"]{background:var(--bad-bg);border-color:var(--bad-line)}
+  .verdict[hidden]{display:none}
+  .verdict h2{font-size:16px;margin:0 0 8px}
+  .verdict ol{margin:8px 0 0;padding-left:22px}
+  textarea{width:100%;min-height:150px;margin-top:14px;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;
+    color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  textarea[hidden]{display:none}
+  code{background:var(--accent-soft);padding:1px 6px;border-radius:6px;
+    font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kiểm tra kết nối Google Sheet</h1>
+  <p class="lede">Dán địa chỉ Web app vào rồi bấm chạy. Trang này chỉ thử, không đụng gì tới lịch của bạn.</p>
+
+  <input type="url" id="url" inputmode="url" autocomplete="off" spellcheck="false"
+         placeholder="https://script.google.com/macros/s/…/exec" aria-label="Địa chỉ Web app">
+  <div class="row">
+    <button class="primary" id="run">Chạy kiểm tra</button>
+    <button id="copy" disabled>Sao chép kết quả</button>
+  </div>
+
+  <ol class="tests" id="tests"></ol>
+  <div class="verdict" id="verdict" hidden></div>
+  <textarea id="report" hidden readonly aria-label="Kết quả để gửi đi"></textarea>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TESTS = [
+    { key:"thang-doc", name:"1. Đọc bằng cách thẳng", note:"trình duyệt gọi trực tiếp" },
+    { key:"vong-doc",  name:"2. Đọc bằng đường vòng", note:"cần đoạn mã bản mới" },
+    { key:"vong-ghi",  name:"3. Ghi bằng đường vòng", note:"ghi thử một ngày rồi xoá đi" },
+    { key:"thang-ghi", name:"4. Ghi bằng cách thẳng", note:"chỉ chạy nếu phép 1 đạt" }
+  ];
+
+  var results = {};
+  var testsEl = document.getElementById("tests");
+  var verdictEl = document.getElementById("verdict");
+  var reportEl = document.getElementById("report");
+  var runBtn = document.getElementById("run");
+  var copyBtn = document.getElementById("copy");
+  var seq = 0;
+
+  // Ngày giả để thử ghi, xa hẳn lịch thật rồi xoá ngay sau đó
+  var PROBE = "1990-01-01";
+
+  function draw(){
+    testsEl.textContent = "";
+    for (var i = 0; i < TESTS.length; i++) {
+      var t = TESTS[i];
+      var r = results[t.key];
+      var li = document.createElement("li");
+      if (r) li.setAttribute("data-r", r.ok ? "ok" : "bad");
+      var b = document.createElement("b");
+      b.textContent = t.name;
+      var s = document.createElement("span");
+      s.textContent = r ? (r.ok ? "Đạt — " : "Hỏng — ") + r.msg : "(" + t.note + ")";
+      li.appendChild(b);
+      li.appendChild(s);
+      testsEl.appendChild(li);
+    }
+  }
+
+  function jsonp(base, params){
+    return new Promise(function(resolve, reject){
+      var name = "__kt" + (++seq) + "_" + Date.now();
+      var bits = ["callback=" + name];
+      for (var k in params) {
+        if (params.hasOwnProperty(k)) {
+          bits.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+        }
+      }
+      var s = document.createElement("script");
+      var done = false, timer = null;
+      function finish(err, data){
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        try { delete window[name]; } catch (e) { window[name] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
+        if (err) reject(err); else resolve(data);
+      }
+      window[name] = function(d){ finish(null, d); };
+      s.onerror = function(){ finish(new Error("thẻ script không tải được")); };
+      timer = setTimeout(function(){
+        finish(new Error("chờ 25 giây không thấy trả lời — nhiều khả năng đoạn mã " +
+                         "trong Apps Script vẫn là bản cũ, chưa hiểu tham số callback"));
+      }, 25000);
+      s.src = base + (base.indexOf("?") > -1 ? "&" : "?") + bits.join("&");
+      document.head.appendChild(s);
+    });
+  }
+
+  function looksLikeState(out){
+    return out && typeof out.rev === "number" && out.state && typeof out.state === "object";
+  }
+
+  function run(){
+    var url = document.getElementById("url").value
+      .replace(/[\s ]+/g, "").replace(/^["'<(]+/, "").replace(/["'>)]+$/, "");
+    document.getElementById("url").value = url;
+    if (!url) { alert("Chưa dán địa chỉ."); return; }
+
+    results = {};
+    draw();
+    verdictEl.hidden = true;
+    reportEl.hidden = true;
+    copyBtn.disabled = true;
+    runBtn.disabled = true;
+    runBtn.textContent = "Đang chạy…";
+
+    var probePatch = {}; probePatch[PROBE] = { sang: "thử kết nối" };
+    var clearPatch = {}; clearPatch[PROBE] = {};
+
+    // 1. đọc thẳng
+    fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(out){
+        results["thang-doc"] = looksLikeState(out)
+          ? { ok:true, msg:"đọc được, rev = " + out.rev }
+          : { ok:false, msg:"gọi được nhưng nội dung trả về không đúng dạng" };
+      })["catch"](function(e){
+        results["thang-doc"] = { ok:false, msg:"trình duyệt chặn: " + (e.message || e) };
+      })
+      // 2. đọc vòng
+      .then(function(){
+        draw();
+        return jsonp(url, { t: Date.now() }).then(function(out){
+          results["vong-doc"] = looksLikeState(out)
+            ? { ok:true, msg:"đọc được, rev = " + out.rev }
+            : { ok:false, msg:"trả về nội dung lạ — đoạn mã có thể dán thiếu" };
+        })["catch"](function(e){
+          results["vong-doc"] = { ok:false, msg:(e.message || e) };
+        });
+      })
+      // 3. ghi vòng
+      .then(function(){
+        draw();
+        if (!results["vong-doc"].ok) {
+          results["vong-ghi"] = { ok:false, msg:"bỏ qua vì phép 2 đã hỏng" };
+          return;
+        }
+        return jsonp(url, { patch: JSON.stringify({ days: probePatch }) }).then(function(out){
+          if (out && out.ok === true && typeof out.rev === "number") {
+            results["vong-ghi"] = { ok:true, msg:"ghi được, rev lên " + out.rev };
+            return jsonp(url, { patch: JSON.stringify({ days: clearPatch }) });
+          }
+          results["vong-ghi"] = { ok:false, msg:"gọi được nhưng Sheet không báo ghi xong — " +
+                                                "đoạn mã chưa nhận tham số patch (bản cũ)" };
+        })["catch"](function(e){
+          results["vong-ghi"] = { ok:false, msg:(e.message || e) };
+        });
+      })
+      // 4. ghi thẳng
+      .then(function(){
+        draw();
+        if (!results["thang-doc"].ok) {
+          results["thang-ghi"] = { ok:false, msg:"bỏ qua vì phép 1 đã hỏng" };
+          return;
+        }
+        return fetch(url, {
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+          body: JSON.stringify({ patch:{ days: probePatch } })
+        }).then(function(r){ return r.json(); }).then(function(out){
+          results["thang-ghi"] = (out && out.ok === true)
+            ? { ok:true, msg:"ghi được, rev lên " + out.rev }
+            : { ok:false, msg:"gọi được nhưng Sheet không báo ghi xong" };
+          return fetch(url, {
+            method:"POST",
+            headers:{ "Content-Type":"text/plain;charset=utf-8" },
+            body: JSON.stringify({ patch:{ days: clearPatch } })
+          });
+        })["catch"](function(e){
+          results["thang-ghi"] = { ok:false, msg:"trình duyệt chặn: " + (e.message || e) };
+        });
+      })
+      .then(function(){
+        draw();
+        finish(url);
+      });
+  }
+
+  function finish(url){
+    runBtn.disabled = false;
+    runBtn.textContent = "Chạy lại";
+
+    var vongChay = results["vong-doc"].ok && results["vong-ghi"].ok;
+    var thangChay = results["thang-doc"].ok && results["thang-ghi"].ok;
+    var html;
+
+    if (thangChay || vongChay) {
+      verdictEl.setAttribute("data-r", "ok");
+      html = "<h2>Kết nối chạy được" +
+             (thangChay ? " (cách thẳng)" : " (đường vòng)") + "</h2>" +
+             "<p>Địa chỉ này dùng được. Quay lại trang lịch, bấm <b>🔗 Dùng chung</b>, " +
+             "dán đúng địa chỉ này rồi bấm <b>Kiểm tra và nối</b>.</p>";
+    } else if (results["vong-doc"].ok && !results["vong-ghi"].ok) {
+      verdictEl.setAttribute("data-r", "bad");
+      html = "<h2>Đọc được nhưng không ghi được</h2>" +
+             "<p>Đoạn mã trong Apps Script là bản cũ, chưa biết nhận phần sửa gửi lên. " +
+             "Dán lại đoạn mã mới rồi triển khai phiên bản mới:</p><ol>" +
+             "<li>Mở tab Apps Script, <code>Ctrl+A</code>, xoá, dán " +
+             "<a href=\"https://raw.githubusercontent.com/nguyenthanhitvn87-source/nguyenthanh/main/dong-bo-google-sheet.gs\" target=\"_blank\" rel=\"noopener\">đoạn mã mới</a>, <code>Ctrl+S</code></li>" +
+             "<li><b>Triển khai → Quản lý các bản triển khai</b></li>" +
+             "<li>Bấm <b>bút chì</b>, ô <b>Phiên bản</b> chọn <b>Phiên bản mới</b></li>" +
+             "<li>Bấm <b>Triển khai</b> — địa chỉ giữ nguyên</li></ol>";
+    } else {
+      verdictEl.setAttribute("data-r", "bad");
+      html = "<h2>Không gọi được vào địa chỉ này</h2><ol>" +
+             "<li>Đoạn mã trong Apps Script phải là bản mới. Dán lại rồi " +
+             "<b>Triển khai → Quản lý các bản triển khai → bút chì → Phiên bản mới → Triển khai</b>.</li>" +
+             "<li>Ô <b>Người có quyền truy cập</b> phải là <b>Bất kỳ ai</b>, " +
+             "không phải <i>Bất kỳ ai có Tài khoản Google</i>.</li>" +
+             "<li>Địa chỉ phải kết thúc bằng <code>/exec</code>.</li></ol>" +
+             "<p><a href=\"" + url.replace(/"/g, "%22") + "\" target=\"_blank\" rel=\"noopener\">" +
+             "Bấm đây mở địa chỉ ở tab mới</a> để xem Google trả lời gì.</p>";
+    }
+    verdictEl.innerHTML = html;
+    verdictEl.hidden = false;
+
+    var lines = ["KẾT QUẢ KIỂM TRA", "Nơi chạy: " + location.origin,
+                 "Trong khung: " + (window.top !== window.self ? "có" : "không"),
+                 "Địa chỉ kết thúc bằng /exec: " + (/\/exec$/.test(url) ? "có" : "KHÔNG"), ""];
+    for (var i = 0; i < TESTS.length; i++) {
+      var r = results[TESTS[i].key];
+      lines.push(TESTS[i].name + ": " + (r.ok ? "ĐẠT" : "HỎNG") + " — " + r.msg);
+    }
+    reportEl.value = lines.join("\n");
+    reportEl.hidden = false;
+    copyBtn.disabled = false;
+  }
+
+  runBtn.addEventListener("click", run);
+  copyBtn.addEventListener("click", function(){
+    reportEl.select();
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(reportEl.value);
+      done = true;
+    } else {
+      try { done = document.execCommand("copy"); } catch (e) { done = false; }
+    }
+    copyBtn.textContent = done ? "Đã chép — dán vào chỗ chat" : "Không chép được, bôi đen rồi chép tay";
+    setTimeout(function(){ copyBtn.textContent = "Sao chép kết quả"; }, 3000);
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>
