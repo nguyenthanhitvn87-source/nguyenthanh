@@ -1483,8 +1483,15 @@
   /* ---------- dùng chung qua Google Sheet ---------- */
 
   // Địa chỉ Web app lưu riêng từng máy, không nằm trong dữ liệu xuất ra
+  /* KHO CHUNG GẮN SẴN
+     Điền địa chỉ kho vào đây thì mọi người chỉ cần mở trang là thấy chung một
+     lịch, không ai phải dán mã. Để trống thì trang chạy riêng từng máy như cũ.
+     Nhận địa chỉ Firebase Realtime Database, hoặc địa chỉ Web app Apps Script. */
+  var KHO_MAC_DINH = "";
+
   var SYNC_KEY = "lichbieu.sync";
-  var WAY_KEY = "lichbieu.sync.cach";   // "thang" hoặc "vong"
+  var WAY_KEY = "lichbieu.sync.cach";   // "thang", "vong" hoặc "firebase"
+  var TUCHOI_KEY = "lichbieu.sync.tuchoi";   // đã tự tay ngưng dùng chung
   var syncUrl = "";
   var way = "thang";
   try {
@@ -1788,6 +1795,37 @@
     }
   }
 
+  // Chưa nối gì và cũng chưa tự tay từ chối thì vào thẳng kho gắn sẵn
+  function tuNoiKhoChung(){
+    if (syncUrl || !KHO_MAC_DINH) return;
+    var tuchoi = false;
+    try { tuchoi = localStorage.getItem(TUCHOI_KEY) === "1"; } catch (e) { tuchoi = false; }
+    if (tuchoi) return;
+
+    var cach = laFirebase(KHO_MAC_DINH) ? "firebase" : "thang";
+    showSyncAlways("busy", "Đang vào lịch chung…");
+    askRead(KHO_MAC_DINH, cach)
+      .then(function(out){ connectTo(KHO_MAC_DINH, cach, out); })
+      ["catch"](function(){
+        if (cach !== "thang") { bao(); return; }
+        askRead(KHO_MAC_DINH, "vong")
+          .then(function(out){ connectTo(KHO_MAC_DINH, "vong", out); })
+          ["catch"](bao);
+      });
+
+    function bao(){
+      showSyncAlways("error", "Chưa vào được lịch chung");
+    }
+  }
+
+  // showSync tự giấu khi chưa có syncUrl, lúc đang dò thì vẫn cần hiện
+  function showSyncAlways(stateName, text){
+    syncFlag.hidden = false;
+    syncFlag.setAttribute("data-state", stateName);
+    syncFlag.textContent = text;
+    localOnly.hidden = true;
+  }
+
   function startSync(){
     localOnly.hidden = !!syncUrl;
     if (!syncUrl) { syncFlag.hidden = true; return; }
@@ -1910,6 +1948,7 @@
     try {
       localStorage.setItem(SYNC_KEY, syncUrl);
       localStorage.setItem(WAY_KEY, way);
+      localStorage.removeItem(TUCHOI_KEY);
     } catch (e) { /* chế độ riêng tư */ }
 
     var iso;
@@ -2038,7 +2077,10 @@
 
   document.getElementById("syncStop").addEventListener("click", function(){
     syncUrl = "";
-    try { localStorage.setItem(SYNC_KEY, ""); } catch (e) { /* chế độ riêng tư */ }
+    try {
+      localStorage.setItem(SYNC_KEY, "");
+      localStorage.setItem(TUCHOI_KEY, "1");   // đừng tự nối lại vào kho gắn sẵn
+    } catch (e) { /* chế độ riêng tư */ }
     rev = -1;
     clearInterval(startSync.timer);
     startSync.timer = null;
@@ -2067,6 +2109,7 @@
   renderAll();
   readIncoming();
   showEmptyHint();
+  tuNoiKhoChung();
   startSync();
 
   // Sang ngày mới thì tự tô lại "Hôm nay"
