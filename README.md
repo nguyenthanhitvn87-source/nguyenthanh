@@ -37,6 +37,7 @@ npx http-server .
 ```
 index.html               # toàn bộ game: giao diện, style và logic
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
+huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 README.md
 ```
@@ -91,6 +92,9 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 
 Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng sửa và ai cũng nhìn thấy
 thì nối trang với một Google Sheet của bạn — làm một lần, mất chừng 5 phút.
+
+Mở [`huong-dan-dung-chung.html`](huong-dan-dung-chung.html) để vừa xem vừa làm theo,
+có cả phần xử lý mấy chỗ hay vướng. Tóm tắt các bước:
 
 1. Vào [sheets.new](https://sheets.new) tạo một bảng tính mới, đặt tên tuỳ ý.
 2. Trong bảng tính, chọn **Tiện ích mở rộng → Apps Script**.

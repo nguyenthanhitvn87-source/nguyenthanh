@@ -266,6 +266,7 @@
     font-size:13px;line-height:1.6;
   }
   .notice[hidden]{display:none}
+  .notice a{color:inherit}
   .sync-flag::before{
     content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto;
   }
@@ -326,7 +327,8 @@
   <p class="notice" id="localOnly" hidden>
     <b>Lịch này chỉ nằm trên máy bạn.</b>
     Người khác mở cùng đường link vẫn thấy lịch trống của riêng họ.
-    Muốn cả nhà cùng nhìn một lịch, bấm <b>🔗 Dùng chung</b> rồi làm theo hướng dẫn.
+    Muốn cả nhà cùng nhìn một lịch, xem
+    <a href="huong-dan-dung-chung.html">hướng dẫn từng bước</a> rồi bấm <b>🔗 Dùng chung</b>.
   </p>
 
   <div class="card table-scroll">
@@ -1191,7 +1193,7 @@
   document.getElementById("btnSync").addEventListener("click", function(){
     var next = prompt(
       "Dán địa chỉ Web app của Google Sheet vào đây để cả nhà dùng chung một lịch.\n" +
-      "Cách tạo: xem mục \"Dùng chung cho cả nhà\" trong README.\n\n" +
+      "Chưa có? Mở huong-dan-dung-chung.html để làm theo từng bước.\n\n" +
       "Để trống rồi bấm OK là ngưng dùng chung, quay về lưu riêng trên máy này.",
       syncUrl
     );
