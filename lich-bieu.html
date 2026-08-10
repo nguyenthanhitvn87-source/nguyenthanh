@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lịch biểu hàng ngày</title>
+<title>Chăm Bé Na — Lịch biểu hàng ngày</title>
 <style>
   :root{
     --bg:#f4f6fb;
@@ -164,8 +164,8 @@
 <div class="wrap">
 
   <header class="top">
-    <h1>Lịch biểu hàng ngày
-      <span>Bấm vào ô bất kỳ để sửa — nội dung tự lưu trên máy bạn.</span>
+    <h1>Chăm Bé Na
+      <span>Lịch biểu hàng ngày — bấm vào ô bất kỳ để sửa, nội dung tự lưu trên máy bạn.</span>
     </h1>
     <div class="toolbar">
       <button id="btnToday" class="primary">Hôm nay</button>
@@ -206,7 +206,7 @@
 
   <section class="routine">
     <div class="card">
-      <h2>Thời gian biểu trong ngày</h2>
+      <h2>Thời gian biểu trong ngày của Bé Na</h2>
       <p class="sub">Xem nhanh — cập nhật ở ô bên cạnh.</p>
       <ol class="timeline" id="timeline"></ol>
     </div>
@@ -507,7 +507,7 @@
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "lich-bieu-" + isoOf(today()) + ".json";
+    a.download = "cham-be-na-" + isoOf(today()) + ".json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
