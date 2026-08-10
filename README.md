@@ -129,8 +129,9 @@ cách gọi, rồi chỉ ra đúng chỗ phải sửa. Tóm tắt các bước:
    - *Người có quyền truy cập*: **Bất kỳ ai**
 5. Bấm **Triển khai**, cho phép quyền khi Google hỏi, rồi **sao chép URL ứng dụng web**
    (dạng `https://script.google.com/macros/s/..../exec`).
-6. Mở trang lịch biểu, bấm **🔗 Dùng chung**, dán URL đó vào, bấm OK.
-7. Làm bước 6 trên máy của những người khác với **cùng một URL**.
+6. Mở trang lịch biểu, bấm **🔗 Dùng chung**, dán URL đó vào, bấm **Kiểm tra và nối**.
+7. Hộp thoại hiện một **mã lịch chung**. Gửi mã đó cho người khác; họ mở trang lịch,
+   bấm **🔗 Dùng chung**, dán mã vào là xong — không cần biết địa chỉ đầy đủ.
 
 Xong. Ai sửa gì thì khoảng 10 giây sau máy khác thấy, và một chấm trạng thái hiện
 bên cạnh **Đã lưu** cho biết đang đồng bộ hay mất kết nối. Dữ liệu nằm thẳng trong
