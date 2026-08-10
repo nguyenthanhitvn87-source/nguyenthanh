@@ -114,8 +114,27 @@ link mới. Muốn hai bên tự thấy của nhau thì dùng cách dưới đâ
 ## Dùng chung cho cả nhà
 
 Mặc định mỗi máy giữ một bản riêng. Muốn nhiều người cùng sửa, ai cũng thấy — kể cả
-những gì người trước đã nhập — thì nối tất cả các máy vào một kho chung. Có hai kho
-dùng được, chọn một:
+những gì người trước đã nhập — thì nối tất cả các máy vào một kho chung.
+
+### Gắn sẵn kho vào trang
+
+Cách gọn nhất cho người dùng: điền địa chỉ kho vào hằng số `KHO_MAC_DINH` ở đầu phần
+`<script>` của `lich-bieu.html`.
+
+```js
+var KHO_MAC_DINH = "https://ten-cua-ban-default-rtdb.asia-southeast1.firebasedatabase.app";
+```
+
+Điền rồi thì **ai mở trang cũng tự vào chung một lịch**, không phải dán mã, không phải
+bấm gì — giống một trang nội bộ dùng chung. Máy nào tự tay bấm **Ngưng dùng chung** thì
+được nhớ lại và không bị nối lại.
+
+Để trống hằng số này thì trang chạy riêng từng máy như cũ, ai muốn dùng chung thì tự
+dán mã.
+
+### Kho dùng được
+
+Có hai loại, chọn một:
 
 **Firebase (khuyến nghị, không phải dán mã).** Tạo project trên
 [console.firebase.google.com](https://console.firebase.google.com), tạo Realtime
