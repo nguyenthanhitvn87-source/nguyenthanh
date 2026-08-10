@@ -36,7 +36,7 @@ npx http-server .
 
 ```
 index.html      # toàn bộ game: giao diện, style và logic
-lich-bieu.html  # ứng dụng lịch biểu hàng ngày (xem bên dưới)
+lich-bieu.html  # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 README.md
 ```
 
@@ -52,7 +52,7 @@ const FOOD_PER_LEVEL = 5;  // số mồi cần ăn để lên cấp
 
 ---
 
-# 📅 Lịch biểu hàng ngày
+# 📅 Chăm Bé Na — lịch biểu hàng ngày
 
 Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nhất**, không cần build.
 
@@ -61,7 +61,7 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 - Bảng theo tuần: **Ngày · Sáng · Trưa · Chiều · Tối · Notes · Special Note**.
 - Bấm thẳng vào ô để sửa, nội dung **tự lưu** vào `localStorage` (không cần nút Lưu).
 - Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
-- **Thời gian biểu trong ngày** hiển thị dạng timeline, sửa được ở ô văn bản bên cạnh
+- **Thời gian biểu trong ngày của Bé Na** hiển thị dạng timeline, sửa được ở ô văn bản bên cạnh
   (mỗi dòng một mốc, dạng `giờ: việc cần làm`, chấp nhận cả `7h30 - 8h00:`).
 - **Xuất / Nhập JSON** để sao lưu hoặc chuyển sang máy khác, và **In / PDF**.
 - Tự đổi màu theo giao diện sáng/tối của hệ thống, dùng được trên điện thoại.
