@@ -150,6 +150,11 @@
       border-color:hsl(var(--h) 35% 36%);
     }
   }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) ol.tk li{--bar:var(--bar-toi)}
+  }
+  :root[data-theme="dark"] ol.tk li{--bar:var(--bar-toi)}
+
   :root[data-theme="dark"] .who[data-set]{
     background-color:hsl(var(--h) 38% 22%);
     color:hsl(var(--h) 75% 80%);
@@ -323,6 +328,20 @@
   .sync-flag[data-state="busy"]::before{background:var(--accent)}
   .sync-flag[data-state="error"]::before{background:#e5484d}
   .sync-flag[data-state="error"]{color:#e5484d}
+
+  /* Thống kê: mỗi người một thanh, dài theo số buổi. Tên và số luôn hiện thành
+     chữ nên không phải chỉ dựa vào màu để đọc. */
+  .tk-dan{margin:0 0 14px;font-size:15px;line-height:1.5}
+  .tk-dan b{font-size:17px}
+  ol.tk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  ol.tk li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+  ol.tk .ten{font-size:14px;font-weight:600}
+  ol.tk .so{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  ol.tk .ray{grid-column:1 / -1;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+  ol.tk .ray i{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--bar,var(--accent))}
+  ol.tk li.trong .ten,ol.tk li.trong .so{color:var(--muted);font-weight:400}
+  ol.tk li.trong .ray i{background:var(--line);box-shadow:inset 0 0 0 1px var(--muted);opacity:.5}
+  ol.tk .rong{color:var(--muted);font-size:14px}
 
   .people{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
   #peopleText{min-height:150px}
@@ -499,6 +518,12 @@
       <textarea id="routineText" spellcheck="false"></textarea>
     </div>
     <div class="card">
+      <h2>Thống kê tuần này</h2>
+      <p class="sub" id="tkTong"></p>
+      <p class="tk-dan" id="tkDan"></p>
+      <ol class="tk" id="tkBang"></ol>
+    </div>
+    <div class="card">
       <h2>Người làm</h2>
       <p class="sub">Mỗi dòng một người. Tên ở đây hiện trong ô chọn của từng buổi.</p>
       <ul class="people" id="peopleList"></ul>
@@ -587,13 +612,26 @@
 
   // Mỗi người một màu riêng: lấy theo thứ tự trong danh sách nên các màu cách xa
   // nhau, ai không có trong danh sách thì suy ra màu từ chính cái tên.
-  var HUES = [212, 150, 28, 322, 265, 96, 4, 186, 45, 240];
+  var HUES = [212, 150, 28, 322, 252, 96, 4, 186, 45, 270];
+
+  /* Màu thanh thống kê. Không lấy thẳng từ HUES vì hệ màu HSL cho độ sáng lệch
+     nhau tuỳ sắc, xanh lá thì chói còn xanh dương thì tối. Bộ dưới đây đã dò để
+     các màu ngang độ sáng cảm nhận, đủ tương phản với nền và người mù màu vẫn
+     phân biệt được. */
+  var THANH_SANG = ["#1d7eed","#20975c","#c56007","#dc1e96","#816cd5",
+                    "#4d951d","#e03a2e","#06aabc","#9d7b15","#9e4bf1"];
+  var THANH_TOI  = ["#3893fa","#25ad69","#db7114","#e949ae","#9483d8",
+                    "#5fa82e","#f0574c","#06aabc","#b78b06","#ab73e2"];
+
+  function thuTuNguoi(name){
+    for (var i = 0; i < state.people.length; i++) {
+      if (state.people[i].trim() === name) return i;
+    }
+    return -1;
+  }
 
   function hueOf(name){
-    var idx = -1;
-    for (var i = 0; i < state.people.length; i++) {
-      if (state.people[i].trim() === name) { idx = i; break; }
-    }
+    var idx = thuTuNguoi(name);
     if (idx > -1) return HUES[idx % HUES.length];
     var h = 0;
     for (var j = 0; j < name.length; j++) h = (h * 31 + name.charCodeAt(j)) % 360;
@@ -896,6 +934,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
+    renderStats();
   });
 
   // Thêm một người vào buổi
@@ -911,6 +950,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
+    renderStats();
   });
 
   // Bỏ một người khỏi buổi
@@ -927,6 +967,7 @@
     prune(iso);
     saveSoon();
     markDay(iso);
+    renderStats();
   });
 
   // Enter = xuống dòng, Ctrl/Cmd+Enter = nhảy sang ô kế
@@ -1020,6 +1061,114 @@
     markRoutine();
   });
 
+  /* ---------- thống kê tuần ---------- */
+
+  var tkBang = document.getElementById("tkBang");
+  var tkDan = document.getElementById("tkDan");
+  var tkTong = document.getElementById("tkTong");
+
+  function demTuan(){
+    var dem = {};          // tên -> { tong, sang, trua, chieu, toi }
+    var chuaGan = 0, daGan = 0;
+
+    for (var i = 0; i < 7; i++) {
+      var day = state.days[isoOf(addDays(anchor, i))] || {};
+      for (var f = 0; f < ASSIGNABLE.length; f++) {
+        var slot = ASSIGNABLE[f];
+        var ai = whoList(day, slot);
+        var coViec = (day[slot] || "").trim() !== "" || ai.length > 0;
+        if (!coViec) continue;
+        if (!ai.length) { chuaGan++; continue; }
+        daGan++;
+        for (var k = 0; k < ai.length; k++) {
+          var o = dem[ai[k]] || (dem[ai[k]] = { tong:0, sang:0, trua:0, chieu:0, toi:0 });
+          o.tong++;
+          o[slot]++;
+        }
+      }
+    }
+    return { dem: dem, chuaGan: chuaGan, daGan: daGan };
+  }
+
+  function mauThanh(name){
+    var idx = thuTuNguoi(name);
+    if (idx > -1) {
+      return { sang: THANH_SANG[idx % THANH_SANG.length],
+               toi:  THANH_TOI[idx % THANH_TOI.length] };
+    }
+    var h = hueOf(name);
+    return { sang: "hsl(" + h + " 62% 40%)", toi: "hsl(" + h + " 62% 62%)" };
+  }
+
+  function renderStats(){
+    var kq = demTuan();
+    var ten = [];
+    for (var k in kq.dem) if (kq.dem.hasOwnProperty(k)) ten.push(k);
+    ten.sort(function(a, b){
+      return kq.dem[b].tong - kq.dem[a].tong || a.localeCompare(b, "vi");
+    });
+
+    tkBang.textContent = "";
+    tkTong.textContent = kq.daGan + kq.chuaGan === 0
+      ? "Tuần này chưa ghi việc nào."
+      : "Tuần này có " + (kq.daGan + kq.chuaGan) + " buổi có việc, " +
+        kq.daGan + " buổi đã có người.";
+
+    if (!ten.length) {
+      tkDan.textContent = "";
+      var rong = document.createElement("li");
+      rong.className = "rong";
+      rong.textContent = kq.chuaGan
+        ? "Chưa buổi nào được gán người làm."
+        : "Chưa có gì để thống kê.";
+      tkBang.appendChild(rong);
+      return;
+    }
+
+    var nhieuNhat = kq.dem[ten[0]].tong;
+    var deuNhau = ten.length > 1 && kq.dem[ten[1]].tong === nhieuNhat;
+    tkDan.innerHTML = deuNhau
+      ? "Đang hoà nhau ở <b>" + nhieuNhat + " buổi</b>."
+      : "<b>" + ten[0] + "</b> làm nhiều nhất, <b>" + nhieuNhat + " buổi</b>.";
+
+    var moc = Math.max(nhieuNhat, kq.chuaGan, 1);
+
+    function dong(nhan, so, chiTiet, mau, mo){
+      var li = document.createElement("li");
+      if (mo) li.className = "trong";
+      if (mau) {
+        li.style.setProperty("--bar", mau.sang);
+        li.style.setProperty("--bar-toi", mau.toi);
+      }
+      if (chiTiet) li.title = chiTiet;
+
+      var t = document.createElement("span");
+      t.className = "ten";
+      t.textContent = nhan;
+      var n = document.createElement("span");
+      n.className = "so";
+      n.textContent = so + " buổi";
+      var ray = document.createElement("span");
+      ray.className = "ray";
+      var trong = document.createElement("i");
+      trong.style.width = Math.round(so / moc * 100) + "%";
+      ray.appendChild(trong);
+
+      li.appendChild(t);
+      li.appendChild(n);
+      li.appendChild(ray);
+      tkBang.appendChild(li);
+    }
+
+    for (var i = 0; i < ten.length; i++) {
+      var o = kq.dem[ten[i]];
+      dong(ten[i], o.tong,
+           "Sáng " + o.sang + " · Trưa " + o.trua + " · Chiều " + o.chieu + " · Tối " + o.toi,
+           mauThanh(ten[i]), false);
+    }
+    if (kq.chuaGan) dong("Chưa có người", kq.chuaGan, "", null, true);
+  }
+
   /* ---------- danh sách người làm ---------- */
 
   var peopleText = document.getElementById("peopleText");
@@ -1049,6 +1198,7 @@
     renderPeople();
     refreshWhoSelects();
     renderTimeline();
+    renderStats();
     tickRoutine();
     saveSoon();
     markPeople();
@@ -1137,14 +1287,17 @@
   document.getElementById("btnPrev").addEventListener("click", function(){
     anchor = addDays(anchor, -7);
     renderWeek();
+    renderStats();
   });
   document.getElementById("btnNext").addEventListener("click", function(){
     anchor = addDays(anchor, 7);
     renderWeek();
+    renderStats();
   });
   document.getElementById("btnToday").addEventListener("click", function(){
     anchor = mondayOf(today());
     renderWeek();
+    renderStats();
   });
   document.getElementById("btnPrint").addEventListener("click", function(){
     window.print();
@@ -1160,6 +1313,7 @@
     }
     save();
     renderWeek();
+    renderStats();
   });
 
   document.getElementById("btnExport").addEventListener("click", function(){
@@ -2122,6 +2276,7 @@
     renderWeek();
     renderTimeline();
     renderPeople();
+    renderStats();
     tickRoutine();
   }
 

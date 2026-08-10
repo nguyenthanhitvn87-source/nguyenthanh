@@ -79,6 +79,10 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
   (mỗi dòng một mốc, dạng `giờ: việc cần làm | người làm`, nhiều người thì ngăn bằng dấu phẩy:
   `7:30: ăn sáng | Mẹ, Bà`; chấp nhận cả `7h30 - 8h00:`).
   Mốc đang tới giờ được tô sáng, các mốc đã qua thì mờ đi.
+- **Thống kê tuần**: đếm mỗi người bao nhiêu buổi trong tuần đang xem, xếp từ nhiều
+  xuống ít, kèm thanh so sánh và một dòng nói ai làm nhiều nhất. Một buổi hai người thì
+  mỗi người tính một. Buổi có việc mà chưa gán ai được đếm riêng. Rê chuột lên một dòng
+  hiện chi tiết Sáng/Trưa/Chiều/Tối.
 - **Nhắc giờ**: bật nút 🔔 để trình duyệt báo mỗi khi tới một mốc trong thời gian biểu,
   kèm tên người làm. Chỉ nhắc trong vòng 5 phút kể từ mốc nên mở trang muộn không bị dội
   thông báo cũ, và mỗi mốc chỉ nhắc một lần trong ngày.
