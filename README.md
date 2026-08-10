@@ -63,6 +63,9 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 
 - Bảng theo tuần: **Ngày · Sáng · Trưa · Chiều · Tối · Notes · Special Note**.
 - Bấm thẳng vào ô để sửa, nội dung **tự lưu** ngay (không cần nút Lưu).
+- **Gửi lịch bằng đường link**: bấm 📤 Gửi lịch để gói cả lịch vào một đường link rồi
+  gửi qua Zalo hay tin nhắn. Người nhận bấm vào là thấy, không cài gì, không đăng nhập.
+  Không cần máy chủ hay dịch vụ nào — dữ liệu nằm sau dấu `#` nên không đi lên mạng.
 - **Dùng chung cho cả nhà** qua một Google Sheet: nhiều người cùng sửa, ai cũng nhìn thấy.
   Xem mục hướng dẫn bên dưới.
 - Chuyển **Tuần trước / Tuần sau**, nút **Hôm nay** quay về tuần hiện tại; dòng của ngày hôm nay được tô sáng.
@@ -88,6 +91,20 @@ Mở `lich-bieu.html` bằng trình duyệt. Cũng là **một file HTML duy nh�
 | --- | --- |
 | Xuống dòng trong ô | `Enter` |
 | Nhảy sang ô kế tiếp | `Ctrl` + `Enter` (macOS: `⌘` + `Enter`) |
+
+## Gửi lịch bằng đường link
+
+Cách nhanh nhất, không phải cài gì. Bấm **📤 Gửi lịch** → **Sao chép link** → dán vào
+Zalo gửi đi. Cả lịch được nén rồi nhét vào phần sau dấu `#` của địa chỉ; phần đó không
+bao giờ được gửi lên máy chủ nào, nên cách này chạy mà không cần dịch vụ lưu trữ.
+Một tuần đầy đủ ra link chừng 600 ký tự.
+
+Người nhận mở link sẽ thấy băng báo *đây là lịch người khác gửi*, xem thử được ngay,
+và tự chọn **Lưu vào máy này** hay **Bỏ, giữ lịch cũ của tôi** — lịch sẵn có của họ
+không bị ghi đè khi chưa đồng ý.
+
+Điểm yếu: link chụp lại lịch ở thời điểm gửi, sửa xong muốn người kia thấy thì gửi
+link mới. Muốn hai bên tự thấy của nhau thì dùng cách dưới đây.
 
 ## Dùng chung cho cả nhà
 

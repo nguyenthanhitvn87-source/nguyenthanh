@@ -308,6 +308,14 @@
   :root[data-theme="dark"] .sheet .msg[data-kind="good"]{background:#16301f;border-color:#2f7f4d;color:#a8e6c0}
   .sheet-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   .sheet-actions button{flex:0 0 auto}
+  .sheet-actions button[hidden]{display:none}
+  .sheet textarea{
+    width:100%;resize:vertical;border:1px solid var(--line);border-radius:10px;
+    background:transparent;color:var(--ink);padding:10px 12px;outline:0;
+    font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all;
+  }
+  .sheet textarea:focus{border-color:var(--accent)}
+  .notice.got{background:var(--accent-soft);border-color:var(--accent)}
   .sync-flag::before{
     content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto;
   }
@@ -345,6 +353,7 @@
     <div class="toolbar">
       <button id="btnToday" class="primary">Hôm nay</button>
       <button id="btnNotify" class="ghost" aria-pressed="false">🔔 Nhắc giờ</button>
+      <button id="btnShare" class="ghost">📤 Gửi lịch</button>
       <button id="btnSync" class="ghost">🔗 Dùng chung</button>
       <button id="btnExport" class="ghost">Xuất JSON</button>
       <button id="btnImport" class="ghost">Nhập JSON</button>
@@ -363,6 +372,35 @@
     <div class="hint" id="weekHint"></div>
     <div class="dot-saved" id="savedFlag"><i></i><span>Đã lưu</span></div>
     <div class="sync-flag" id="syncFlag" hidden></div>
+  </div>
+
+  <p class="notice got" id="gotShared" hidden>
+    <b>Đây là lịch người khác gửi cho bạn.</b>
+    <span id="gotInfo"></span>
+    Bạn đang xem thử, chưa có gì được lưu.
+    <button type="button" class="linkish" id="gotKeep">Lưu vào máy này</button> ·
+    <button type="button" class="linkish" id="gotDrop">Bỏ, giữ lịch cũ của tôi</button>
+  </p>
+
+  <div class="overlay" id="shareBox" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+      <h2 id="shareTitle">Gửi lịch cho người khác</h2>
+      <p class="sub">
+        Cả lịch nằm gọn trong đường link dưới đây. Gửi qua Zalo, tin nhắn, email đều được —
+        người nhận bấm vào là thấy, không phải cài gì.
+      </p>
+      <textarea id="shareLink" readonly rows="4" aria-label="Đường link chứa lịch"></textarea>
+      <p class="msg" id="shareMsg" hidden></p>
+      <div class="sheet-actions">
+        <button id="shareCopy" class="primary">Sao chép link</button>
+        <button id="shareSend" class="ghost" hidden>Gửi qua ứng dụng</button>
+        <button id="shareClose" class="ghost">Đóng</button>
+      </div>
+      <p class="sub" style="margin:14px 0 0">
+        Link chụp lại lịch ở thời điểm gửi. Sửa xong muốn người kia thấy thì gửi link mới.
+        Muốn hai bên tự thấy của nhau mà không phải gửi lại, dùng <b>🔗 Dùng chung</b>.
+      </p>
+    </div>
   </div>
 
   <div class="overlay" id="syncBox" hidden>
@@ -1113,6 +1151,183 @@
     fileInput.value = "";
   });
 
+  /* ---------- gửi lịch bằng đường link ---------- */
+
+  /* Cả lịch được nén rồi nhét vào phần sau dấu # của địa chỉ. Phần sau dấu #
+     không bao giờ được gửi lên máy chủ nào, nên cách này không cần dịch vụ
+     lưu trữ, không cần cài đặt, và chạy được cả khi không có mạng. */
+
+  function toBase64Url(bytes){
+    var s = "";
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function fromBase64Url(text){
+    var s = text.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var raw = atob(s);
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  }
+
+  function packState(){
+    return JSON.stringify({
+      v: 1,
+      days: state.days,
+      routine: state.routine,
+      people: state.people,
+      at: isoOf(today())
+    });
+  }
+
+  // Nén được thì nén, trình duyệt cũ không có thì để nguyên. Chữ đầu cho biết kiểu.
+  function encodeShare(){
+    var text = packState();
+    var bytes = new TextEncoder().encode(text);
+    if (typeof CompressionStream !== "function") {
+      return Promise.resolve("p" + toBase64Url(bytes));
+    }
+    return new Response(
+      new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))
+    ).arrayBuffer().then(function(buf){
+      return "z" + toBase64Url(new Uint8Array(buf));
+    })["catch"](function(){
+      return "p" + toBase64Url(bytes);
+    });
+  }
+
+  function decodeShare(payload){
+    var kind = payload.charAt(0);
+    var bytes = fromBase64Url(payload.slice(1));
+    if (kind === "p") {
+      return Promise.resolve(JSON.parse(new TextDecoder().decode(bytes)));
+    }
+    if (kind !== "z") return Promise.reject(new Error("Không hiểu dạng link"));
+    return new Response(
+      new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))
+    ).arrayBuffer().then(function(buf){
+      return JSON.parse(new TextDecoder().decode(new Uint8Array(buf)));
+    });
+  }
+
+  var shareBox = document.getElementById("shareBox");
+  var shareLink = document.getElementById("shareLink");
+  var shareMsg = document.getElementById("shareMsg");
+  var shareSend = document.getElementById("shareSend");
+
+  function shareSay(kind, text){
+    shareMsg.hidden = false;
+    shareMsg.setAttribute("data-kind", kind);
+    shareMsg.textContent = text;
+  }
+
+  document.getElementById("btnShare").addEventListener("click", function(){
+    shareMsg.hidden = true;
+    shareLink.value = "Đang gói lịch lại…";
+    shareBox.hidden = false;
+    encodeShare().then(function(payload){
+      var base = location.href.split("#")[0];
+      var url = base + "#l=" + payload;
+      shareLink.value = url;
+      shareLink.focus();
+      shareLink.select();
+      if (url.length > 6000) {
+        shareSay("bad", "Link dài " + url.length + " ký tự. Vài ứng dụng nhắn tin cắt bớt " +
+                        "link quá dài; nếu người nhận mở không được thì bấm Xoá tuần này cho " +
+                        "những tuần cũ không cần nữa rồi gửi lại.");
+      }
+      shareSend.hidden = !navigator.share;
+    })["catch"](function(err){
+      shareLink.value = "";
+      shareSay("bad", "Không gói được lịch: " + (err.message || err));
+    });
+  });
+
+  document.getElementById("shareClose").addEventListener("click", function(){
+    shareBox.hidden = true;
+  });
+  shareBox.addEventListener("click", function(ev){
+    if (ev.target === shareBox) shareBox.hidden = true;
+  });
+
+  document.getElementById("shareCopy").addEventListener("click", function(){
+    shareLink.select();
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareLink.value);
+      done = true;
+    } else {
+      try { done = document.execCommand("copy"); } catch (e) { done = false; }
+    }
+    shareSay(done ? "good" : "bad", done
+      ? "Đã chép. Dán vào Zalo hay tin nhắn rồi gửi đi."
+      : "Không chép tự động được — bôi đen đoạn trên rồi chép tay.");
+  });
+
+  shareSend.addEventListener("click", function(){
+    navigator.share({ title: "Lịch chăm Bé Na", url: shareLink.value })["catch"](function(){});
+  });
+
+  /* Nhận lịch từ link: chỉ cho xem thử, chưa ghi đè gì của người ta */
+
+  var gotShared = document.getElementById("gotShared");
+  var incoming = null;
+
+  function readIncoming(){
+    var m = /[#&]l=([^&]+)/.exec(location.hash || "");
+    if (!m || incoming) return;
+    var mine = { days: state.days, routine: state.routine, people: state.people };
+    decodeShare(m[1]).then(function(data){
+      if (!data || typeof data !== "object" || !data.days) throw new Error("thiếu nội dung");
+      incoming = { data: data, mine: mine };
+      state.days = data.days;
+      if (typeof data.routine === "string") state.routine = data.routine;
+      if (Array.isArray(data.people)) state.people = data.people;
+      routineText.value = state.routine;
+      peopleText.value = state.people.join("\n");
+      document.getElementById("gotInfo").textContent =
+        data.at ? "Lịch chụp ngày " + fmtVN(parseIso(data.at)) + "." : "";
+      gotShared.hidden = false;
+      renderAll();
+    })["catch"](function(){
+      document.getElementById("gotInfo").textContent =
+        "Link bị hỏng hoặc chép thiếu, không đọc được nội dung.";
+      document.getElementById("gotKeep").hidden = true;
+      gotShared.hidden = false;
+    });
+  }
+
+  // Dán link vào khi trang đang mở thì trình duyệt không tải lại, phải tự bắt
+  window.addEventListener("hashchange", readIncoming);
+
+  document.getElementById("gotKeep").addEventListener("click", function(){
+    save();
+    for (var iso in state.days) {
+      if (state.days.hasOwnProperty(iso)) markDay(iso);
+    }
+    markRoutine();
+    markPeople();
+    incoming = null;
+    gotShared.hidden = true;
+    history.replaceState(null, "", location.href.split("#")[0]);
+  });
+
+  document.getElementById("gotDrop").addEventListener("click", function(){
+    if (incoming) {
+      state.days = incoming.mine.days;
+      state.routine = incoming.mine.routine;
+      state.people = incoming.mine.people;
+      routineText.value = state.routine;
+      peopleText.value = state.people.join("\n");
+      renderAll();
+    }
+    incoming = null;
+    gotShared.hidden = true;
+    history.replaceState(null, "", location.href.split("#")[0]);
+  });
+
   /* ---------- dùng chung qua Google Sheet ---------- */
 
   // Địa chỉ Web app lưu riêng từng máy, không nằm trong dữ liệu xuất ra
@@ -1556,6 +1771,7 @@
   peopleText.value = state.people.join("\n");
   markNotify();
   renderAll();
+  readIncoming();
   startSync();
 
   // Sang ngày mới thì tự tô lại "Hôm nay"
