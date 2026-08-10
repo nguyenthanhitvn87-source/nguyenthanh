@@ -155,8 +155,53 @@
     color:hsl(var(--h) 75% 80%);
     border-color:hsl(var(--h) 35% 36%);
   }
-  .cell .who{margin:0 12px 10px}
-  .cell .assign{display:flex}
+  .cell .assign{display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 10px}
+  .cell .who{margin:0}
+  span.who{padding-right:9px}
+  span.who .chip-x{
+    font:inherit;font-size:13px;line-height:1;color:inherit;
+    background:none;border:0;box-shadow:none;padding:0 0 0 5px;margin:0;
+    cursor:pointer;opacity:.55;border-radius:0;
+  }
+  span.who .chip-x:hover{opacity:1}
+  select.who.add[hidden]{display:none}
+
+  /* Ô nào đã có người làm thì nhuộm cả ô theo màu người đó. Hai người thì pha
+     màu cả hai và vệt bên trái chia đôi; --h2 không có thì rơi về --h. */
+  td.cell[data-who]{
+    position:relative;
+    background-image:linear-gradient(135deg,
+      hsl(var(--h) 72% 96%), hsl(var(--h2,var(--h)) 72% 96%));
+  }
+  td.cell[data-who]::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(
+      hsl(var(--h) 58% 68%) 0 50%, hsl(var(--h2,var(--h)) 58% 68%) 50% 100%);
+  }
+  td.cell[data-who] textarea{color:hsl(var(--h) 45% 22%)}
+  td.cell[data-who] span.who[data-set]{background-color:hsl(var(--h) 72% 89%)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) td.cell[data-who]{
+      background-image:linear-gradient(135deg,
+        hsl(var(--h) 32% 17%), hsl(var(--h2,var(--h)) 32% 17%));
+    }
+    :root:not([data-theme="light"]) td.cell[data-who]::before{
+      background:linear-gradient(
+        hsl(var(--h) 45% 42%) 0 50%, hsl(var(--h2,var(--h)) 45% 42%) 50% 100%);
+    }
+    :root:not([data-theme="light"]) td.cell[data-who] textarea{color:hsl(var(--h) 65% 86%)}
+    :root:not([data-theme="light"]) td.cell[data-who] span.who[data-set]{background-color:hsl(var(--h) 36% 26%)}
+  }
+  :root[data-theme="dark"] td.cell[data-who]{
+    background-image:linear-gradient(135deg,
+      hsl(var(--h) 32% 17%), hsl(var(--h2,var(--h)) 32% 17%));
+  }
+  :root[data-theme="dark"] td.cell[data-who]::before{
+    background:linear-gradient(
+      hsl(var(--h) 45% 42%) 0 50%, hsl(var(--h2,var(--h)) 45% 42%) 50% 100%);
+  }
+  :root[data-theme="dark"] td.cell[data-who] textarea{color:hsl(var(--h) 65% 86%)}
+  :root[data-theme="dark"] td.cell[data-who] span.who[data-set]{background-color:hsl(var(--h) 36% 26%)}
 
   .routine{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
   .routine .card{padding:14px 16px}
@@ -178,6 +223,29 @@
   ol.timeline .d{flex:1}
   ol.timeline li.empty .t{color:var(--muted);font-weight:400}
   ol.timeline .who{flex:0 0 auto;align-self:flex-start;pointer-events:none;padding-right:9px;background-image:none}
+  ol.timeline li[data-who]{
+    background-image:linear-gradient(135deg,
+      hsl(var(--h) 72% 96%), hsl(var(--h2,var(--h)) 72% 96%));
+    box-shadow:inset 3px 0 0 hsl(var(--h) 58% 68%);
+    border-radius:8px;padding-left:9px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) ol.timeline li[data-who]{
+      background-image:linear-gradient(135deg,
+        hsl(var(--h) 32% 17%), hsl(var(--h2,var(--h)) 32% 17%));
+      box-shadow:inset 3px 0 0 hsl(var(--h) 45% 42%);
+    }
+  }
+  :root[data-theme="dark"] ol.timeline li[data-who]{
+    background-image:linear-gradient(135deg,
+      hsl(var(--h) 32% 17%), hsl(var(--h2,var(--h)) 32% 17%));
+    box-shadow:inset 3px 0 0 hsl(var(--h) 45% 42%);
+  }
+  /* Mốc đang tới giờ thì màu của nó phải thắng màu người làm */
+  ol.timeline li.now[data-who]{
+    background-image:none;background-color:var(--accent-soft);
+    box-shadow:inset 3px 0 0 var(--accent);
+  }
   ol.timeline li.now{
     background:var(--accent-soft);border-radius:8px;
     box-shadow:inset 3px 0 0 var(--accent);padding-left:9px;
@@ -191,6 +259,13 @@
     font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;
   }
   .sync-flag[hidden]{display:none}  /* không có dòng này thì display ở trên đè mất hidden */
+
+  .notice{
+    margin:0 0 14px;padding:10px 14px;border-radius:var(--radius);
+    background:var(--today);border:1px solid var(--today-line);
+    font-size:13px;line-height:1.6;
+  }
+  .notice[hidden]{display:none}
   .sync-flag::before{
     content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto;
   }
@@ -247,6 +322,12 @@
     <div class="dot-saved" id="savedFlag"><i></i><span>Đã lưu</span></div>
     <div class="sync-flag" id="syncFlag" hidden></div>
   </div>
+
+  <p class="notice" id="localOnly" hidden>
+    <b>Lịch này chỉ nằm trên máy bạn.</b>
+    Người khác mở cùng đường link vẫn thấy lịch trống của riêng họ.
+    Muốn cả nhà cùng nhìn một lịch, bấm <b>🔗 Dùng chung</b> rồi làm theo hướng dẫn.
+  </p>
 
   <div class="card table-scroll">
     <table>
@@ -383,6 +464,28 @@
     }
   }
 
+  // Nhuộm cả ô (hoặc cả dòng thời gian biểu) theo màu người làm.
+  // Hai người trở lên thì pha màu của hai người đầu.
+  function paintBlock(el, list){
+    if (!el) return;
+    if (!list.length) {
+      el.removeAttribute("data-who");
+      el.removeAttribute("data-who2");
+      el.style.removeProperty("--h");
+      el.style.removeProperty("--h2");
+      return;
+    }
+    el.setAttribute("data-who", list.join(", "));
+    el.style.setProperty("--h", hueOf(list[0]));
+    if (list.length > 1) {
+      el.setAttribute("data-who2", "");
+      el.style.setProperty("--h2", hueOf(list[1]));
+    } else {
+      el.removeAttribute("data-who2");
+      el.style.removeProperty("--h2");
+    }
+  }
+
   function makeChip(name){
     var span = document.createElement("span");
     span.className = "who";
@@ -428,6 +531,17 @@
     saveTimer = setTimeout(save, 350);
   }
 
+  // Đóng tab hay chuyển sang app khác ngay sau khi gõ thì phải kịp lưu
+  function flush(){
+    clearTimeout(saveTimer);
+    save();
+    if (typeof push === "function") push();
+  }
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState === "hidden") flush();
+  });
+
   var flagEl, flagTimer = null;
   function flashSaved(){
     if (!flagEl) return;
@@ -466,21 +580,67 @@
     return names;
   }
 
-  function fillWhoSelect(sel, current){
+  // Một buổi có thể nhiều người cùng làm; trong dữ liệu là chuỗi "Mẹ, Bà"
+  function whoList(day, field){
+    var raw = day[field + "By"] || "";
+    var out = [];
+    var parts = raw.split(",");
+    for (var i = 0; i < parts.length; i++) {
+      var n = parts[i].trim();
+      if (n && out.indexOf(n) === -1) out.push(n);
+    }
+    return out;
+  }
+
+  function setWhoList(iso, field, list){
+    var day = dayData(iso);
+    if (list.length) day[field + "By"] = list.join(", ");
+    else delete day[field + "By"];
+  }
+
+  // Ô chọn chỉ hiện những người chưa được gán cho buổi này
+  function fillAddSelect(sel, already){
     sel.textContent = "";
     var blank = document.createElement("option");
     blank.value = "";
-    blank.textContent = "+ người làm";
+    blank.textContent = already.length ? "+ thêm người" : "+ người làm";
     sel.appendChild(blank);
-    var names = optionsFor(current);
+    var names = optionsFor("");
     for (var i = 0; i < names.length; i++) {
+      if (already.indexOf(names[i]) > -1) continue;
       var opt = document.createElement("option");
       opt.value = names[i];
       opt.textContent = names[i];
       sel.appendChild(opt);
     }
-    sel.value = current || "";
-    paintWho(sel, sel.value);
+    sel.value = "";
+    sel.hidden = sel.options.length < 2;   // hết người để thêm thì giấu đi
+  }
+
+  // Vẽ lại khu người làm của một ô: các chip đã gán + ô chọn để thêm
+  function renderAssign(box, iso, field){
+    var list = whoList(state.days[iso] || {}, field);
+    box.textContent = "";
+
+    for (var i = 0; i < list.length; i++) {
+      var chip = makeChip(list[i]);
+      var x = document.createElement("button");
+      x.type = "button";
+      x.className = "chip-x";
+      x.textContent = "×";
+      x.dataset.name = list[i];
+      x.setAttribute("aria-label", "Bỏ " + list[i]);
+      chip.appendChild(x);
+      box.appendChild(chip);
+    }
+
+    var sel = document.createElement("select");
+    sel.className = "who add";
+    sel.setAttribute("aria-label", "Thêm người làm");
+    fillAddSelect(sel, list);
+    box.appendChild(sel);
+
+    paintBlock(box.parentNode, list);
   }
 
   /* ---------- render ---------- */
@@ -538,14 +698,10 @@
         if (ASSIGNABLE.indexOf(field) > -1) {
           var box = document.createElement("div");
           box.className = "assign";
-          var sel = document.createElement("select");
-          sel.className = "who";
-          sel.dataset.iso = iso;
-          sel.dataset.field = field;
-          sel.setAttribute("aria-label", "Người làm — " + label);
-          fillWhoSelect(sel, data[field + "By"] || "");
-          box.appendChild(sel);
+          box.dataset.iso = iso;
+          box.dataset.field = field;
           td.appendChild(box);
+          renderAssign(box, iso, field);
         }
 
         tr.appendChild(td);
@@ -582,13 +738,32 @@
     markDay(iso);
   });
 
-  // Chọn người làm cho một buổi
+  // Thêm một người vào buổi
   tbody.addEventListener("change", function(ev){
     var sel = ev.target;
-    if (sel.tagName !== "SELECT") return;
-    var iso = sel.dataset.iso;
-    dayData(iso)[sel.dataset.field + "By"] = sel.value;
-    paintWho(sel, sel.value);
+    if (sel.tagName !== "SELECT" || !sel.value) return;
+    var box = sel.parentNode;
+    var iso = box.dataset.iso, field = box.dataset.field;
+    var list = whoList(state.days[iso] || {}, field);
+    if (list.indexOf(sel.value) === -1) list.push(sel.value);
+    setWhoList(iso, field, list);
+    renderAssign(box, iso, field);
+    prune(iso);
+    saveSoon();
+    markDay(iso);
+  });
+
+  // Bỏ một người khỏi buổi
+  tbody.addEventListener("click", function(ev){
+    var x = ev.target;
+    if (!x.classList || !x.classList.contains("chip-x")) return;
+    var box = x.closest(".assign");
+    var iso = box.dataset.iso, field = box.dataset.field;
+    var list = whoList(state.days[iso] || {}, field);
+    var at = list.indexOf(x.dataset.name);
+    if (at > -1) list.splice(at, 1);
+    setWhoList(iso, field, list);
+    renderAssign(box, iso, field);
     prune(iso);
     saveSoon();
     markDay(iso);
@@ -664,7 +839,15 @@
       d.textContent = it.task;
       li.appendChild(t);
       li.appendChild(d);
-      if (it.who) li.appendChild(makeChip(it.who));
+      var whos = it.who ? it.who.split(",") : [];
+      var names = [];
+      for (var w = 0; w < whos.length; w++) {
+        var nm = whos[w].trim();
+        if (!nm || names.indexOf(nm) > -1) continue;
+        names.push(nm);
+        li.appendChild(makeChip(nm));
+      }
+      paintBlock(li, names);
       timeline.appendChild(li);
     }
   }
@@ -695,8 +878,10 @@
 
   // Đổi danh sách thì các ô chọn phải theo, nhưng giữ nguyên người đã gán
   function refreshWhoSelects(){
-    var sels = tbody.querySelectorAll("select.who");
-    for (var i = 0; i < sels.length; i++) fillWhoSelect(sels[i], sels[i].value);
+    var boxes = tbody.querySelectorAll(".assign");
+    for (var i = 0; i < boxes.length; i++) {
+      renderAssign(boxes[i], boxes[i].dataset.iso, boxes[i].dataset.field);
+    }
   }
 
   peopleText.addEventListener("input", function(){
@@ -878,7 +1063,10 @@
   var pushing = false;
   var syncFlag = document.getElementById("syncFlag");
 
+  var localOnly = document.getElementById("localOnly");
+
   function showSync(stateName, text){
+    localOnly.hidden = !!syncUrl;
     if (!syncUrl) { syncFlag.hidden = true; return; }
     syncFlag.hidden = false;
     syncFlag.setAttribute("data-state", stateName);
@@ -993,6 +1181,7 @@
   }
 
   function startSync(){
+    localOnly.hidden = !!syncUrl;
     if (!syncUrl) { syncFlag.hidden = true; return; }
     showSync("busy", "Đang nối…");
     pull();
@@ -1031,6 +1220,7 @@
       clearInterval(startSync.timer);
       startSync.timer = null;
       syncFlag.hidden = true;
+      localOnly.hidden = false;
     }
   });
 
