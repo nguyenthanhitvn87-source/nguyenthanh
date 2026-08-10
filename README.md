@@ -1,5 +1,7 @@
 # 🐍 Rắn Săn Mồi
 
+**Tác giả: Nguyễn Thanh**
+
 Một game web đơn giản viết bằng HTML + CSS + JavaScript thuần, gói gọn trong **một file duy nhất** (`index.html`). Không cần cài đặt, không cần build, không phụ thuộc thư viện nào.
 
 ## Cách chơi

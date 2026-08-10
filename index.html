@@ -229,11 +229,66 @@
   .phim-huong .phai  { grid-column: 3; grid-row: 2; }
 
   footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 42ch;
+    text-align: center;
     color: var(--chu-mo);
+  }
+
+  .goi-y {
     font-size: 12px;
     line-height: 2;
-    text-align: center;
-    max-width: 42ch;
+  }
+
+  /* Chữ ký tác giả, đóng triện son như trên tranh sơn mài */
+  .chu-ky {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding-top: 18px;
+    border-top: 1px solid var(--chi-vang);
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trien {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--son);
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(239, 227, 208, 0.22);
+    font-family: var(--serif);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--vo-trung);
+  }
+
+  .ten {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1.25;
+  }
+
+  .ten-chinh {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--vang-la);
+  }
+
+  .ten-phu {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--chu-mo);
   }
 
   kbd {
@@ -301,8 +356,18 @@
 </div>
 
 <footer>
-  <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> hoặc <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> để di chuyển ·
-  <kbd>Space</kbd> tạm dừng · <kbd>R</kbd> chơi lại
+  <div class="goi-y">
+    <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> hoặc <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> để di chuyển ·
+    <kbd>Space</kbd> tạm dừng · <kbd>R</kbd> chơi lại
+  </div>
+
+  <div class="chu-ky">
+    <span class="trien" aria-hidden="true">NT</span>
+    <span class="ten">
+      <span class="ten-chinh">Nguyễn Thanh</span>
+      <span class="ten-phu">Thiết kế &amp; lập trình</span>
+    </span>
+  </div>
 </footer>
 
 <script>
