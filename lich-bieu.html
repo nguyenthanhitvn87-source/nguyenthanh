@@ -19,8 +19,9 @@
     --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06);
     --radius:14px;
   }
+  /* Nền tối theo hệ thống, trừ khi trang được đặt rõ là nền sáng */
   @media (prefers-color-scheme: dark){
-    :root{
+    :root:not([data-theme="light"]){
       --bg:#12151c;
       --panel:#191d26;
       --ink:#e8ebf2;
@@ -33,6 +34,20 @@
       --weekend:#1c1a24;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
     }
+  }
+  /* Chọn nền tối một cách rõ ràng thì luôn thắng, kể cả khi hệ thống để nền sáng */
+  :root[data-theme="dark"]{
+    --bg:#12151c;
+    --panel:#191d26;
+    --ink:#e8ebf2;
+    --muted:#98a1b4;
+    --line:#2a3040;
+    --accent:#6f9bff;
+    --accent-soft:#1e2637;
+    --today:#2c2718;
+    --today-line:#7d6520;
+    --weekend:#1c1a24;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
   }
 
   *{box-sizing:border-box}
