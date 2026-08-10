@@ -187,6 +187,18 @@
 
   button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
 
+  .sync-flag{
+    font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;
+  }
+  .sync-flag[hidden]{display:none}  /* không có dòng này thì display ở trên đè mất hidden */
+  .sync-flag::before{
+    content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto;
+  }
+  .sync-flag[data-state="ok"]::before{background:#3ec46d}
+  .sync-flag[data-state="busy"]::before{background:var(--accent)}
+  .sync-flag[data-state="error"]::before{background:#e5484d}
+  .sync-flag[data-state="error"]{color:#e5484d}
+
   .people{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
   #peopleText{min-height:150px}
   .people .who{pointer-events:none;padding-right:9px;background-image:none}
@@ -216,6 +228,7 @@
     <div class="toolbar">
       <button id="btnToday" class="primary">Hôm nay</button>
       <button id="btnNotify" class="ghost" aria-pressed="false">🔔 Nhắc giờ</button>
+      <button id="btnSync" class="ghost">🔗 Dùng chung</button>
       <button id="btnExport" class="ghost">Xuất JSON</button>
       <button id="btnImport" class="ghost">Nhập JSON</button>
       <button id="btnPrint" class="ghost">In / PDF</button>
@@ -232,6 +245,7 @@
     <div class="range" id="weekRange"></div>
     <div class="hint" id="weekHint"></div>
     <div class="dot-saved" id="savedFlag"><i></i><span>Đã lưu</span></div>
+    <div class="sync-flag" id="syncFlag" hidden></div>
   </div>
 
   <div class="card table-scroll">
@@ -565,6 +579,7 @@
     dayData(iso)[ta.dataset.field] = ta.value;
     prune(iso);
     saveSoon();
+    markDay(iso);
   });
 
   // Chọn người làm cho một buổi
@@ -576,6 +591,7 @@
     paintWho(sel, sel.value);
     prune(iso);
     saveSoon();
+    markDay(iso);
   });
 
   // Enter = xuống dòng, Ctrl/Cmd+Enter = nhảy sang ô kế
@@ -658,6 +674,7 @@
     renderTimeline();
     tickRoutine();
     saveSoon();
+    markRoutine();
   });
 
   /* ---------- danh sách người làm ---------- */
@@ -689,6 +706,7 @@
     renderTimeline();
     tickRoutine();
     saveSoon();
+    markPeople();
   });
 
   /* ---------- nhắc giờ ---------- */
@@ -790,7 +808,11 @@
   document.getElementById("btnClear").addEventListener("click", function(){
     var last = addDays(anchor, 6);
     if (!confirm("Xoá toàn bộ nội dung tuần " + fmtVN(anchor) + " – " + fmtVN(last) + "?")) return;
-    for (var i = 0; i < 7; i++) delete state.days[isoOf(addDays(anchor, i))];
+    for (var i = 0; i < 7; i++) {
+      var iso = isoOf(addDays(anchor, i));
+      delete state.days[iso];
+      markDay(iso);
+    }
     save();
     renderWeek();
   });
@@ -831,9 +853,185 @@
       peopleText.value = state.people.join("\n");
       save();
       renderAll();
+      for (var iso in state.days) {
+        if (state.days.hasOwnProperty(iso)) markDay(iso);
+      }
+      markRoutine();
+      markPeople();
     };
     reader.readAsText(file);
     fileInput.value = "";
+  });
+
+  /* ---------- dùng chung qua Google Sheet ---------- */
+
+  // Địa chỉ Web app lưu riêng từng máy, không nằm trong dữ liệu xuất ra
+  var SYNC_KEY = "lichbieu.sync";
+  var syncUrl = "";
+  try { syncUrl = localStorage.getItem(SYNC_KEY) || ""; } catch (e) { syncUrl = ""; }
+
+  var rev = -1;                 // phiên bản đang giữ, -1 là chưa lấy lần nào
+  var pendingDays = {};         // ngày nào sửa rồi mà chưa gửi đi
+  var pendingRoutine = false;
+  var pendingPeople = false;
+  var pushTimer = null;
+  var pushing = false;
+  var syncFlag = document.getElementById("syncFlag");
+
+  function showSync(stateName, text){
+    if (!syncUrl) { syncFlag.hidden = true; return; }
+    syncFlag.hidden = false;
+    syncFlag.setAttribute("data-state", stateName);
+    syncFlag.textContent = text;
+  }
+
+  function markDay(iso){ pendingDays[iso] = true; pushSoon(); }
+  function markRoutine(){ pendingRoutine = true; pushSoon(); }
+  function markPeople(){ pendingPeople = true; pushSoon(); }
+
+  function pushSoon(){
+    if (!syncUrl) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(push, 900);
+  }
+
+  function hasPending(){
+    return pendingRoutine || pendingPeople || Object.keys(pendingDays).length > 0;
+  }
+
+  function push(){
+    if (!syncUrl || pushing || !hasPending()) return;
+
+    var patch = { days: {} };
+    for (var iso in pendingDays) {
+      if (pendingDays.hasOwnProperty(iso)) patch.days[iso] = state.days[iso] || {};
+    }
+    if (pendingRoutine) patch.routine = state.routine;
+    if (pendingPeople) patch.people = state.people;
+
+    pendingDays = {};
+    pendingRoutine = false;
+    pendingPeople = false;
+
+    pushing = true;
+    showSync("busy", "Đang gửi…");
+    // text/plain để trình duyệt gửi thẳng, Apps Script không nhận preflight
+    fetch(syncUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ patch: patch })
+    }).then(function(res){
+      return res.json();
+    }).then(function(out){
+      pushing = false;
+      if (out && out.ok) {
+        rev = out.rev;
+        showSync("ok", "Đã đồng bộ");
+        if (hasPending()) pushSoon();
+      } else {
+        showSync("error", "Sheet báo lỗi");
+      }
+    })["catch"](function(){
+      pushing = false;
+      // gửi hụt thì giữ lại để lần sau gửi tiếp
+      for (var iso in patch.days) {
+        if (patch.days.hasOwnProperty(iso)) pendingDays[iso] = true;
+      }
+      if (patch.routine !== undefined) pendingRoutine = true;
+      if (patch.people !== undefined) pendingPeople = true;
+      showSync("error", "Mất kết nối");
+    });
+  }
+
+  function pull(){
+    if (!syncUrl || pushing || hasPending()) return;
+    fetch(syncUrl + (syncUrl.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
+      .then(function(res){ return res.json(); })
+      .then(function(out){
+        if (!out || !out.state) { showSync("error", "Sheet trả về lạ"); return; }
+        if (out.rev === rev) { showSync("ok", "Đã đồng bộ"); return; }
+        rev = out.rev;
+        applyRemote(out.state);
+        showSync("ok", "Đã đồng bộ");
+      })["catch"](function(){
+        showSync("error", "Mất kết nối");
+      });
+  }
+
+  // Nhận bản của người khác, nhưng không giật mất ô đang gõ dở
+  function applyRemote(remote){
+    var active = document.activeElement;
+    var typingCell = active && active.tagName === "TEXTAREA" && active.dataset.iso
+      ? active.dataset.iso : "";
+
+    if (remote.days && typeof remote.days === "object") {
+      if (typingCell && state.days[typingCell]) {
+        remote.days[typingCell] = state.days[typingCell];
+      }
+      state.days = remote.days;
+    }
+    if (typeof remote.routine === "string" && active !== routineText) {
+      state.routine = remote.routine;
+      routineText.value = remote.routine;
+    }
+    if (Array.isArray(remote.people) && active !== peopleText) {
+      state.people = remote.people;
+      peopleText.value = remote.people.join("\n");
+    }
+
+    save();
+    var keep = active && active.dataset && active.dataset.iso
+      ? { iso: active.dataset.iso, field: active.dataset.field, at: active.selectionStart } : null;
+    renderAll();
+    if (keep) {                                   // trả con trỏ về đúng ô đang gõ
+      var back = tbody.querySelector('textarea[data-iso="' + keep.iso + '"][data-field="' + keep.field + '"]');
+      if (back) {
+        back.focus();
+        try { back.setSelectionRange(keep.at, keep.at); } catch (e) { /* không quan trọng */ }
+      }
+    }
+  }
+
+  function startSync(){
+    if (!syncUrl) { syncFlag.hidden = true; return; }
+    showSync("busy", "Đang nối…");
+    pull();
+    if (!startSync.timer) startSync.timer = setInterval(pull, 10000);
+  }
+
+  document.getElementById("btnSync").addEventListener("click", function(){
+    var next = prompt(
+      "Dán địa chỉ Web app của Google Sheet vào đây để cả nhà dùng chung một lịch.\n" +
+      "Cách tạo: xem mục \"Dùng chung cho cả nhà\" trong README.\n\n" +
+      "Để trống rồi bấm OK là ngưng dùng chung, quay về lưu riêng trên máy này.",
+      syncUrl
+    );
+    if (next === null) return;
+    next = next.trim();
+    var okUrl = next.indexOf("https://") === 0 ||
+                next.indexOf("http://localhost") === 0 ||
+                next.indexOf("http://127.0.0.1") === 0;
+    if (next && !okUrl) {
+      alert("Địa chỉ phải bắt đầu bằng https://");
+      return;
+    }
+    syncUrl = next;
+    try { localStorage.setItem(SYNC_KEY, syncUrl); } catch (e) { /* chế độ riêng tư */ }
+    rev = -1;
+    if (syncUrl) {
+      // lần đầu nối: đẩy luôn những gì đang có lên sheet
+      for (var iso in state.days) {
+        if (state.days.hasOwnProperty(iso)) pendingDays[iso] = true;
+      }
+      pendingRoutine = true;
+      pendingPeople = true;
+      startSync();
+      push();
+    } else {
+      clearInterval(startSync.timer);
+      startSync.timer = null;
+      syncFlag.hidden = true;
+    }
   });
 
   /* ---------- start ---------- */
@@ -850,6 +1048,7 @@
   peopleText.value = state.people.join("\n");
   markNotify();
   renderAll();
+  startSync();
 
   // Sang ngày mới thì tự tô lại "Hôm nay"
   var shownDay = isoOf(today());
