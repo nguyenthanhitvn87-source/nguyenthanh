@@ -267,6 +267,47 @@
   }
   .notice[hidden]{display:none}
   .notice a{color:inherit}
+  button.linkish{
+    font:inherit;font-weight:700;color:inherit;background:none;border:0;box-shadow:none;
+    padding:0;margin:0;cursor:pointer;text-decoration:underline;border-radius:0;
+  }
+  button.linkish:hover{border:0}
+
+  .overlay{
+    position:fixed;inset:0;z-index:50;
+    background:rgba(16,20,30,.45);
+    display:flex;align-items:center;justify-content:center;padding:18px;
+  }
+  .overlay[hidden]{display:none}
+  .sheet{
+    background:var(--panel);color:var(--ink);
+    border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    padding:20px;width:100%;max-width:520px;
+  }
+  .sheet h2{font-size:17px;margin:0 0 6px}
+  .sheet .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .sheet input{
+    width:100%;font:inherit;font-size:15px;color:var(--ink);
+    background:transparent;border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;outline:0;
+  }
+  .sheet input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .sheet .msg{
+    margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:14px;line-height:1.55;
+    background:var(--accent-soft);border:1px solid var(--accent);
+  }
+  .sheet .msg[hidden]{display:none}
+  .sheet .msg[data-kind="bad"]{background:#fdecec;border-color:#e5484d;color:#8f1f22}
+  .sheet .msg[data-kind="good"]{background:#e8f7ee;border-color:#3ec46d;color:#14622f}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .sheet .msg[data-kind="bad"]{background:#3a1c1e;border-color:#a8383c;color:#f3b4b6}
+    :root:not([data-theme="light"]) .sheet .msg[data-kind="good"]{background:#16301f;border-color:#2f7f4d;color:#a8e6c0}
+  }
+  :root[data-theme="dark"] .sheet .msg[data-kind="bad"]{background:#3a1c1e;border-color:#a8383c;color:#f3b4b6}
+  :root[data-theme="dark"] .sheet .msg[data-kind="good"]{background:#16301f;border-color:#2f7f4d;color:#a8e6c0}
+  .sheet-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .sheet-actions button{flex:0 0 auto}
   .sync-flag::before{
     content:"";width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto;
   }
@@ -324,11 +365,31 @@
     <div class="sync-flag" id="syncFlag" hidden></div>
   </div>
 
+  <div class="overlay" id="syncBox" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
+      <h2 id="syncTitle">Dùng chung cho cả nhà</h2>
+      <p class="sub">
+        Dán địa chỉ Web app của Google Sheet vào đây. Chưa có thì xem
+        <a href="huong-dan-dung-chung.html" target="_blank" rel="noopener">hướng dẫn từng bước</a>.
+      </p>
+      <input type="url" id="syncInput" inputmode="url" autocomplete="off" spellcheck="false"
+             placeholder="https://script.google.com/macros/s/…/exec"
+             aria-label="Địa chỉ Web app">
+      <p class="msg" id="syncMsg" hidden></p>
+      <div class="sheet-actions">
+        <button id="syncSave" class="primary">Kiểm tra và nối</button>
+        <button id="syncStop" class="ghost danger">Ngưng dùng chung</button>
+        <button id="syncClose" class="ghost">Đóng</button>
+      </div>
+    </div>
+  </div>
+
   <p class="notice" id="localOnly" hidden>
     <b>Lịch này chỉ nằm trên máy bạn.</b>
     Người khác mở cùng đường link vẫn thấy lịch trống của riêng họ.
     Muốn cả nhà cùng nhìn một lịch, xem
-    <a href="huong-dan-dung-chung.html">hướng dẫn từng bước</a> rồi bấm <b>🔗 Dùng chung</b>.
+    <a href="huong-dan-dung-chung.html" target="_blank" rel="noopener">hướng dẫn từng bước</a>
+    rồi bấm <button type="button" class="linkish" id="noticeSync">🔗 Dùng chung</button>.
   </p>
 
   <div class="card table-scroll">
@@ -1190,40 +1251,114 @@
     if (!startSync.timer) startSync.timer = setInterval(pull, 10000);
   }
 
-  document.getElementById("btnSync").addEventListener("click", function(){
-    var next = prompt(
-      "Dán địa chỉ Web app của Google Sheet vào đây để cả nhà dùng chung một lịch.\n" +
-      "Chưa có? Mở huong-dan-dung-chung.html để làm theo từng bước.\n\n" +
-      "Để trống rồi bấm OK là ngưng dùng chung, quay về lưu riêng trên máy này.",
-      syncUrl
-    );
-    if (next === null) return;
-    next = next.trim();
-    var okUrl = next.indexOf("https://") === 0 ||
-                next.indexOf("http://localhost") === 0 ||
-                next.indexOf("http://127.0.0.1") === 0;
-    if (next && !okUrl) {
-      alert("Địa chỉ phải bắt đầu bằng https://");
-      return;
-    }
-    syncUrl = next;
+  // Hộp thoại ngay trong trang: prompt() bị chặn ở trình duyệt trong Zalo,
+  // Facebook và vài trình duyệt điện thoại, nên không dùng được.
+  var syncBox = document.getElementById("syncBox");
+  var syncInput = document.getElementById("syncInput");
+  var syncMsg = document.getElementById("syncMsg");
+
+  function say(kind, html){
+    syncMsg.hidden = false;
+    syncMsg.setAttribute("data-kind", kind);
+    syncMsg.innerHTML = html;
+  }
+
+  function openSyncBox(){
+    syncInput.value = syncUrl;
+    syncMsg.hidden = true;
+    syncBox.hidden = false;
+    syncInput.focus();
+    syncInput.select();
+  }
+
+  function closeSyncBox(){ syncBox.hidden = true; }
+
+  document.getElementById("btnSync").addEventListener("click", openSyncBox);
+  document.getElementById("noticeSync").addEventListener("click", openSyncBox);
+  document.getElementById("syncClose").addEventListener("click", closeSyncBox);
+  syncBox.addEventListener("click", function(ev){
+    if (ev.target === syncBox) closeSyncBox();
+  });
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && !syncBox.hidden) closeSyncBox();
+  });
+
+  // Dán từ Google hay dính khoảng trắng, dấu nháy hay dấu ngoặc nhọn
+  function tidyUrl(raw){
+    return raw.replace(/[\s ]+/g, "")
+              .replace(/^["'<(]+/, "")
+              .replace(/["'>)]+$/, "");
+  }
+
+  function connectTo(url){
+    syncUrl = url;
     try { localStorage.setItem(SYNC_KEY, syncUrl); } catch (e) { /* chế độ riêng tư */ }
     rev = -1;
-    if (syncUrl) {
-      // lần đầu nối: đẩy luôn những gì đang có lên sheet
-      for (var iso in state.days) {
-        if (state.days.hasOwnProperty(iso)) pendingDays[iso] = true;
-      }
-      pendingRoutine = true;
-      pendingPeople = true;
-      startSync();
-      push();
-    } else {
-      clearInterval(startSync.timer);
-      startSync.timer = null;
-      syncFlag.hidden = true;
-      localOnly.hidden = false;
+    // lần đầu nối: đẩy luôn những gì đang có lên sheet
+    for (var iso in state.days) {
+      if (state.days.hasOwnProperty(iso)) pendingDays[iso] = true;
     }
+    pendingRoutine = true;
+    pendingPeople = true;
+    startSync();
+    push();
+  }
+
+  document.getElementById("syncSave").addEventListener("click", function(){
+    var url = tidyUrl(syncInput.value);
+    syncInput.value = url;
+
+    if (!url) {
+      say("bad", "Chưa có địa chỉ nào. Dán địa chỉ vào ô trên, hoặc bấm " +
+                 "<b>Ngưng dùng chung</b> nếu muốn quay về lưu riêng trên máy này.");
+      return;
+    }
+    var okUrl = url.indexOf("https://") === 0 ||
+                url.indexOf("http://localhost") === 0 ||
+                url.indexOf("http://127.0.0.1") === 0;
+    if (!okUrl) {
+      say("bad", "Địa chỉ phải bắt đầu bằng <code>https://</code>. Bạn đang dán: <code>" +
+                 url.slice(0, 60) + "</code>");
+      return;
+    }
+    if (/\/dev$/.test(url)) {
+      say("bad", "Địa chỉ này kết thúc bằng <code>/dev</code> — đó là bản thử, chỉ mình bạn " +
+                 "mở được. Vào <b>Triển khai → Quản lý các bản triển khai</b> lấy địa chỉ " +
+                 "kết thúc bằng <code>/exec</code>.");
+      return;
+    }
+
+    say("info", "Đang thử gọi vào Google Sheet…");
+    fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now())
+      .then(function(res){ return res.json(); })
+      .then(function(out){
+        if (!out || typeof out.rev !== "number" || !out.state) {
+          say("bad", "Gọi được nhưng Google trả về nội dung lạ. Kiểm tra lại bước 3: " +
+                     "đã dán đúng toàn bộ đoạn mã và bấm lưu chưa?");
+          return;
+        }
+        connectTo(url);
+        say("good", "Nối xong. Từ giờ ai dán đúng địa chỉ này cũng thấy chung một lịch.");
+        setTimeout(closeSyncBox, 1400);
+      })["catch"](function(){
+        say("bad", "Không gọi được vào địa chỉ này. Hay gặp nhất là ở bước 4, ô " +
+                   "<b>Người có quyền truy cập</b> đang để <i>Bất kỳ ai có Tài khoản Google</i> " +
+                   "— phải đổi thành <b>Bất kỳ ai</b>.<br>" +
+                   "Thử dán địa chỉ đó thẳng vào thanh địa chỉ trình duyệt: ra được dòng " +
+                   "<code>{\"rev\":…}</code> thì địa chỉ đúng, ra trang báo lỗi thì sai ở bước 4.");
+      });
+  });
+
+  document.getElementById("syncStop").addEventListener("click", function(){
+    syncUrl = "";
+    try { localStorage.setItem(SYNC_KEY, ""); } catch (e) { /* chế độ riêng tư */ }
+    rev = -1;
+    clearInterval(startSync.timer);
+    startSync.timer = null;
+    syncFlag.hidden = true;
+    localOnly.hidden = false;
+    syncInput.value = "";
+    say("info", "Đã ngưng dùng chung. Lịch quay về lưu riêng trên máy này.");
   });
 
   /* ---------- start ---------- */
