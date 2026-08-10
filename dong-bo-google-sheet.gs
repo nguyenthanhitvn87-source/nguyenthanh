@@ -23,8 +23,37 @@ var DAY_NAMES = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Th
 
 /* ---------- vào / ra ---------- */
 
-function doGet() {
-  return json(readAll());
+/**
+ * Trình duyệt nhiều khi chặn cuộc gọi thẳng sang Google vì khác tên miền.
+ * Nên doGet nhận thêm hai tham số để trang web đi đường vòng:
+ *   callback=tên   -> trả về JavaScript gọi hàm đó thay vì JSON thuần
+ *   patch={...}    -> ghi luôn phần vừa sửa, giống hệt doPost
+ */
+function doGet(e) {
+  var params = (e && e.parameter) || {};
+  var out;
+
+  if (params.patch) {
+    var lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+    try {
+      applyPatch(JSON.parse(params.patch));
+      out = { ok: true, rev: bumpRev() };
+    } catch (err) {
+      out = { ok: false, error: String(err) };
+    } finally {
+      lock.releaseLock();
+    }
+  } else {
+    out = readAll();
+  }
+
+  if (params.callback) {
+    return ContentService
+      .createTextOutput(params.callback + '(' + JSON.stringify(out) + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return json(out);
 }
 
 function doPost(e) {
