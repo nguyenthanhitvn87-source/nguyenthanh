@@ -153,6 +153,15 @@ Vài điều cần biết:
 
 ## Lưu ý
 
+**Mỗi địa chỉ web giữ một kho riêng.** Lịch nhập ở `nguyenthanhitvn87-source.github.io`
+không hiện sang bản mở bằng đường dẫn khác, bản tải về máy, hay trình duyệt khác — đó
+là quy tắc của trình duyệt, không phải mất dữ liệu. Chân trang ghi rõ đang lưu cho địa
+chỉ nào, và khi một địa chỉ chưa có lịch nào thì trang nhắc luôn kèm nút dán link.
+
+Mang lịch sang nơi khác: ở nơi đang có lịch bấm **📤 Gửi lịch** để lấy link, ở nơi mới
+bấm **📥 Nhận lịch** rồi dán link vào. Cách này chuyển được giữa hai địa chỉ, hai trình
+duyệt hay hai máy bất kỳ.
+
 Khi chưa nối Google Sheet, dữ liệu nằm trong trình duyệt đang dùng — xoá dữ liệu
 duyệt web hoặc đổi máy sẽ mất. Nhớ bấm **Xuất JSON** khi cần sao lưu.
 

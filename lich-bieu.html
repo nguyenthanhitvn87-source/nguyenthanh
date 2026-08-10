@@ -354,6 +354,7 @@
       <button id="btnToday" class="primary">Hôm nay</button>
       <button id="btnNotify" class="ghost" aria-pressed="false">🔔 Nhắc giờ</button>
       <button id="btnShare" class="ghost">📤 Gửi lịch</button>
+      <button id="btnReceive" class="ghost">📥 Nhận lịch</button>
       <button id="btnSync" class="ghost">🔗 Dùng chung</button>
       <button id="btnExport" class="ghost">Xuất JSON</button>
       <button id="btnImport" class="ghost">Nhập JSON</button>
@@ -372,6 +373,32 @@
     <div class="hint" id="weekHint"></div>
     <div class="dot-saved" id="savedFlag"><i></i><span>Đã lưu</span></div>
     <div class="sync-flag" id="syncFlag" hidden></div>
+  </div>
+
+  <p class="notice" id="emptyHere" hidden>
+    <b>Địa chỉ này chưa có lịch nào.</b>
+    Mỗi địa chỉ web và mỗi trình duyệt giữ một kho riêng — lịch bạn nhập ở nơi khác
+    không tự hiện sang đây, nhưng nó vẫn còn nguyên bên đó.
+    Mở nơi cũ, bấm <b>📤 Gửi lịch</b> để lấy link, rồi
+    <button type="button" class="linkish" id="emptyReceive">dán link vào đây</button>.
+  </p>
+
+  <div class="overlay" id="recvBox" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="recvTitle">
+      <h2 id="recvTitle">Nhận lịch từ link</h2>
+      <p class="sub">
+        Dán vào đây cái link lấy được từ nút <b>📤 Gửi lịch</b> ở máy hoặc địa chỉ khác.
+        Bạn sẽ xem thử trước, lịch đang có ở đây chưa bị đụng tới.
+      </p>
+      <textarea id="recvInput" rows="4" spellcheck="false"
+                placeholder="Dán link bắt đầu bằng https://… và có phần #l=…"
+                aria-label="Link chứa lịch"></textarea>
+      <p class="msg" id="recvMsg" hidden></p>
+      <div class="sheet-actions">
+        <button id="recvGo" class="primary">Xem lịch trong link</button>
+        <button id="recvClose" class="ghost">Đóng</button>
+      </div>
+    </div>
   </div>
 
   <p class="notice got" id="gotShared" hidden>
@@ -479,7 +506,7 @@
   </section>
 
   <footer class="foot">
-    Dữ liệu lưu trong <code>localStorage</code> của trình duyệt này.
+    Lịch này lưu riêng cho địa chỉ <code id="whereAmI"></code> trên trình duyệt này.
     Dùng <b>Xuất JSON</b> để sao lưu hoặc chuyển sang máy khác.
     <span id="restoreWrap" hidden>
       · <button type="button" class="linkish" id="btnRestore">Khôi phục lịch trước đó</button>
@@ -1339,13 +1366,29 @@
   /* Nhận lịch từ link: chỉ cho xem thử, chưa ghi đè gì của người ta */
 
   var gotShared = document.getElementById("gotShared");
+  var emptyHere = document.getElementById("emptyHere");
   var incoming = null;
+
+  // Địa chỉ này chưa có gì của người dùng: nhắc rằng lịch bên kia không mất,
+  // chỉ là mỗi địa chỉ giữ một kho riêng.
+  function showEmptyHint(){
+    emptyHere.hidden = !!(state.touched || incoming || syncUrl);
+  }
 
   function readIncoming(){
     var m = /[#&]l=([^&]+)/.exec(location.hash || "");
     if (!m || incoming) return;
+    showIncoming(m[1])["catch"](function(){
+      document.getElementById("gotInfo").textContent =
+        "Link bị hỏng hoặc chép thiếu, không đọc được nội dung.";
+      document.getElementById("gotKeep").hidden = true;
+      gotShared.hidden = false;
+    });
+  }
+
+  function showIncoming(payload){
     var mine = { days: state.days, routine: state.routine, people: state.people };
-    decodeShare(m[1]).then(function(data){
+    return decodeShare(payload).then(function(data){
       if (!data || typeof data !== "object" || !data.days) throw new Error("thiếu nội dung");
       incoming = { data: data, mine: mine };
       state.days = data.days;
@@ -1356,14 +1399,53 @@
       document.getElementById("gotInfo").textContent =
         data.at ? "Lịch chụp ngày " + fmtVN(parseIso(data.at)) + "." : "";
       gotShared.hidden = false;
+      emptyHere.hidden = true;
       renderAll();
-    })["catch"](function(){
-      document.getElementById("gotInfo").textContent =
-        "Link bị hỏng hoặc chép thiếu, không đọc được nội dung.";
-      document.getElementById("gotKeep").hidden = true;
-      gotShared.hidden = false;
+      window.scrollTo(0, 0);
     });
   }
+
+  /* Nhận lịch bằng cách dán link, cho trường hợp đổi máy hay đổi địa chỉ */
+
+  var recvBox = document.getElementById("recvBox");
+  var recvInput = document.getElementById("recvInput");
+  var recvMsg = document.getElementById("recvMsg");
+
+  function openRecv(){
+    recvInput.value = "";
+    recvMsg.hidden = true;
+    recvBox.hidden = false;
+    recvInput.focus();
+  }
+
+  document.getElementById("btnReceive").addEventListener("click", openRecv);
+  document.getElementById("emptyReceive").addEventListener("click", openRecv);
+  document.getElementById("recvClose").addEventListener("click", function(){
+    recvBox.hidden = true;
+  });
+  recvBox.addEventListener("click", function(ev){
+    if (ev.target === recvBox) recvBox.hidden = true;
+  });
+
+  document.getElementById("recvGo").addEventListener("click", function(){
+    var m = /[#&]l=([^&\s]+)/.exec(recvInput.value.replace(/\s+/g, ""));
+    if (!m) {
+      recvMsg.hidden = false;
+      recvMsg.setAttribute("data-kind", "bad");
+      recvMsg.textContent = "Không thấy phần chứa lịch trong link này. Link đúng phải có " +
+                            "đoạn #l= ở gần cuối — chép thiếu là mất phần đó.";
+      return;
+    }
+    if (incoming) { recvBox.hidden = true; return; }
+    showIncoming(m[1]).then(function(){
+      recvBox.hidden = true;
+    })["catch"](function(){
+      recvMsg.hidden = false;
+      recvMsg.setAttribute("data-kind", "bad");
+      recvMsg.textContent = "Đọc được link nhưng nội dung hỏng, nhiều khả năng chép thiếu " +
+                            "một đoạn. Chép lại toàn bộ link rồi thử lần nữa.";
+    });
+  });
 
   // Dán link vào khi trang đang mở thì trình duyệt không tải lại, phải tự bắt
   window.addEventListener("hashchange", readIncoming);
@@ -1378,6 +1460,7 @@
     markRoutine();
     markPeople();
     gotShared.hidden = true;
+    showEmptyHint();
     history.replaceState(null, "", location.href.split("#")[0]);
   });
 
@@ -1392,6 +1475,7 @@
     }
     incoming = null;
     gotShared.hidden = true;
+    showEmptyHint();
     history.replaceState(null, "", location.href.split("#")[0]);
   });
 
@@ -1493,7 +1577,7 @@
   // Xem thử thì cũng không được đẩy nội dung đó lên sheet chung
   function markDay(iso){
     if (incoming) return;
-    state.touched = true; pendingDays[iso] = true; pushSoon();
+    state.touched = true; pendingDays[iso] = true; pushSoon(); showEmptyHint();
   }
   function markRoutine(){
     if (incoming) return;
@@ -1886,6 +1970,7 @@
     tickRoutine();
   }
 
+  document.getElementById("whereAmI").textContent = location.host || "tệp trên máy";
   flagEl = document.getElementById("savedFlag");
   routineText.value = state.routine;
   peopleText.value = state.people.join("\n");
@@ -1893,6 +1978,7 @@
   showRestore();
   renderAll();
   readIncoming();
+  showEmptyHint();
   startSync();
 
   // Sang ngày mới thì tự tô lại "Hôm nay"
