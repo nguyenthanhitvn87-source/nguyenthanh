@@ -209,10 +209,9 @@
   .dot-saved.on i{opacity:1}
 
   .kho-trang-thai{
-    display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
     border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--panel);
   }
-  .kho-trang-thai:hover{border-color:var(--accent)}
   .kho-trang-thai i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--muted)}
   .kho-trang-thai[data-muc="ok"]{color:var(--xanh);border-color:var(--xanh)}
   .kho-trang-thai[data-muc="ok"] i{background:var(--xanh)}
@@ -435,7 +434,6 @@
       <span>Team work tracking</span>
     </h1>
     <div class="toolbar">
-      <button id="btnKho" type="button">🗄 Shared database</button>
       <button id="btnNguoi" type="button">👥 People</button>
       <button id="btnBaoCao" type="button">📋 Report</button>
       <button id="btnMail" type="button">✉️ Email</button>
@@ -476,8 +474,9 @@
     </select>
     <button id="btnKieu" type="button">📋 Table view</button>
     <span class="dot-saved" id="daLuu"><i></i>Saved</span>
-    <span class="kho-trang-thai" id="khoTrangThai" data-muc="off" title="Click to open shared database settings">
-      <i></i><span id="khoChu">This device only</span>
+    <span class="kho-trang-thai" id="khoTrangThai" data-muc="off"
+          title="Sync status of the shared team board">
+      <i></i><span id="khoChu">Connecting…</span>
     </span>
   </div>
 
@@ -645,65 +644,6 @@
   </div>
 </div>
 
-<!-- ============ hộp kho chung ============ -->
-<div class="man" id="manKho" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Shared database">
-    <div class="dau">
-      <h2>Shared database — one board for the whole team</h2>
-      <button id="khoDong" type="button" class="ghost">✕</button>
-    </div>
-    <div class="than">
-      <div id="khoDangDung" class="bao" data-kind="good" hidden></div>
-
-      <p style="margin:0;color:var(--muted);font-size:14px">
-        Connect this device to a <b>Firebase Realtime Database</b>. Any edit shows up on the other
-        devices within about 8 seconds, including everything entered before you joined. The page reads
-        and writes straight to the database over REST, so there is no server to run.
-      </p>
-
-      <div>
-        <label class="nhan" for="khoO">Database address, or a share code someone sent you</label>
-        <input id="khoO" type="text" spellcheck="false"
-               placeholder="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app">
-      </div>
-
-      <div>
-        <label class="nhan" for="khoPhong">Table name inside the database</label>
-        <input id="khoPhong" type="text" spellcheck="false" placeholder="viec-team">
-      </div>
-
-      <div id="khoBao" class="bao" data-kind="bad" hidden></div>
-
-      <div id="khoMaBox" hidden>
-        <label class="nhan" for="khoMa">Share code — send this to your teammates</label>
-        <input id="khoMa" type="text" readonly spellcheck="false">
-        <p style="margin:6px 0 0;color:var(--muted);font-size:13px">
-          They open this page, click 🗄 Shared database, paste the code, and they are in — no need for the full address.
-        </p>
-      </div>
-
-      <details>
-        <summary style="cursor:pointer;color:var(--muted);font-size:14px">No database yet? Set one up in 4 minutes</summary>
-        <ol class="buoc-so" style="margin-top:10px">
-          <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> and create a project (click through; Analytics is not needed).</li>
-          <li>In the left menu pick <b>Build → Realtime Database</b> → <b>Create Database</b>, choose a nearby region, and select <b>Start in test mode</b>.</li>
-          <li>Copy the address shown at the top, in the form <code>https://…-default-rtdb.asia-southeast1.firebasedatabase.app</code>, paste it above and click <b>Test and connect</b>.</li>
-          <li>Test mode locks itself after 30 days. Open the <b>Rules</b> tab, set <code>.read</code> and <code>.write</code> to <code>true</code>, and publish — then it keeps working.</li>
-        </ol>
-        <p style="margin:10px 0 0;color:var(--muted);font-size:13px">
-          Anyone with the address can read and edit without signing in — only share it inside your team.
-        </p>
-      </details>
-    </div>
-    <div class="chan">
-      <button id="khoNgung" type="button" class="danger" hidden>Stop sharing</button>
-      <div class="phai">
-        <button id="khoNoi" type="button" class="primary">Test and connect</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ============ hộp báo cáo ============ -->
 <div class="man" id="manBaoCao" hidden>
   <div class="hop" role="dialog" aria-modal="true" aria-label="Report">
@@ -828,13 +768,13 @@
 
   var STORE_KEY  = "viec-team-v1";
   var BACKUP_KEY = "viec-team-backup-v1";
-  var KHO_KEY    = "viec-team-kho";
-  var KHO_TAT    = "viec-team-kho-tat";
 
-  /* Điền địa chỉ Firebase Realtime Database vào đây thì ai mở trang cũng tự vào
-     chung một kho, không phải dán mã. Để trống thì mỗi máy lưu riêng cho tới khi
-     người dùng tự nối ở nút 🗄 Kho chung. */
-  var KHO_MAC_DINH = "";
+  /* Kho chung của team, gắn cứng vào trang: ai mở trang cũng tự vào chung một
+     kho, không phải nhập gì, không có nút bật tắt. Đổi team hay đổi kho thì sửa
+     đúng hai dòng này.
+
+     Lưu ý: trang này công khai nên ai vào cũng đọc và sửa được kho. */
+  var KHO_MAC_DINH = "https://qlcv-bfdb9-default-rtdb.asia-southeast1.firebasedatabase.app";
   var PHONG_MAC_DINH = "viec-team";
 
   var TRANG_THAI = [
@@ -3062,7 +3002,7 @@
   document.addEventListener("keydown", function(ev){
     if (ev.key === "Escape") {
       if (!manViec.hidden) { dongViec(); return; }
-      [manNguoi, manBaoCao, manGui, manNhan, manKho, manMail].forEach(function(m){ m.hidden = true; });
+      [manNguoi, manBaoCao, manGui, manNhan, manMail].forEach(function(m){ m.hidden = true; });
     }
   });
 
@@ -3096,50 +3036,13 @@
   }
 
   function docKho(){
-    var tat = false;
-    try { tat = localStorage.getItem(KHO_TAT) === "1"; } catch (e) {}
-    var raw = null;
-    try { raw = localStorage.getItem(KHO_KEY); } catch (e) {}
-    if (raw) {
-      try {
-        var o = JSON.parse(raw);
-        if (o && o.base) return { base: chuanBase(o.base), phong: o.phong || PHONG_MAC_DINH };
-      } catch (e) {}
-    }
-    if (KHO_MAC_DINH && !tat) {
-      return { base: chuanBase(KHO_MAC_DINH), phong: PHONG_MAC_DINH };
-    }
-    return null;
-  }
-
-  function ghiKho(k){
-    try {
-      if (k) {
-        localStorage.setItem(KHO_KEY, JSON.stringify(k));
-        localStorage.removeItem(KHO_TAT);
-      } else {
-        localStorage.removeItem(KHO_KEY);
-        localStorage.setItem(KHO_TAT, "1");
-      }
-    } catch (e) { /* chế độ riêng tư */ }
+    if (!KHO_MAC_DINH) return null;
+    return { base: chuanBase(KHO_MAC_DINH), phong: PHONG_MAC_DINH };
   }
 
   function khoUrl(k){
     k = k || kho;
     return k.base + "/" + encodeURIComponent(k.phong) + ".json";
-  }
-
-  function maKho(k){
-    var chu = JSON.stringify({ b: k.base, p: k.phong });
-    return toBase64Url(new TextEncoder().encode(chu));
-  }
-
-  function doMaKho(ma){
-    try {
-      var o = JSON.parse(new TextDecoder().decode(fromBase64Url(ma.trim())));
-      if (o && o.b) return { base: chuanBase(o.b), phong: o.p || PHONG_MAC_DINH };
-    } catch (e) {}
-    return null;
   }
 
   /* ---------- đèn trạng thái ---------- */
@@ -3154,7 +3057,7 @@
 
   function veTrangThaiKho(){
     if (!kho) datKho("off", "This device only");
-    else datKho("ok", "Kho chung");
+    else datKho("ok", "Shared board");
     veChanTrang();
   }
 
@@ -3171,13 +3074,11 @@
       chanNguon.appendChild(b);
     } else {
       chanNguon.appendChild(document.createTextNode(
-        "This board lives only in this browser (" +
+        "The shared database is unreachable, so this board is staying in this browser (" +
         (location.origin === "null" ? "a file opened directly" : location.origin) +
-        "). To put the whole team on one board, click 🗄 Shared database."));
+        ") for now."));
     }
   }
-
-  khoTrangThaiEl.addEventListener("click", function(){ moHopKho(); });
 
   /* ---------- gói việc để gửi lên ---------- */
 
@@ -3254,6 +3155,16 @@
         for (var k in t) { if (coRieng(t, k)) cu[k] = t[k]; }
         doi = true;
       }
+    }
+
+    // Kho đã có việc thật mà máy này còn mấy việc mẫu điền sẵn thì dọn đi,
+    // chúng không bao giờ được đẩy lên nên để lại chỉ tổ lệch giữa các máy.
+    if (!state.touched && state.tasks.some(function(t){ return t.demo; })) {
+      var coThat = false;
+      for (var kx in xa) {
+        if (coRieng(xa, kx) && xa[kx] && !xa[kx].del) { coThat = true; break; }
+      }
+      if (coThat) { boViecMau(); doi = true; }
     }
 
     // Việc trên máy mà kho chưa có -> đẩy lên
@@ -3403,118 +3314,6 @@
 
   window.addEventListener("online", function(){ keo(); daySoon(0); });
   window.addEventListener("focus", function(){ keo(true); });
-
-  /* ---------- hộp kho chung ---------- */
-
-  var manKho = document.getElementById("manKho");
-  var khoO = document.getElementById("khoO");
-  var khoPhong = document.getElementById("khoPhong");
-  var khoBao = document.getElementById("khoBao");
-  var khoMaBox = document.getElementById("khoMaBox");
-  var khoMa = document.getElementById("khoMa");
-  var khoNgung = document.getElementById("khoNgung");
-  var khoDangDung = document.getElementById("khoDangDung");
-
-  function noiKho(kind, chu){
-    khoBao.hidden = false;
-    khoBao.setAttribute("data-kind", kind);
-    khoBao.textContent = chu;
-  }
-
-  function moHopKho(){
-    khoBao.hidden = true;
-    khoO.value = kho ? kho.base : "";
-    khoPhong.value = kho ? kho.phong : PHONG_MAC_DINH;
-    khoNgung.hidden = !kho;
-    khoDangDung.hidden = !kho;
-    if (kho) {
-      khoDangDung.textContent = "This device is connected to: " + kho.base + " · table " + kho.phong;
-      khoMaBox.hidden = false;
-      khoMa.value = maKho(kho);
-    } else {
-      khoMaBox.hidden = true;
-    }
-    manKho.hidden = false;
-    khoO.focus();
-  }
-
-  document.getElementById("btnKho").addEventListener("click", moHopKho);
-  document.getElementById("khoDong").addEventListener("click", function(){ manKho.hidden = true; });
-  manKho.addEventListener("click", function(ev){ if (ev.target === manKho) manKho.hidden = true; });
-
-  document.getElementById("khoNoi").addEventListener("click", function(){
-    var chu = khoO.value.trim();
-    if (!chu) { noiKho("bad", "No database address or share code entered."); return; }
-
-    var moi;
-    if (/^https?:\/\//i.test(chu) || chu.indexOf(".") > -1) {
-      moi = { base: chuanBase(chu), phong: khoPhong.value.trim() || PHONG_MAC_DINH };
-    } else {
-      moi = doMaKho(chu);
-      if (!moi) { noiKho("bad", "That share code could not be read. Ask the sender to copy the whole thing."); return; }
-    }
-
-    noiKho("tin", "Connecting…");
-    fetch(khoUrl(moi) + "?t=" + Date.now(), { cache: "no-store" })
-      .then(function(r){
-        if (!r.ok) throw new Error("the database returned HTTP " + r.status +
-          (r.status === 401 || r.status === 403
-            ? " — the database is locked; set the Rules to true and publish again"
-            : ""));
-        return r.json();
-      })
-      .then(function(goi){
-        backupNow();
-        kho = moi;
-        ghiKho(kho);
-
-        // Việc mẫu không bao giờ được đẩy lên kho, giữ lại chỉ tổ khó hiểu
-        // vì máy khác không thấy chúng. Nối vào kho là dọn luôn.
-        var coSan = goi && goi.tasks && Object.keys(goi.tasks).length;
-        boViecMau();
-
-        tronVao(goi);
-        if (!coSan && state.touched) dayTatCa();
-
-        save();
-        render();
-        batDauDongBo();
-
-        khoMaBox.hidden = false;
-        khoMa.value = maKho(kho);
-        khoNgung.hidden = false;
-        khoDangDung.hidden = false;
-        khoDangDung.textContent = "This device is connected to: " + kho.base + " · table " + kho.phong;
-        noiKho("good", coSan
-          ? "Connected. The database holds " + Object.keys(goi.tasks).length +
-            " tasks, now merged into this device's board."
-          : "Connected. The database was empty, so this device's board was uploaded as the starting point.");
-      })["catch"](function(err){
-        noiKho("bad", "Could not connect: " + (err.message || err) +
-          ". Check the address, and make sure the Rules allow reads and writes.");
-      });
-  });
-
-  khoNgung.addEventListener("click", function(){
-    if (!confirm("Stop sharing? The board stays on this device, it just stops syncing.")) return;
-    kho = null;
-    ghiKho(null);
-    clearInterval(keoTimer);
-    banDay = {};
-    dayNguoi = false;
-    dayMail = false;
-    dayTen = false;
-    veTrangThaiKho();
-    manKho.hidden = true;
-  });
-
-  document.getElementById("khoMa").addEventListener("click", function(){
-    khoMa.select();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(khoMa.value);
-      noiKho("good", "Share code copied. Send it to your teammates and you're done.");
-    }
-  });
 
   /* ---------- chạy ---------- */
 
