@@ -13,37 +13,57 @@ vào đúng giờ mỗi ngày. Không cần license Premium.
 ## Cách dùng
 
 1. Copy cả **hai file** vào cùng một thư mục trên máy Windows, ví dụ `C:\PAD\`.
-2. Mở `tao-job-pad-hangngay.ps1`, sửa phần `CAU HINH`:
+2. Mở `tao-job-pad-hangngay.ps1`, sửa phần `CAU HINH`. Mỗi flow là một khối `@{ ... }`:
+
    ```powershell
-   $GioChay  = "15:55"       # giờ chạy, định dạng HH:mm 24h
-   $UriFlow  = "ms-powerautomate:/console/flow/run?environmentid=...&workflowid=...&source=Other"
-   $QuyenCao = $false        # chỉ bật $true nếu flow phải điều khiển app chạy quyền admin
+   $DanhSachJob = @(
+       @{
+           Ten = "run job"
+           Gio = "15:55"
+           Uri = "ms-powerautomate:/console/flow/run?environmentid=...&workflowid=...&source=Other"
+       },
+       @{
+           Ten = "job 2"
+           Gio = "16:10"
+           Uri = "ms-powerautomate:/console/flow/run?environmentid=...&workflowid=...&source=Other"
+       }
+   )
    ```
 
-   **Lấy `$UriFlow` ở đâu:** trong Power Automate Desktop, chuột phải flow →
+   Mỗi job thành một scheduled task riêng tên `PAD - <Ten>`. Thêm job thứ 3, 4… thì
+   copy thêm một khối `@{ ... }`, nhớ dấu phẩy ngăn cách.
+
+   **Lấy `Uri` ở đâu:** trong Power Automate Desktop, chuột phải flow →
    *Create desktop shortcut*. Chuột phải shortcut vừa tạo → *Properties* → copy ô **Target**.
 
    URI này định danh flow bằng `workflowid` (GUID) và kèm sẵn `environmentid`, nên
    đổi tên flow về sau cũng không làm hỏng lịch chạy, và không lo gõ sai tên.
-   Nếu không lấy được URI, để `$UriFlow = ""` rồi điền `$TenFlow` — script sẽ tự ghép
-   URI theo tên (kém chắc chắn hơn).
+
+   **Đặt giờ các job cách nhau ít nhất 10–15 phút.** PAD chạy lần lượt từng flow;
+   hai flow trùng giờ sẽ giành nhau.
 3. Mở **PowerShell với quyền Administrator** (chuột phải → *Run as Administrator*), rồi:
    ```powershell
    cd C:\PAD
    powershell -ExecutionPolicy Bypass -File .\tao-job-pad-hangngay.ps1
    ```
-4. Chạy thử ngay, không cần đợi tới giờ:
+4. Chạy thử ngay, không cần đợi tới giờ (chạy **từng job một**, đừng chạy cùng lúc):
    ```powershell
-   Start-ScheduledTask -TaskName "ChayPowerAutomateFlowHangNgay"
+   Start-ScheduledTask -TaskName "PAD - run job"
    ```
 5. Xem log nếu có gì đó không chạy:
    ```powershell
    notepad "$env:LOCALAPPDATA\PAD-Scheduler\chay-flow.log"
    ```
+   Các job dùng chung một file log, mỗi dòng có nhãn `[tên job]` để phân biệt.
 
-Gỡ task ra:
+Xem tất cả task đã tạo:
 ```powershell
-Unregister-ScheduledTask -TaskName "ChayPowerAutomateFlowHangNgay" -Confirm:$false
+Get-ScheduledTask -TaskName "PAD - *" | Format-Table TaskName, State
+```
+
+Gỡ hết ra:
+```powershell
+Get-ScheduledTask -TaskName "PAD - *" | Unregister-ScheduledTask -Confirm:$false
 ```
 
 ## Ba lỗi đã sửa so với bản script đầu
@@ -130,8 +150,9 @@ Thêm nữa: `Test-Path` vào `WindowsApps` có thể trả `$false` dù file c�
 ## Kiểm tra khi flow không chạy
 
 ```powershell
-# Task có tồn tại và đang bật không, lần chạy gần nhất kết quả ra sao
-Get-ScheduledTaskInfo -TaskName "ChayPowerAutomateFlowHangNgay"
+# Mọi task: đang bật không, chạy lần cuối lúc nào, kết quả ra sao
+Get-ScheduledTask -TaskName "PAD - *" | Get-ScheduledTaskInfo |
+    Format-Table TaskName, LastRunTime, LastTaskResult, NextRunTime -AutoSize
 ```
 
 `LastTaskResult`:

@@ -22,6 +22,9 @@ param(
     # Cach 2 (du phong): goi flow theo TEN. Chi dung khi $UriFlow de trong.
     [string]$TenFlow = "run job",
 
+    # Nhan de phan biet cac job trong file log chung. Khong anh huong toi viec chay.
+    [string]$TenJob = "",
+
     # Tham so dau vao cho flow, dang JSON. Vi du:
     #   -InputArguments '{"NgayChay":"2026-08-11","SoLan":3}'
     [string]$InputArguments = "",
@@ -39,9 +42,15 @@ if (-not (Test-Path -LiteralPath $LogDir)) {
 }
 $LogFile = Join-Path $LogDir "chay-flow.log"
 
+# Nhieu job cung ghi vao mot file log, nen kem nhan de con phan biet duoc
+$NhanJob = if ($TenJob)     { $TenJob }
+           elseif ($ChiKiemTra) { "kiem tra" }
+           elseif ($UriFlow) { "uri" }
+           else              { $TenFlow }
+
 function Write-Log {
     param([string]$Message, [string]$Muc = "INFO")
-    $dong = "{0}  [{1}]  {2}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Muc, $Message
+    $dong = "{0}  [{1}]  [{2}]  {3}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Muc, $NhanJob, $Message
     Write-Host $dong
     try { Add-Content -LiteralPath $LogFile -Value $dong -Encoding UTF8 } catch { }
 }
