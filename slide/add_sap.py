@@ -12,7 +12,7 @@ cx = icon.left + icon.width / 2
 top = icon.top + icon.height + Inches(0.10)
 
 W = Inches(2.6)
-box = slide.shapes.add_textbox(int(cx - W / 2), int(top), int(W), Inches(0.55))
+box = slide.shapes.add_textbox(int(cx - W / 2), int(top), int(W), Inches(0.70))
 box.name = "SAP Label"
 
 tf = box.text_frame
@@ -25,7 +25,7 @@ p.alignment = PP_ALIGN.CENTER
 run = p.add_run()
 run.text = "SAP"
 run.font.name = "Arial"
-run.font.size = Pt(28)
+run.font.size = Pt(36)
 run.font.bold = True
 run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
 
