@@ -36,6 +36,7 @@ npx http-server .
 
 ```
 index.html               # toàn bộ game: giao diện, style và logic
+cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
@@ -205,3 +206,101 @@ duyệt web hoặc đổi máy sẽ mất. Nhớ bấm **Xuất JSON** khi cần
 
 Nhắc giờ chỉ chạy khi trang đang mở trong trình duyệt. Trên iPhone, Safari chỉ hiện
 thông báo khi trang đã được **Thêm vào màn hình chính**.
+
+---
+
+# 🗂 Việc của team — làm gì, xong chưa, tiếp theo làm gì
+
+Mở `cong-viec.html` bằng trình duyệt. Cũng là **một file HTML duy nhất**, không cần build,
+không phụ thuộc thư viện nào.
+
+Trang trả lời đúng ba câu hỏi hay phải hỏi nhau trong team:
+
+| Câu hỏi | Chỗ trả lời |
+| --- | --- |
+| Đang làm gì? | Bốn cột **Chưa làm · Đang làm · Vướng · Xong** |
+| Xong chưa? | Ô đếm ở đầu trang, và nhãn hạn tự đổi màu khi tới hạn hay trễ |
+| Tiếp theo làm gì? | Khung **Kế hoạch tiếp theo**, gom mọi bước kế tiếp và xếp theo hạn |
+
+## Tính năng
+
+- **Bảng bốn cột**: kéo thẻ từ cột này sang cột kia, hoặc bấm `←` `→` trên thẻ
+  (dùng được trên điện thoại, không cần kéo).
+- **Mỗi việc có một bước tiếp theo riêng** kèm hạn riêng. Việc nào chưa ghi bước
+  tiếp theo thì thẻ hiện cảnh báo và có ô đếm riêng ở đầu trang — không để việc
+  nào nằm im mà không ai biết kế tiếp phải làm gì.
+- **Khung Kế hoạch tiếp theo** xếp mọi bước kế tiếp theo hạn, gần nhất lên đầu.
+- **Ô đếm bấm được**: Đang làm, Đang vướng, Trễ hạn, Chưa có bước tiếp, Xong trong
+  7 ngày — bấm vào là lọc luôn theo mục đó.
+- **Người làm**: mỗi việc gán được nhiều người, mỗi người một màu riêng. Lọc theo
+  người bằng một cú bấm. Sửa danh sách ở nút **👥 Thành viên**; ai bị xoá khỏi
+  danh sách nhưng còn được gán ở việc nào thì vẫn giữ nguyên, không mất dữ liệu.
+- **Nhật ký cập nhật** cho từng việc: mỗi lần đổi trạng thái đều được ghi lại kèm
+  giờ, và tự ghi thêm được dòng của mình.
+- **Hai kiểu xem**: bảng bốn cột, hoặc bảng danh sách sửa được ngay tại ô
+  (trạng thái, ưu tiên, bước tiếp theo).
+- **Báo cáo**: nút **📋 Báo cáo** dựng sẵn bản tóm tắt *Đã xong / Đang làm / Đang vướng /
+  Chưa làm / Kế hoạch tiếp theo* theo đúng bộ lọc đang xem, chép một phát dán thẳng
+  vào Zalo hay email.
+- **Kho chung cho cả team** qua Firebase Realtime Database — xem mục dưới.
+- **Gửi bằng đường link**, **Xuất / Nhập JSON**, **In / PDF**.
+- Tự đổi màu theo giao diện sáng/tối của hệ thống, dùng được trên điện thoại.
+
+## Dùng chung một cơ sở dữ liệu
+
+Mặc định mỗi máy giữ một bản riêng trong trình duyệt. Muốn cả team nhìn chung một
+bảng — ai sửa gì người khác cũng thấy — thì nối tất cả các máy vào một
+**Firebase Realtime Database**. Trang đọc ghi thẳng vào kho qua REST nên không phải
+dựng máy chủ nào, và mất mạng vẫn gõ được, có mạng lại thì tự gửi lên.
+
+Các bước, chừng 4 phút, toàn bấm nút:
+
+1. Vào [console.firebase.google.com](https://console.firebase.google.com), tạo một project.
+2. Chọn **Build → Realtime Database → Create Database**, chọn vùng gần (Singapore),
+   chọn **Start in test mode**.
+3. Chép địa chỉ kho (dạng `https://….asia-southeast1.firebasedatabase.app`), mở trang
+   `cong-viec.html`, bấm **🗄 Kho chung**, dán vào rồi bấm **Kiểm tra và nối**.
+4. Hộp thoại hiện một **mã kho**. Gửi mã đó cho người trong team; họ mở trang, bấm
+   **🗄 Kho chung**, dán mã vào là xong — không cần biết địa chỉ đầy đủ.
+5. Test mode tự khoá sau 30 ngày. Vào thẻ **Rules**, sửa hai dòng `.read` và `.write`
+   thành `true` rồi Publish là dùng được lâu dài.
+
+### Gắn sẵn kho vào trang
+
+Muốn ai mở trang cũng tự vào chung một kho, không phải dán mã, thì điền địa chỉ vào
+hằng số `KHO_MAC_DINH` ở đầu phần `<script>` của `cong-viec.html`:
+
+```js
+var KHO_MAC_DINH = "https://ten-cua-ban-default-rtdb.asia-southeast1.firebasedatabase.app";
+var PHONG_MAC_DINH = "viec-team";   // đổi tên này để một kho chứa nhiều bảng việc
+```
+
+Máy nào tự tay bấm **Ngưng dùng chung** thì được nhớ lại và không bị nối lại.
+
+### Đồng bộ chạy thế nào
+
+- Mỗi việc là một nút riêng trong kho, nên hai người sửa hai việc khác nhau không đè
+  lên nhau. Cùng đụng một việc thì bản có mốc `updated` mới hơn thắng.
+- Việc bị xoá để lại một **dấu mộ** trong kho — không có nó thì máy khác chưa kịp đồng
+  bộ sẽ đẩy việc đã xoá quay về. Dấu mộ tự dọn sau 30 ngày.
+- Máy khác kéo về mỗi 8 giây, và kéo ngay khi bạn quay lại tab. Chấm trạng thái cạnh
+  **Đã lưu** cho biết đang gửi, đã đồng bộ hay mất kết nối.
+- Đang mở hộp sửa một việc thì bản của người khác không giật mất chỗ đang gõ.
+- Nối vào kho đã có dữ liệu thì hai bên được trộn vào nhau, không bên nào bị đè.
+  Mấy việc mẫu điền sẵn không bao giờ được đẩy lên kho.
+- Địa chỉ kho chỉ lưu trên máy đang dùng, không nằm trong file **Xuất JSON** cũng
+  không nằm trong link **Gửi**.
+
+**Ai có địa chỉ kho đều đọc và sửa được**, không cần đăng nhập — chỉ gửi cho người
+trong team.
+
+## Lưu ý
+
+Khi chưa nối kho chung, dữ liệu nằm trong trình duyệt đang dùng, và **mỗi địa chỉ web
+giữ một kho riêng** — bảng nhập ở `nguyenthanhitvn87-source.github.io` không hiện sang
+bản mở bằng đường dẫn khác hay trình duyệt khác. Mang sang nơi khác thì bấm **📤 Gửi**
+để lấy link rồi **📥 Nhận** ở nơi mới, hoặc nối cả hai vào cùng một kho chung.
+
+Mỗi lần ghi đè lớn (nhận bảng từ link, nhập JSON, nối vào kho) đều cất bản cũ lại;
+link **Khôi phục bản trước đó** ở chân trang đổi qua đổi lại giữa hai bản, nên bấm
+nhầm vẫn lấy lại được.
