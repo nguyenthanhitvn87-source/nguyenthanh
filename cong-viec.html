@@ -63,6 +63,34 @@
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
   }
 
+  /* Màu bốn trạng thái dùng cho biểu đồ. Không lấy thẳng màu giao diện: đỏ với
+     lục của giao diện đứng cạnh nhau thì người mù màu đọc không ra (ΔE 5.8).
+     Bộ dưới đây đã chạy qua bộ kiểm và đạt cả sáu phép ở nền sáng lẫn nền tối,
+     theo đúng thứ tự xếp chồng Chưa làm · Vướng · Đang làm · Xong. */
+  :root{
+    --c-todo:#4a3aa7;
+    --c-blocked:#e34948;
+    --c-doing:#2a78d6;
+    --c-done:#008300;
+    --c-luoi:#e1e0d9;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --c-todo:#9085e9;
+      --c-blocked:#e66767;
+      --c-doing:#3987e5;
+      --c-done:#008300;
+      --c-luoi:#2c2c2a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --c-todo:#9085e9;
+    --c-blocked:#e66767;
+    --c-doing:#3987e5;
+    --c-done:#008300;
+    --c-luoi:#2c2c2a;
+  }
+
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -296,6 +324,29 @@
   @media (max-width:560px){ .doi{grid-template-columns:1fr} }
   .hop input,.hop select,.hop textarea{width:100%}
 
+  /* ---------- chấm sao ---------- */
+  .cham-sao{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+  .cham-sao button{
+    font-size:22px;line-height:1;padding:2px 4px;border:0;background:transparent;box-shadow:none;
+    color:var(--line);cursor:pointer;border-radius:6px;
+  }
+  .cham-sao button:hover{color:var(--cam)}
+  .cham-sao button[aria-pressed="true"]{color:var(--cam)}
+  .cham-sao .xoa{font-size:13px;color:var(--muted);margin-left:6px;border:1px solid var(--line);padding:3px 8px}
+  .phu-nho{margin:6px 0 0;font-size:12px;color:var(--muted)}
+  .sao-nho{color:var(--cam);font-size:12px;white-space:nowrap}
+
+  .bxh{width:100%;border-collapse:collapse;min-width:0}
+  .bxh th,.bxh td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:14px;text-align:left}
+  .bxh th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  .bxh td.so{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bxh tr:last-child td{border-bottom:0}
+  .thanh-diem{
+    display:block;height:8px;border-radius:999px;margin-top:5px;
+    background:color-mix(in srgb, var(--c-doing) 22%, transparent);
+  }
+  .thanh-diem i{display:block;height:100%;border-radius:999px;background:var(--c-doing)}
+
   .nhatky{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:10px}
   .nhatky .dong{padding:8px 10px;border-bottom:1px solid var(--line);font-size:14px}
   .nhatky .dong:last-child{border-bottom:0}
@@ -316,6 +367,30 @@
   .bang-xem-thu[hidden]{display:none}
   .bang-xem-thu button{margin-left:0}
 
+  /* ---------- biểu đồ ---------- */
+  .bieudo{margin-top:14px}
+  .bieudo .khoi{padding:14px;border-bottom:1px solid var(--line)}
+  .bieudo .khoi:last-child{border-bottom:0}
+  .bieudo h3{margin:0;font-size:14px;font-weight:600}
+  .bieudo .phu{margin:2px 0 12px;font-size:13px;color:var(--muted)}
+  .bieudo svg{display:block;width:100%;overflow:visible}
+  .bieudo .rong{color:var(--muted);font-size:14px;padding:6px 0}
+  .chu-thich{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+  .chu-thich span{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+  .chu-thich i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .bieudo text{font:12px/1 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  .bieudo .nhan-truc{fill:var(--muted)}
+  .bieudo .nhan-so{fill:var(--ink);font-weight:600}
+  .bieudo rect.mieng{cursor:default}
+  .bieudo rect.mieng:hover{opacity:.82}
+
+  .tip{
+    position:fixed;z-index:60;pointer-events:none;
+    background:var(--ink);color:var(--panel);border-radius:8px;padding:6px 9px;
+    font-size:13px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.28);max-width:240px;
+  }
+  .tip[hidden]{display:none}
+
   footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center}
   footer a{color:var(--muted)}
 
@@ -323,8 +398,10 @@
 
   @media print{
     body{background:#fff}
-    .toolbar,.loc,.themviec,.man,.board,.dot-saved,footer,.bang-xem-thu,.o{display:none !important}
-    .card{box-shadow:none;border-color:#ccc}
+    .toolbar,.loc,.themviec,.man,.board,.dot-saved,footer,.bang-xem-thu,.tip{display:none !important}
+    .card{box-shadow:none;border-color:#ccc;break-inside:avoid}
+    .o{box-shadow:none;border-color:#ccc}
+    .bieudo .khoi{break-inside:avoid}
     table{min-width:0}
   }
 </style>
@@ -340,6 +417,7 @@
       <button id="btnKho" type="button">🗄 Kho chung</button>
       <button id="btnNguoi" type="button">👥 Thành viên</button>
       <button id="btnBaoCao" type="button">📋 Báo cáo</button>
+      <button id="btnMail" type="button">✉️ Nhắc mail</button>
       <button id="btnGui" type="button">📤 Gửi</button>
       <button id="btnNhan" type="button">📥 Nhận</button>
       <button id="btnXuat" type="button">⬇︎ JSON</button>
@@ -409,6 +487,36 @@
     </div>
   </section>
 
+  <section class="card bieudo" id="bieudo">
+    <h2>📊 Báo cáo bằng biểu đồ</h2>
+
+    <div class="khoi">
+      <h3>Tiến độ chung</h3>
+      <p class="phu" id="bdChungPhu"></p>
+      <div id="bdChung"></div>
+    </div>
+
+    <div class="khoi">
+      <h3>Ai đang gánh việc gì</h3>
+      <p class="phu">Mỗi người bao nhiêu việc, chia theo trạng thái. Một việc hai người thì mỗi người tính một.</p>
+      <div id="bdNguoi"></div>
+    </div>
+
+    <div class="khoi">
+      <h3>⭐ Đánh giá thành viên</h3>
+      <p class="phu">Chỉ tính việc đã xong. Chấm sao ở trong từng việc — mở việc ra, kéo xuống mục Đánh giá.</p>
+      <div id="bdXepHang"></div>
+    </div>
+
+    <div class="khoi">
+      <h3>Xong theo tuần</h3>
+      <p class="phu">Số việc đánh dấu xong trong sáu tuần gần đây.</p>
+      <div id="bdTuan"></div>
+    </div>
+  </section>
+
+  <div class="tip" id="tip" hidden></div>
+
   <footer>
     <span id="chanNguon"></span>
     <span id="khoiPhuc" hidden> · <a href="#" id="khoiPhucLink">Khôi phục bản trước đó</a></span>
@@ -463,6 +571,13 @@
         <label class="nhan" for="fBuoc">Bước tiếp theo — làm gì kế tiếp</label>
         <input id="fBuoc" type="text" placeholder="Ví dụ: gửi bản nháp cho anh Nam duyệt">
       </div>
+      <div id="fKhungDiem" hidden>
+        <label class="nhan">Đánh giá việc này — tính điểm cho người làm</label>
+        <div class="cham-sao" id="fSao"></div>
+        <input id="fSaoY" type="text" placeholder="Nhận xét ngắn: làm nhanh, cần bám hạn hơn…" style="margin-top:8px">
+        <p class="phu-nho" id="fSaoAi"></p>
+      </div>
+
       <div>
         <label class="nhan">Nhật ký cập nhật</label>
         <div class="nhatky" id="fNhatKy"></div>
@@ -579,6 +694,56 @@
     <div class="chan">
       <div class="phai">
         <button id="baoCaoChep" type="button" class="primary">Sao chép</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ hộp nhắc qua mail ============ -->
+<div class="man" id="manMail" hidden>
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Nhắc qua mail">
+    <div class="dau">
+      <h2>Nhắc việc qua mail</h2>
+      <button id="mailDong" type="button" class="ghost">✕</button>
+    </div>
+    <div class="than">
+      <div>
+        <label class="nhan" for="mailAi">Người nhận — mỗi dòng một địa chỉ</label>
+        <textarea id="mailAi" rows="3" spellcheck="false"
+                  placeholder="anh.nam@congty.vn&#10;chi.ha@congty.vn"></textarea>
+        <p class="phu-nho">Danh sách này đi theo kho chung, nên cả team sửa ở đâu cũng thấy như nhau.</p>
+      </div>
+
+      <div>
+        <label class="nhan">Cách 1 — gửi ngay bằng hòm thư của máy</label>
+        <p style="margin:0 0 8px;color:var(--muted);font-size:14px">
+          Mở sẵn một thư đã điền tiêu đề và nội dung báo cáo, anh chỉ việc bấm Gửi.
+          Không phải cài gì, không phải dựng gì.
+        </p>
+        <button id="mailMo" type="button" class="primary">✉️ Soạn thư ngay</button>
+      </div>
+
+      <div>
+        <label class="nhan" for="mailUrl">Cách 2 — tự gửi hằng ngày, không cần ai mở trang</label>
+        <p style="margin:0 0 8px;color:var(--muted);font-size:14px">
+          Cần kho chung và một Apps Script. Dán file <code>nhac-qua-mail.gs</code> vào
+          <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a>,
+          sửa hai dòng KHO và PHONG, chạy <code>datLichHangNgay</code> một lần. Muốn bấm gửi
+          từ đây thì Deploy thành Web app rồi dán URL vào ô dưới.
+        </p>
+        <input id="mailUrl" type="text" spellcheck="false"
+               placeholder="https://script.google.com/macros/s/…/exec">
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button id="mailNoi" type="button">Kiểm tra kết nối</button>
+          <button id="mailGui" type="button">Gửi ngay một bản</button>
+        </div>
+      </div>
+
+      <div id="mailBao" class="bao" data-kind="bad" hidden></div>
+    </div>
+    <div class="chan">
+      <div class="phai">
+        <button id="mailLuu" type="button" class="primary">Lưu</button>
       </div>
     </div>
   </div>
@@ -745,6 +910,19 @@
   var incoming = null;   // đang xem thử bảng người khác gửi
   var state = load();
 
+  // Điểm chấm cho việc đã xong: sao 1-5, kèm nhận xét và ai chấm
+  function chuanHoaDiem(r){
+    if (!r || typeof r !== "object") return null;
+    var sao = Math.round(Number(r.sao));
+    if (!(sao >= 1 && sao <= 5)) return null;
+    return {
+      sao: sao,
+      y:   typeof r.y === "string" ? r.y : "",
+      at:  typeof r.at === "number" ? r.at : Date.now(),
+      boi: typeof r.boi === "string" ? r.boi : ""
+    };
+  }
+
   function chuanHoaViec(x){
     if (!x || typeof x !== "object") return null;
     var tt = "todo";
@@ -769,6 +947,7 @@
       created:  typeof x.created === "number" ? x.created : Date.now(),
       updated:  typeof x.updated === "number" ? x.updated : Date.now(),
       doneAt:   typeof x.doneAt === "number" ? x.doneAt : 0,
+      rate:     chuanHoaDiem(x.rate),
       demo:     x.demo === true
     };
   }
@@ -793,6 +972,8 @@
         ? parsed.people.filter(function(n){ return typeof n === "string" && n.trim(); })
         : DEFAULT_PEOPLE.slice(),
       peopleAt: typeof parsed.peopleAt === "number" ? parsed.peopleAt : 0,
+      mail: typeof parsed.mail === "string" ? parsed.mail : "",
+      mailAt: typeof parsed.mailAt === "number" ? parsed.mailAt : 0,
       graves: mo,
       touched: parsed.touched === true
     };
@@ -806,7 +987,7 @@
       catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
     }
     return { tasks: seedTasks(), people: DEFAULT_PEOPLE.slice(), peopleAt: 0,
-             graves: {}, touched: false };
+             mail: "", mailAt: 0, graves: {}, touched: false };
   }
 
   var saveTimer = null;
@@ -860,6 +1041,13 @@
     state.touched = true;
     state.peopleAt = Date.now();
     dayNguoi = true;
+    daySoon();
+  }
+
+  function chamMail(){
+    state.touched = true;
+    state.mailAt = Date.now();
+    dayMail = true;
     daySoon();
   }
 
@@ -1235,6 +1423,13 @@
       ut.textContent = t.priority === "cao" ? "Ưu tiên cao" : "Thấp";
       hang.appendChild(ut);
     }
+    if (t.rate) {
+      var sa = document.createElement("span");
+      sa.className = "nhan-nho sao-nho";
+      sa.textContent = chuSao(t.rate.sao) + " " + t.rate.sao;
+      sa.title = "Đánh giá " + t.rate.sao + " sao" + (t.rate.y ? ": " + t.rate.y : "");
+      hang.appendChild(sa);
+    }
     if (hang.childNodes.length) el.appendChild(hang);
 
     if (t.status !== "done") {
@@ -1399,6 +1594,14 @@
       });
       sel.addEventListener("change", function(){ doiTrangThai(t.id, sel.value); });
       tdT.appendChild(sel);
+      if (t.rate) {
+        var sa = document.createElement("div");
+        sa.className = "sao-nho";
+        sa.style.marginTop = "4px";
+        sa.textContent = chuSao(t.rate.sao) + " " + t.rate.sao;
+        sa.title = t.rate.y || ("Đánh giá " + t.rate.sao + " sao");
+        tdT.appendChild(sa);
+      }
 
       // Ưu tiên
       var tdU = document.createElement("td");
@@ -1490,6 +1693,449 @@
     });
   }
 
+  /* ================================================================
+     BIỂU ĐỒ
+
+     Bốn trạng thái xếp chồng theo đúng một thứ tự ở mọi biểu đồ:
+     Chưa làm · Vướng · Đang làm · Xong. Thứ tự này không phải cho đẹp —
+     màu đỏ của Vướng mà đứng cạnh màu lục của Xong thì người mù màu đọc
+     không ra, nên Chưa làm chen vào giữa để hai màu đó không kề nhau.
+     Chú thích luôn hiện và số luôn viết thành chữ, nên không phải chỉ
+     dựa vào màu mới đọc được biểu đồ.
+     ================================================================ */
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  var XEP = [
+    { id:"todo",    ten:"Chưa làm", bien:"--c-todo" },
+    { id:"blocked", ten:"Vướng",    bien:"--c-blocked" },
+    { id:"doing",   ten:"Đang làm", bien:"--c-doing" },
+    { id:"done",    ten:"Xong",     bien:"--c-done" }
+  ];
+
+  var KHE = 2;        // khe hở màu nền giữa hai mảnh kề nhau
+  var BO_TRON = 4;    // bo góc ở đầu mút của thanh
+
+  function nutSvg(ten, thuoc){
+    var e = document.createElementNS(SVGNS, ten);
+    for (var k in thuoc) {
+      if (Object.prototype.hasOwnProperty.call(thuoc, k)) e.setAttribute(k, thuoc[k]);
+    }
+    return e;
+  }
+
+  // Chữ nhật bo từng góc một: [trên-trái, trên-phải, dưới-phải, dưới-trái]
+  function duongHop(x, y, w, h, r){
+    var m = Math.min(w, h) / 2;
+    var a = Math.min(r[0], m), b = Math.min(r[1], m),
+        c = Math.min(r[2], m), d = Math.min(r[3], m);
+    var p = "M" + (x + a) + "," + y + "H" + (x + w - b);
+    if (b) p += "A" + b + "," + b + " 0 0 1 " + (x + w) + "," + (y + b);
+    p += "V" + (y + h - c);
+    if (c) p += "A" + c + "," + c + " 0 0 1 " + (x + w - c) + "," + (y + h);
+    p += "H" + (x + d);
+    if (d) p += "A" + d + "," + d + " 0 0 1 " + x + "," + (y + h - d);
+    p += "V" + (y + a);
+    if (a) p += "A" + a + "," + a + " 0 0 1 " + (x + a) + "," + y;
+    return p + "Z";
+  }
+
+  var tipEl = document.getElementById("tip");
+
+  function moTip(ev, chu){
+    tipEl.textContent = chu;
+    tipEl.hidden = false;
+    var r = tipEl.getBoundingClientRect();
+    var x = ev.clientX + 14;
+    var y = ev.clientY - r.height - 12;
+    if (x + r.width > window.innerWidth - 8) x = window.innerWidth - r.width - 8;
+    if (x < 8) x = 8;
+    if (y < 8) y = ev.clientY + 18;
+    tipEl.style.left = x + "px";
+    tipEl.style.top = y + "px";
+  }
+
+  function dongTip(){ tipEl.hidden = true; }
+
+  function ganTip(el, chu){
+    el.addEventListener("mousemove", function(ev){ moTip(ev, chu); });
+    el.addEventListener("mouseleave", dongTip);
+    var t = nutSvg("title", {});
+    t.textContent = chu;
+    el.appendChild(t);
+  }
+
+  function beRong(box){
+    var w = box.clientWidth;
+    return w > 40 ? w : 600;
+  }
+
+  function chuThich(dem){
+    var box = document.createElement("div");
+    box.className = "chu-thich";
+    XEP.forEach(function(x){
+      var s = document.createElement("span");
+      var i = document.createElement("i");
+      i.style.background = "var(" + x.bien + ")";
+      s.appendChild(i);
+      s.appendChild(document.createTextNode(
+        x.ten + (dem ? " " + (dem[x.id] || 0) : "")));
+      box.appendChild(s);
+    });
+    return box;
+  }
+
+  function noiTrong(box, chu){
+    box.textContent = "";
+    var p = document.createElement("p");
+    p.className = "rong";
+    p.textContent = chu;
+    box.appendChild(p);
+  }
+
+  /* ---------- 1. tiến độ chung ---------- */
+
+  function veChung(ds){
+    var box = document.getElementById("bdChung");
+    var phu = document.getElementById("bdChungPhu");
+    box.textContent = "";
+
+    var dem = {}, tong = ds.length;
+    XEP.forEach(function(x){ dem[x.id] = 0; });
+    ds.forEach(function(t){ dem[t.status]++; });
+
+    var xongPhanTram = tong ? Math.round(dem.done / tong * 100) : 0;
+    phu.textContent = tong
+      ? tong + " việc đang xem · xong " + xongPhanTram + "%"
+      : "Chưa có việc nào.";
+
+    if (!tong) { noiTrong(box, "Thêm việc rồi biểu đồ hiện ở đây."); return; }
+
+    var W = beRong(box), H = 24;   // bề dày tối đa của thanh
+    var co = XEP.filter(function(x){ return dem[x.id] > 0; });
+    var khe = KHE * Math.max(0, co.length - 1);
+    var dung = W - khe;
+
+    var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
+                              role: "img", "aria-label": "Tiến độ chung theo trạng thái" });
+    var x = 0;
+    co.forEach(function(m, i){
+      var w = dung * dem[m.id] / tong;
+      var dau = i === 0, cuoi = i === co.length - 1;
+      var p = nutSvg("path", {
+        d: duongHop(x, 0, w, H, [dau ? BO_TRON : 0, cuoi ? BO_TRON : 0,
+                                 cuoi ? BO_TRON : 0, dau ? BO_TRON : 0]),
+        fill: "var(" + m.bien + ")",
+        "class": "mieng"
+      });
+      ganTip(p, m.ten + ": " + dem[m.id] + " việc (" +
+                Math.round(dem[m.id] / tong * 100) + "%)");
+      svg.appendChild(p);
+      x += w + KHE;
+    });
+
+    box.appendChild(svg);
+    box.appendChild(chuThich(dem));
+  }
+
+  /* ---------- 2. ai đang gánh việc gì ---------- */
+
+  function veNguoi(ds){
+    var box = document.getElementById("bdNguoi");
+    box.textContent = "";
+    if (!ds.length) { noiTrong(box, "Chưa có việc nào."); return; }
+
+    var theo = {}, thuTu = [];
+    function o(ten){
+      if (!theo[ten]) { theo[ten] = { ten: ten, tong: 0 }; thuTu.push(theo[ten]); }
+      return theo[ten];
+    }
+    ds.forEach(function(t){
+      var ai = t.who.length ? t.who : ["Chưa gán ai"];
+      ai.forEach(function(n){
+        var r = o(n);
+        r[t.status] = (r[t.status] || 0) + 1;
+        r.tong++;
+      });
+    });
+
+    thuTu.sort(function(a, b){
+      if (a.ten === "Chưa gán ai") return 1;
+      if (b.ten === "Chưa gán ai") return -1;
+      return b.tong - a.tong;
+    });
+
+    // Quá tám dòng thì gộp đuôi lại, thêm màu mới không giải quyết được gì
+    if (thuTu.length > 9) {
+      var duoi = thuTu.splice(8, thuTu.length - 9);
+      var gop = { ten: "Người khác (" + duoi.length + ")", tong: 0 };
+      duoi.forEach(function(r){
+        gop.tong += r.tong;
+        XEP.forEach(function(x){ if (r[x.id]) gop[x.id] = (gop[x.id] || 0) + r[x.id]; });
+      });
+      thuTu.splice(8, 0, gop);
+    }
+
+    var W = beRong(box);
+    var TEN_W = Math.min(120, Math.max(72, Math.round(W * 0.22)));
+    var SO_W = 34;
+    var CAO = 28, THANH = 16;
+    var H = thuTu.length * CAO;
+    var veW = W - TEN_W - SO_W - 12;
+    var lonNhat = 0;
+    thuTu.forEach(function(r){ if (r.tong > lonNhat) lonNhat = r.tong; });
+
+    var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
+                              role: "img", "aria-label": "Số việc mỗi người theo trạng thái" });
+
+    thuTu.forEach(function(r, i){
+      var y = i * CAO;
+      var ten = nutSvg("text", { x: 0, y: y + THANH / 2 + 4, "class": "nhan-truc" });
+      ten.textContent = r.ten.length > 16 ? r.ten.slice(0, 15) + "…" : r.ten;
+      if (r.ten.length > 16) { var tt = nutSvg("title", {}); tt.textContent = r.ten; ten.appendChild(tt); }
+      svg.appendChild(ten);
+
+      var co = XEP.filter(function(x){ return r[x.id]; });
+      var caRong = veW * r.tong / lonNhat;
+      var khe = KHE * Math.max(0, co.length - 1);
+      var dung = Math.max(0, caRong - khe);
+      var x = TEN_W;
+
+      co.forEach(function(m, j){
+        var w = dung * r[m.id] / r.tong;
+        var dau = j === 0, cuoi = j === co.length - 1;
+        var p = nutSvg("path", {
+          d: duongHop(x, y, w, THANH, [dau ? BO_TRON : 0, cuoi ? BO_TRON : 0,
+                                       cuoi ? BO_TRON : 0, dau ? BO_TRON : 0]),
+          fill: "var(" + m.bien + ")",
+          "class": "mieng"
+        });
+        ganTip(p, r.ten + " · " + m.ten + ": " + r[m.id] + " việc");
+        svg.appendChild(p);
+        x += w + KHE;
+      });
+
+      var so = nutSvg("text", { x: TEN_W + caRong + 8, y: y + THANH / 2 + 4, "class": "nhan-so" });
+      so.textContent = r.tong;
+      svg.appendChild(so);
+    });
+
+    box.appendChild(svg);
+    box.appendChild(chuThich(null));
+  }
+
+  /* ---------- 3. xong theo tuần ---------- */
+
+  function veTuan(ds){
+    var box = document.getElementById("bdTuan");
+    box.textContent = "";
+
+    var t2 = thuHaiCua(today());
+    var tuan = [];
+    for (var i = 5; i >= 0; i--) {
+      var dau = addDays(t2, -7 * i);
+      tuan.push({ dau: dau, cuoi: addDays(dau, 6), so: 0 });
+    }
+
+    ds.forEach(function(t){
+      if (t.status !== "done" || !t.doneAt) return;
+      var d = new Date(t.doneAt);
+      var ngay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      for (var i = 0; i < tuan.length; i++) {
+        if (ngay >= tuan[i].dau && ngay <= tuan[i].cuoi) { tuan[i].so++; return; }
+      }
+    });
+
+    var lonNhat = 0;
+    tuan.forEach(function(x){ if (x.so > lonNhat) lonNhat = x.so; });
+
+    if (!lonNhat) {
+      noiTrong(box, "Sáu tuần gần đây chưa việc nào được đánh dấu xong.");
+      return;
+    }
+
+    var W = beRong(box), CAO_VE = 104, CHAN = 22, H = CAO_VE + CHAN;
+    var bang = W / tuan.length;
+    var rong = Math.min(24, bang - 16);
+
+    var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
+                              role: "img", "aria-label": "Số việc xong theo từng tuần" });
+
+    svg.appendChild(nutSvg("line", {
+      x1: 0, y1: CAO_VE, x2: W, y2: CAO_VE,
+      stroke: "var(--c-luoi)", "stroke-width": 1
+    }));
+
+    tuan.forEach(function(x){
+      var giua = bang * (tuan.indexOf(x) + 0.5);
+      var cao = x.so ? Math.max(3, (CAO_VE - 18) * x.so / lonNhat) : 0;
+      if (cao) {
+        var p = nutSvg("path", {
+          d: duongHop(giua - rong / 2, CAO_VE - cao, rong, cao,
+                      [BO_TRON, BO_TRON, 0, 0]),
+          fill: "var(--c-done)",
+          "class": "mieng"
+        });
+        ganTip(p, "Tuần " + fmtVN(x.dau) + " – " + fmtVN(x.cuoi) + ": xong " + x.so + " việc");
+        svg.appendChild(p);
+      }
+      var so = nutSvg("text", { x: giua, y: CAO_VE - cao - 6,
+                                "text-anchor": "middle", "class": "nhan-so" });
+      so.textContent = x.so;
+      svg.appendChild(so);
+
+      var nhan = nutSvg("text", { x: giua, y: CAO_VE + 15,
+                                  "text-anchor": "middle", "class": "nhan-truc" });
+      nhan.textContent = x.dau.getDate() + "/" + (x.dau.getMonth() + 1);
+      svg.appendChild(nhan);
+    });
+
+    box.appendChild(svg);
+  }
+
+  function thuHaiCua(d){
+    var wd = d.getDay();                 // 0 = chủ nhật
+    return addDays(d, -(wd === 0 ? 6 : wd - 1));
+  }
+
+  /* ---------- 4. đánh giá thành viên ---------- */
+
+  // Xong đúng hạn: tính hết ngày của hạn, xong trong ngày hạn vẫn là đúng hạn
+  function xongDungHan(t){
+    if (t.status !== "done" || !t.due || !t.doneAt) return null;
+    var het = parseIso(t.due);
+    het.setHours(23, 59, 59, 999);
+    return t.doneAt <= het.getTime();
+  }
+
+  function tinhXepHang(ds){
+    var theo = {}, thuTu = [];
+    ds.forEach(function(t){
+      if (t.status !== "done") return;
+      var ai = t.who.length ? t.who : ["Chưa gán ai"];
+      ai.forEach(function(n){
+        if (!theo[n]) {
+          theo[n] = { ten: n, xong: 0, coHan: 0, dungHan: 0, soCham: 0, tongSao: 0 };
+          thuTu.push(theo[n]);
+        }
+        var r = theo[n];
+        r.xong++;
+        var dh = xongDungHan(t);
+        if (dh !== null) { r.coHan++; if (dh) r.dungHan++; }
+        if (t.rate) { r.soCham++; r.tongSao += t.rate.sao; }
+      });
+    });
+    thuTu.forEach(function(r){
+      r.diem = r.soCham ? r.tongSao / r.soCham : 0;
+      r.tiLe = r.coHan ? r.dungHan / r.coHan : -1;
+    });
+    thuTu.sort(function(a, b){
+      if (b.diem !== a.diem) return b.diem - a.diem;
+      return b.xong - a.xong;
+    });
+    return thuTu;
+  }
+
+  function chuSao(n){
+    var s = "";
+    for (var i = 1; i <= 5; i++) s += (i <= Math.round(n) ? "★" : "☆");
+    return s;
+  }
+
+  function veXepHang(ds){
+    var box = document.getElementById("bdXepHang");
+    box.textContent = "";
+
+    var ds2 = tinhXepHang(ds);
+    if (!ds2.length) {
+      noiTrong(box, "Chưa có việc nào xong nên chưa có gì để đánh giá.");
+      return;
+    }
+
+    var bang = document.createElement("table");
+    bang.className = "bxh";
+    var thead = document.createElement("thead");
+    var trh = document.createElement("tr");
+    ["Người", "Việc xong", "Đúng hạn", "Điểm trung bình"].forEach(function(h, i){
+      var th = document.createElement("th");
+      th.textContent = h;
+      if (i > 0) th.style.textAlign = "right";
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    bang.appendChild(thead);
+
+    var tbody = document.createElement("tbody");
+    ds2.forEach(function(r){
+      var tr = document.createElement("tr");
+
+      var tdT = document.createElement("td");
+      tdT.textContent = r.ten;
+
+      var tdX = document.createElement("td");
+      tdX.className = "so";
+      tdX.textContent = r.xong;
+
+      var tdH = document.createElement("td");
+      tdH.className = "so";
+      tdH.textContent = r.tiLe < 0 ? "—" : Math.round(r.tiLe * 100) + "%";
+      tdH.title = r.tiLe < 0
+        ? "Việc của người này không đặt hạn nên không tính được"
+        : r.dungHan + "/" + r.coHan + " việc có hạn được xong đúng hạn";
+
+      var tdD = document.createElement("td");
+      tdD.className = "so";
+      if (!r.soCham) {
+        tdD.textContent = "chưa chấm";
+        tdD.style.color = "var(--muted)";
+      } else {
+        var chu = document.createElement("span");
+        chu.appendChild(document.createTextNode(r.diem.toFixed(1) + " "));
+        var sao = document.createElement("span");
+        sao.className = "sao-nho";
+        sao.textContent = chuSao(r.diem);
+        chu.appendChild(sao);
+        tdD.appendChild(chu);
+
+        var thanh = document.createElement("span");
+        thanh.className = "thanh-diem";
+        var trong = document.createElement("i");
+        trong.style.width = (r.diem / 5 * 100) + "%";
+        thanh.appendChild(trong);
+        tdD.appendChild(thanh);
+        tdD.title = "Trung bình " + r.diem.toFixed(2) + " sao trên " + r.soCham +
+                    " việc đã chấm (trong " + r.xong + " việc xong)";
+      }
+
+      [tdT, tdX, tdH, tdD].forEach(function(td){ tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    bang.appendChild(tbody);
+    box.appendChild(bang);
+
+    var chuaCham = ds.filter(function(t){ return t.status === "done" && !t.rate; }).length;
+    if (chuaCham) {
+      var p = document.createElement("p");
+      p.className = "phu-nho";
+      p.textContent = "Còn " + chuaCham + " việc đã xong chưa chấm sao.";
+      box.appendChild(p);
+    }
+  }
+
+  function veBieuDo(){
+    var ds = state.tasks.filter(hopLoc);
+    veChung(ds);
+    veNguoi(ds);
+    veXepHang(ds);
+    veTuan(ds);
+  }
+
+  var veLaiTimer = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(veLaiTimer);
+    veLaiTimer = setTimeout(veBieuDo, 200);
+  });
+
   /* ---------- vẽ chung ---------- */
 
   function render(){
@@ -1497,6 +2143,7 @@
     renderKeTiep();
     renderNguoiLoc();
     if (kieuXem === "board") renderBoard(); else renderBang();
+    veBieuDo();
     document.getElementById("board").classList.toggle("an", kieuXem !== "board");
     document.getElementById("bangViec").classList.toggle("an", kieuXem !== "table");
     document.getElementById("bangMau").hidden = !state.tasks.some(function(t){ return t.demo; });
@@ -1563,10 +2210,87 @@
     fBuocHan.value = t.nextDue;
     veNguoiChon(t);
     veNhatKy(t);
+    veChamSao(t);
 
     manViec.hidden = false;
     fTieuDe.focus();
   }
+
+  /* ---------- chấm sao ---------- */
+
+  var fKhungDiem = document.getElementById("fKhungDiem");
+  var fSao = document.getElementById("fSao");
+  var fSaoY = document.getElementById("fSaoY");
+  var fSaoAi = document.getElementById("fSaoAi");
+
+  function veChamSao(t){
+    // Chỉ chấm việc đã xong — chấm việc đang dở thì điểm không nói lên gì
+    fKhungDiem.hidden = t.status !== "done";
+    if (fKhungDiem.hidden) return;
+
+    var dangCo = t.rate ? t.rate.sao : 0;
+    fSao.textContent = "";
+    for (var i = 1; i <= 5; i++) {
+      (function(n){
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = n <= dangCo ? "★" : "☆";
+        b.setAttribute("aria-pressed", n <= dangCo ? "true" : "false");
+        b.setAttribute("aria-label", n + " sao");
+        b.title = n + " sao";
+        b.addEventListener("click", function(){ datSao(n); });
+        fSao.appendChild(b);
+      })(i);
+    }
+
+    if (dangCo) {
+      var xoa = document.createElement("button");
+      xoa.type = "button";
+      xoa.className = "xoa";
+      xoa.textContent = "Bỏ chấm";
+      xoa.addEventListener("click", function(){ datSao(0); });
+      fSao.appendChild(xoa);
+    }
+
+    fSaoY.value = t.rate ? t.rate.y : "";
+    fSaoY.hidden = !dangCo;
+    fSaoAi.textContent = t.rate
+      ? "Chấm " + fmtKhi(t.rate.at) + (t.rate.boi ? " bởi " + t.rate.boi : "") +
+        " · tính cho: " + (t.who.length ? t.who.join(", ") : "chưa gán ai")
+      : "Chấm xong thì điểm cộng cho người được gán ở việc này.";
+  }
+
+  function datSao(n){
+    var t = timViec(dangSua);
+    if (!t) return;
+    if (!n) {
+      t.rate = null;
+      ghiNhatKy(t, "Bỏ đánh giá");
+    } else {
+      t.rate = {
+        sao: n,
+        y: t.rate ? t.rate.y : "",
+        at: Date.now(),
+        boi: state.people.length === 1 ? state.people[0] : ""
+      };
+      ghiNhatKy(t, "Đánh giá " + n + " sao");
+    }
+    t.updated = Date.now();
+    chamVao(t.id);
+    save();
+    veChamSao(t);
+    veNhatKy(t);
+    render();
+  }
+
+  fSaoY.addEventListener("input", function(){
+    var t = timViec(dangSua);
+    if (!t || !t.rate) return;
+    t.rate.y = fSaoY.value;
+    t.updated = Date.now();
+    chamVao(t.id);
+    saveSoon();
+  });
 
   function veNguoiChon(t){
     fNguoi.textContent = "";
@@ -1635,7 +2359,10 @@
   suaTruong(fBuocHan, "nextDue", true);
 
   fTrangThai.addEventListener("change", function(){
-    if (dangSua) doiTrangThai(dangSua, fTrangThai.value);
+    if (!dangSua) return;
+    doiTrangThai(dangSua, fTrangThai.value);
+    var t = timViec(dangSua);
+    if (t) { veChamSao(t); veNhatKy(t); }
   });
   fUuTien.addEventListener("change", function(){
     var t = timViec(dangSua);
@@ -1664,7 +2391,7 @@
     doiTrangThai(dangSua, "done");
     fTrangThai.value = "done";
     var t = timViec(dangSua);
-    if (t) veNhatKy(t);
+    if (t) { veNhatKy(t); veChamSao(t); }
   });
 
   document.getElementById("viecXoa").addEventListener("click", function(){
@@ -1772,6 +2499,17 @@
       d.push("");
     }
 
+    var bxh = tinhXepHang(ds);
+    if (bxh.length) {
+      d.push("⭐ ĐÁNH GIÁ THÀNH VIÊN");
+      bxh.forEach(function(r){
+        d.push("- " + r.ten + ": xong " + r.xong + " việc" +
+               (r.tiLe < 0 ? "" : ", đúng hạn " + Math.round(r.tiLe * 100) + "%") +
+               (r.soCham ? ", điểm " + r.diem.toFixed(1) + "/5" : ", chưa chấm điểm"));
+      });
+      d.push("");
+    }
+
     var tre = ds.filter(laTre);
     if (tre.length) {
       d.push("⚠️ CẦN GỠ NGAY: " + tre.length + " việc đang trễ hạn.");
@@ -1806,6 +2544,172 @@
     bao.setAttribute("data-kind", xong ? "good" : "bad");
     bao.textContent = xong ? chuOk : "Trình duyệt không cho chép tự động. Bấm giữ để chọn rồi chép tay.";
   }
+
+  /* ================================================================
+     NHẮC QUA MAIL
+
+     Hai đường, không loại trừ nhau:
+     1. mailto: — mở sẵn thư trong hòm thư của máy, không cần dựng gì.
+     2. Apps Script — đọc kho chung rồi tự gửi hằng ngày, kể cả khi không
+        ai mở trang. Trình duyệt chặn gọi thẳng sang Google vì khác tên
+        miền, nên gọi vòng qua thẻ script như bên lịch biểu vẫn làm.
+     ================================================================ */
+
+  var MAIL_URL_KEY = "viec-team-mail-url";
+
+  var manMail = document.getElementById("manMail");
+  var mailAi = document.getElementById("mailAi");
+  var mailUrl = document.getElementById("mailUrl");
+  var mailBao = document.getElementById("mailBao");
+
+  function mailNoi(kind, chu){
+    mailBao.hidden = false;
+    mailBao.setAttribute("data-kind", kind);
+    mailBao.textContent = chu;
+  }
+
+  function docUrlMail(){
+    try { return localStorage.getItem(MAIL_URL_KEY) || ""; } catch (e) { return ""; }
+  }
+
+  function ghiUrlMail(u){
+    try {
+      if (u) localStorage.setItem(MAIL_URL_KEY, u);
+      else localStorage.removeItem(MAIL_URL_KEY);
+    } catch (e) { /* chế độ riêng tư */ }
+  }
+
+  function diaChiMail(){
+    return state.mail.split(/[\s,;]+/)
+      .map(function(s){ return s.trim(); })
+      .filter(function(s){ return s.indexOf("@") > 0; });
+  }
+
+  document.getElementById("btnMail").addEventListener("click", function(){
+    mailBao.hidden = true;
+    mailAi.value = state.mail;
+    mailUrl.value = docUrlMail();
+    manMail.hidden = false;
+    mailAi.focus();
+  });
+
+  document.getElementById("mailDong").addEventListener("click", function(){ manMail.hidden = true; });
+  manMail.addEventListener("click", function(ev){ if (ev.target === manMail) manMail.hidden = true; });
+
+  function luuMail(){
+    if (mailAi.value !== state.mail) {
+      state.mail = mailAi.value;
+      chamMail();
+      save();
+    }
+    ghiUrlMail(mailUrl.value.trim());
+  }
+
+  document.getElementById("mailLuu").addEventListener("click", function(){
+    luuMail();
+    manMail.hidden = true;
+  });
+
+  /* ---------- cách 1: mở sẵn thư ---------- */
+
+  document.getElementById("mailMo").addEventListener("click", function(){
+    luuMail();
+    var ai = diaChiMail();
+    var tieuDe = "Việc của team — " + fmtVN(today());
+    var than = taoBaoCao();
+
+    // mailto: dài quá thì nhiều hòm thư cắt mất đuôi, nên cắt gọn trước
+    var dau = "mailto:" + encodeURIComponent(ai.join(",")) +
+              "?subject=" + encodeURIComponent(tieuDe) + "&body=";
+    var conLai = 1800 - dau.length;
+    if (encodeURIComponent(than).length > conLai) {
+      while (than.length > 40 && encodeURIComponent(than).length > conLai - 60) {
+        than = than.slice(0, -40);
+      }
+      var xuong = than.lastIndexOf("\n");     // cắt gọn ở cuối dòng, đừng đứt giữa chữ
+      if (xuong > 200) than = than.slice(0, xuong);
+      than += "\n\n… (cắt bớt cho vừa một lá thư — xem đầy đủ trong trang)";
+    }
+
+    // Bấm qua một thẻ a thay vì đổi location: trang hiện tại không bị coi là
+    // đang rời đi, nên không có chuyện lưu hụt khi hòm thư mở chậm.
+    var a = document.createElement("a");
+    a.href = dau + encodeURIComponent(than);
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    mailNoi("good", ai.length
+      ? "Đã mở thư gửi cho " + ai.length + " người. Kiểm lại rồi bấm Gửi."
+      : "Đã mở thư. Chưa điền người nhận nên anh tự điền vào ô To.");
+  });
+
+  /* ---------- cách 2: gọi Apps Script ---------- */
+
+  function goiScript(url, tham, xong, hong){
+    var ten = "cbMail" + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+    var the = document.createElement("script");
+    var roi = false;
+
+    function don(){
+      clearTimeout(hetGio);
+      try { delete window[ten]; } catch (e) { window[ten] = undefined; }
+      if (the.parentNode) the.parentNode.removeChild(the);
+    }
+
+    var hetGio = setTimeout(function(){
+      if (roi) return;
+      roi = true; don();
+      hong(new Error("gọi mãi không thấy trả lời"));
+    }, 25000);
+
+    window[ten] = function(kq){
+      if (roi) return;
+      roi = true; don();
+      xong(kq);
+    };
+
+    the.onerror = function(){
+      if (roi) return;
+      roi = true; don();
+      hong(new Error("không gọi được địa chỉ này"));
+    };
+
+    the.src = url + (url.indexOf("?") > -1 ? "&" : "?") + tham + "&callback=" + ten;
+    document.body.appendChild(the);
+  }
+
+  function chayScript(tham, dangLam, xongChu){
+    luuMail();
+    var u = mailUrl.value.trim();
+    if (!u) { mailNoi("bad", "Chưa dán địa chỉ Apps Script."); return; }
+    if (u.indexOf("script.google.com") === -1) {
+      mailNoi("bad", "Địa chỉ phải là link Apps Script, dạng https://script.google.com/macros/s/…/exec");
+      return;
+    }
+    mailNoi("tin", dangLam);
+    goiScript(u, tham, function(kq){
+      if (kq && kq.ok) mailNoi("good", xongChu(kq));
+      else mailNoi("bad", "Apps Script báo lỗi: " + ((kq && kq.loi) || "không rõ"));
+    }, function(err){
+      mailNoi("bad", "Không nối được: " + err.message +
+        ". Kiểm tra đã Deploy thành Web app với quyền “Anyone” chưa.");
+    });
+  }
+
+  document.getElementById("mailNoi").addEventListener("click", function(){
+    chayScript("fn=song", "Đang thử nối…", function(kq){
+      return "Nối được. Apps Script đọc thấy " + (kq.so_viec || 0) + " việc trong kho, " +
+             "gửi tới " + ((kq.nguoi_nhan && kq.nguoi_nhan.length) || 0) + " địa chỉ.";
+    });
+  });
+
+  document.getElementById("mailGui").addEventListener("click", function(){
+    chayScript("fn=gui", "Đang gửi…", function(kq){
+      return kq.ket_qua || "Đã gửi.";
+    });
+  });
 
   /* ---------- gửi / nhận bằng link ---------- */
 
@@ -2072,7 +2976,7 @@
   document.addEventListener("keydown", function(ev){
     if (ev.key === "Escape") {
       if (!manViec.hidden) { dongViec(); return; }
-      [manNguoi, manBaoCao, manGui, manNhan, manKho].forEach(function(m){ m.hidden = true; });
+      [manNguoi, manBaoCao, manGui, manNhan, manKho, manMail].forEach(function(m){ m.hidden = true; });
     }
   });
 
@@ -2089,6 +2993,7 @@
   var kho = docKho();
   var banDay = {};        // id việc đang chờ đẩy lên
   var dayNguoi = false;   // danh sách thành viên đang chờ đẩy
+  var dayMail = false;    // danh sách người nhận mail đang chờ đẩy
   var dangDay = false;
   var dayTimer = null;
   var keoTimer = null;
@@ -2193,7 +3098,8 @@
     return {
       id: t.id, title: t.title, desc: t.desc, who: t.who, status: t.status,
       priority: t.priority, due: t.due, next: t.next, nextDue: t.nextDue,
-      log: t.log, created: t.created, updated: t.updated, doneAt: t.doneAt
+      log: t.log, created: t.created, updated: t.updated, doneAt: t.doneAt,
+      rate: t.rate
     };
   }
 
@@ -2286,6 +3192,16 @@
       dayNguoi = true;
     }
 
+    // Người nhận mail: cũng bản ghi sau thắng
+    var mailAt = typeof goi.mailAt === "number" ? goi.mailAt : 0;
+    if (typeof goi.mail === "string" && mailAt > (state.mailAt || 0)) {
+      state.mail = goi.mail;
+      state.mailAt = mailAt;
+      doi = true;
+    } else if ((state.mailAt || 0) > mailAt && state.touched) {
+      dayMail = true;
+    }
+
     if (doi) {
       save();
       render();
@@ -2309,6 +3225,7 @@
     state.tasks.forEach(function(t){ if (!t.demo) banDay[t.id] = true; });
     for (var g in state.graves) { if (coRieng(state.graves, g)) banDay[g] = true; }
     dayNguoi = true;
+    dayMail = true;
     daySoon(0);
   }
 
@@ -2335,11 +3252,17 @@
       goi["peopleAt"] = state.peopleAt || Date.now();
       co = true;
     }
+    if (dayMail) {
+      goi["mail"] = state.mail;
+      goi["mailAt"] = state.mailAt || Date.now();
+      co = true;
+    }
     if (!co) return;
 
     banDay = {};
-    var nguoiDangDi = dayNguoi;
+    var nguoiDangDi = dayNguoi, mailDangDi = dayMail;
     dayNguoi = false;
+    dayMail = false;
     dangDay = true;
     datKho("dang", "Đang gửi lên");
 
@@ -2356,6 +3279,7 @@
       dangDay = false;
       for (var k in hang) { if (coRieng(hang, k)) banDay[k] = true; }
       if (nguoiDangDi) dayNguoi = true;
+      if (mailDangDi) dayMail = true;
       datKho("loi", "Mất mạng — sẽ gửi lại");
       daySoon(5000);
     });
@@ -2472,6 +3396,7 @@
     clearInterval(keoTimer);
     banDay = {};
     dayNguoi = false;
+    dayMail = false;
     veTrangThaiKho();
     manKho.hidden = true;
   });

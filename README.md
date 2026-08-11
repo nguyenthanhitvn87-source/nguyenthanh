@@ -41,6 +41,7 @@ lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dư�
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
+nhac-qua-mail.gs         # mã Apps Script tự gửi báo cáo công việc qua mail
 README.md
 ```
 
@@ -240,11 +241,77 @@ Trang trả lời đúng ba câu hỏi hay phải hỏi nhau trong team:
 - **Hai kiểu xem**: bảng bốn cột, hoặc bảng danh sách sửa được ngay tại ô
   (trạng thái, ưu tiên, bước tiếp theo).
 - **Báo cáo**: nút **📋 Báo cáo** dựng sẵn bản tóm tắt *Đã xong / Đang làm / Đang vướng /
-  Chưa làm / Kế hoạch tiếp theo* theo đúng bộ lọc đang xem, chép một phát dán thẳng
-  vào Zalo hay email.
+  Chưa làm / Kế hoạch tiếp theo / Đánh giá thành viên* theo đúng bộ lọc đang xem, chép
+  một phát dán thẳng vào Zalo hay email.
+- **Bốn biểu đồ** ở cuối trang — xem mục *Báo cáo bằng biểu đồ* bên dưới.
+- **Chấm điểm người làm** khi việc xong — xem mục *Đánh giá thành viên* bên dưới.
+- **Nhắc việc qua mail** — xem mục bên dưới.
 - **Kho chung cho cả team** qua Firebase Realtime Database — xem mục dưới.
-- **Gửi bằng đường link**, **Xuất / Nhập JSON**, **In / PDF**.
+- **Gửi bằng đường link**, **Xuất / Nhập JSON**, **In / PDF** (bản in có cả biểu đồ).
 - Tự đổi màu theo giao diện sáng/tối của hệ thống, dùng được trên điện thoại.
+
+## Báo cáo bằng biểu đồ
+
+Cuối trang có bốn khối, đều ăn theo bộ lọc đang xem — lọc riêng một người thì biểu đồ
+cũng chỉ tính người đó:
+
+- **Tiến độ chung** — một thanh xếp chồng cho thấy tỉ lệ bốn trạng thái.
+- **Ai đang gánh việc gì** — mỗi người một thanh, chia theo trạng thái, xếp từ nhiều
+  xuống ít. Quá tám người thì phần đuôi gộp thành *Người khác*.
+- **Đánh giá thành viên** — bảng xếp hạng, xem mục dưới.
+- **Xong theo tuần** — số việc xong trong sáu tuần gần đây.
+
+Rê chuột lên một mảnh hiện số cụ thể. Tên và số luôn hiện thành chữ nên không phải chỉ
+dựa vào màu mới đọc được.
+
+Về màu: bốn trạng thái xếp theo thứ tự **Chưa làm · Vướng · Đang làm · Xong**, và thứ
+tự này không phải cho đẹp. Màu đỏ của *Vướng* đứng cạnh màu lục của *Xong* thì người
+mù màu đọc không ra (ΔE 5.8 — dưới ngưỡng 8), nên *Chưa làm* chen vào giữa để hai màu
+đó không kề nhau. Bộ màu đã chạy qua bộ kiểm và đạt cả sáu phép ở nền sáng lẫn nền tối.
+Đổi màu thì phải kiểm lại, đừng chọn bằng mắt.
+
+## Đánh giá thành viên
+
+Mở một việc **đã xong**, kéo xuống mục **Đánh giá**, chấm 1–5 sao kèm nhận xét ngắn.
+Việc chưa xong không có mục này — chấm việc đang dở thì điểm không nói lên gì.
+
+Điểm cộng cho tất cả những người được gán ở việc đó. Bảng xếp hạng ở cuối trang cho
+biết mỗi người:
+
+| Cột | Nghĩa |
+| --- | --- |
+| Việc xong | Số việc đã xong có tên người đó |
+| Đúng hạn | Tỉ lệ xong trước hoặc trong ngày hạn, chỉ tính việc có đặt hạn (không đặt hạn thì hiện `—`) |
+| Điểm trung bình | Trung bình số sao của những việc đã chấm |
+
+Số sao hiện luôn trên thẻ việc và trong bảng danh sách. Bỏ chấm được bất cứ lúc nào.
+Mọi thay đổi đều ghi vào nhật ký của việc và đồng bộ qua kho chung như các trường khác.
+
+## Nhắc việc qua mail
+
+Bấm **✉️ Nhắc mail**. Có hai đường, dùng cái nào cũng được, hoặc cả hai:
+
+**Cách 1 — soạn thư ngay.** Không cần cài gì, không cần dựng gì. Trang mở sẵn một lá
+thư trong hòm thư của máy, đã điền người nhận, tiêu đề và toàn bộ báo cáo; anh chỉ việc
+bấm Gửi. Báo cáo dài quá một lá thư thì được cắt bớt kèm ghi chú.
+
+**Cách 2 — tự gửi hằng ngày, không cần ai mở trang.** Cần kho chung và một Apps Script:
+
+1. Vào [script.google.com](https://script.google.com), tạo project mới, xoá hết rồi dán
+   toàn bộ [`nhac-qua-mail.gs`](nhac-qua-mail.gs) vào.
+2. Sửa hai dòng `KHO` và `PHONG` ở đầu file cho khớp kho của team.
+3. Chạy hàm `guiNgayBayGio` một lần, Google hỏi quyền thì cho phép, rồi kiểm hộp thư.
+4. Chạy hàm `datLichHangNgay` một lần để nó tự gửi mỗi sáng (đổi giờ ở `GIO_GUI`).
+5. Muốn bấm gửi ngay từ trang thì **Deploy → New deployment → Web app**, *Execute as: Me*,
+   *Who has access: Anyone*, rồi dán URL vào ô trong hộp ✉️ Nhắc mail.
+
+Thư gửi đi có bản HTML kèm thanh tiến độ, chia sẵn các mục *Trễ hạn · Đến hạn hôm nay ·
+Đang vướng · Kế hoạch tiếp theo · Xong trong 7 ngày*. Ngày nào không có gì đáng nhắc thì
+im lặng, không gửi (đổi ở `IM_KHI_KHONG_CO_GI`).
+
+Danh sách người nhận lấy thẳng từ kho chung, nên thêm bớt người thì sửa trong trang là
+xong, không phải mở lại Apps Script. Địa chỉ Apps Script chỉ lưu trên máy đang dùng,
+không nằm trong link **Gửi** cũng không nằm trong file **Xuất JSON**.
 
 ## Dùng chung một cơ sở dữ liệu
 
