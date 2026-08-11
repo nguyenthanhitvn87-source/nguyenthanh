@@ -39,7 +39,7 @@ $DanhSachJob = @(
     @{
         Ten = "job 2"
         Gio = "16:10"
-        Uri = "DAN_URI_CUA_JOB_THU_HAI_VAO_DAY"
+        Uri = "ms-powerautomate:/console/flow/run?environmentid=Default-fe9c4641-3b53-43d0-af72-8f3e64d3aa05&workflowid=71291a09-0d79-f111-ab0e-000d3ac8a055&source=Other"
     }
 )
 
