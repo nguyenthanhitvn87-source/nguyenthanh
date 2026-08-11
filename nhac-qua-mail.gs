@@ -63,7 +63,7 @@ function datLichHangNgay() {
     .everyDays(1)
     .atHour(GIO_GUI)
     .create();
-  return 'Đã đặt lịch gửi lúc ' + GIO_GUI + ' giờ mỗi ngày.';
+  return 'Daily send scheduled for ' + GIO_GUI + ':00.';
 }
 
 /** Bỏ lịch tự gửi. */
@@ -72,7 +72,7 @@ function huyLich() {
   for (var i = 0; i < ds.length; i++) {
     if (ds[i].getHandlerFunction() === 'baoCaoHangNgay') ScriptApp.deleteTrigger(ds[i]);
   }
-  return 'Đã bỏ lịch tự gửi.';
+  return 'Daily send cancelled.';
 }
 
 /* ================== trang web gọi vào ================== */
@@ -122,8 +122,8 @@ function docKho() {
   var url = String(KHO).replace(/\/+$/, '') + '/' + encodeURIComponent(PHONG) + '.json';
   var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) {
-    throw new Error('Kho trả về HTTP ' + res.getResponseCode() +
-                    '. Kiểm tra địa chỉ KHO và phần Rules của Firebase.');
+    throw new Error('Database returned HTTP ' + res.getResponseCode() +
+                    '. Check the KHO address and the Firebase Rules.');
   }
   var data = JSON.parse(res.getContentText() || 'null');
   return data && typeof data === 'object' ? data : {};
@@ -146,7 +146,7 @@ function layViec(kho) {
     var t = tasks[id];
     if (!t || typeof t !== 'object' || t.del) continue;
     ra.push({
-      title: t.title || '(việc chưa đặt tên)',
+      title: t.title || '(untitled task)',
       who: Array.isArray(t.who) ? t.who : [],
       status: t.status || 'todo',
       due: t.due || '',
@@ -175,14 +175,17 @@ function conMayNgay(iso) {
   return Math.round((docNgay(iso) - homNay()) / 86400000);
 }
 
+var THANG = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Viết tên tháng: '11/8' dễ bị người đọc tiếng Anh hiểu thành 8 November
 function ngayVN(iso) {
   var d = docNgay(iso);
-  return d.getDate() + '/' + (d.getMonth() + 1);
+  return d.getDate() + ' ' + THANG[d.getMonth()];
 }
 
 function homNayVN() {
   var d = homNay();
-  return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+  return d.getDate() + ' ' + THANG[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 /* ================== dựng báo cáo ================== */
@@ -225,30 +228,30 @@ function ten(t) {
 
 function chuThuong(bc) {
   var d = [];
-  d.push('BÁO CÁO CÔNG VIỆC — ' + homNayVN());
+  d.push('WORK REPORT — ' + homNayVN());
   d.push('');
 
   if (bc.tre.length) {
-    d.push('⚠️ TRỄ HẠN (' + bc.tre.length + ')');
+    d.push('⚠️ OVERDUE (' + bc.tre.length + ')');
     bc.tre.forEach(function (x) {
-      d.push('- ' + x.t.title + ten(x.t) + ' — trễ ' + (-x.con) + ' ngày');
+      d.push('- ' + x.t.title + ten(x.t) + ' — overdue by ' + (-x.con) + ' days');
     });
     d.push('');
   }
   if (bc.homNay.length) {
-    d.push('⏰ ĐẾN HẠN HÔM NAY (' + bc.homNay.length + ')');
+    d.push('⏰ DUE TODAY (' + bc.homNay.length + ')');
     bc.homNay.forEach(function (t) { d.push('- ' + t.title + ten(t)); });
     d.push('');
   }
   if (bc.nhom.blocked.length) {
-    d.push('⛔ ĐANG VƯỚNG (' + bc.nhom.blocked.length + ')');
+    d.push('⛔ BLOCKED (' + bc.nhom.blocked.length + ')');
     bc.nhom.blocked.forEach(function (t) {
-      d.push('- ' + t.title + ten(t) + (t.next ? '\n  → tiếp theo: ' + t.next : ''));
+      d.push('- ' + t.title + ten(t) + (t.next ? '\n  → next: ' + t.next : ''));
     });
     d.push('');
   }
   if (bc.keTiep.length) {
-    d.push('➡️ KẾ HOẠCH TIẾP THEO');
+    d.push('➡️ NEXT STEPS');
     bc.keTiep.slice(0, 10).forEach(function (t, i) {
       var khi = t.nextDue || t.due;
       d.push((i + 1) + '. ' + t.next + ten(t) + (khi ? ' — ' + ngayVN(khi) : ''));
@@ -256,17 +259,17 @@ function chuThuong(bc) {
     d.push('');
   }
   if (bc.xongTuan.length) {
-    d.push('✅ XONG TRONG 7 NGÀY (' + bc.xongTuan.length + ')');
+    d.push('✅ DONE IN THE LAST 7 DAYS (' + bc.xongTuan.length + ')');
     bc.xongTuan.forEach(function (t) {
-      d.push('- ' + t.title + ten(t) + (t.rate ? ' — ' + t.rate.sao + '/5 sao' : ''));
+      d.push('- ' + t.title + ten(t) + (t.rate ? ' — rated ' + t.rate.sao + '/5' : ''));
     });
     d.push('');
   }
 
-  d.push('Đang làm ' + bc.nhom.doing.length +
-         ' · Chưa làm ' + bc.nhom.todo.length +
-         ' · Vướng ' + bc.nhom.blocked.length +
-         ' · Xong ' + bc.nhom.done.length);
+  d.push('In progress ' + bc.nhom.doing.length +
+         ' · To do ' + bc.nhom.todo.length +
+         ' · Blocked ' + bc.nhom.blocked.length +
+         ' · Done ' + bc.nhom.done.length);
   return d.join('\n');
 }
 
@@ -277,7 +280,7 @@ function thoat(s) {
 function chuHtml(bc) {
   var h = [];
   h.push('<div style="font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1d2433">');
-  h.push('<h2 style="margin:0 0 4px;font-size:18px">Báo cáo công việc</h2>');
+  h.push('<h2 style="margin:0 0 4px;font-size:18px">Work report</h2>');
   h.push('<div style="color:#6b7488;font-size:13px;margin-bottom:16px">' + homNayVN() + '</div>');
 
   // Một thanh tiến độ nho nhỏ, cùng bộ màu với trang web
@@ -299,8 +302,8 @@ function chuHtml(bc) {
     });
     h.push('</tr></table>');
     h.push('<div style="color:#6b7488;font-size:13px;margin-bottom:18px">' +
-           'Chưa làm ' + bc.nhom.todo.length + ' · Vướng ' + bc.nhom.blocked.length +
-           ' · Đang làm ' + bc.nhom.doing.length + ' · Xong ' + bc.nhom.done.length +
+           'To do ' + bc.nhom.todo.length + ' · Blocked ' + bc.nhom.blocked.length +
+           ' · In progress ' + bc.nhom.doing.length + ' · Done ' + bc.nhom.done.length +
            '</div>');
   }
 
@@ -312,31 +315,31 @@ function chuHtml(bc) {
     h.push('</ul>');
   }
 
-  muc('⚠️ Trễ hạn (' + bc.tre.length + ')', '#d63a3a', bc.tre.map(function (x) {
+  muc('⚠️ Overdue (' + bc.tre.length + ')', '#d63a3a', bc.tre.map(function (x) {
     return '<b>' + thoat(x.t.title) + '</b>' + thoat(ten(x.t)) +
-           ' — <span style="color:#d63a3a">trễ ' + (-x.con) + ' ngày</span>';
+           ' — <span style="color:#d63a3a">overdue by ' + (-x.con) + ' days</span>';
   }));
 
-  muc('⏰ Đến hạn hôm nay (' + bc.homNay.length + ')', '#b96908', bc.homNay.map(function (t) {
+  muc('⏰ Due today (' + bc.homNay.length + ')', '#b96908', bc.homNay.map(function (t) {
     return '<b>' + thoat(t.title) + '</b>' + thoat(ten(t));
   }));
 
-  muc('⛔ Đang vướng (' + bc.nhom.blocked.length + ')', '#d63a3a',
+  muc('⛔ Blocked (' + bc.nhom.blocked.length + ')', '#d63a3a',
     bc.nhom.blocked.map(function (t) {
       return '<b>' + thoat(t.title) + '</b>' + thoat(ten(t)) +
              (t.next ? '<br><span style="color:#6b7488">→ ' + thoat(t.next) + '</span>' : '');
     }));
 
-  muc('➡️ Kế hoạch tiếp theo', '#2f6df6', bc.keTiep.slice(0, 10).map(function (t) {
+  muc('➡️ Next steps', '#2f6df6', bc.keTiep.slice(0, 10).map(function (t) {
     var khi = t.nextDue || t.due;
     return thoat(t.next) + thoat(ten(t)) +
            (khi ? ' <span style="color:#6b7488">— ' + ngayVN(khi) + '</span>' : '');
   }));
 
-  muc('✅ Xong trong 7 ngày (' + bc.xongTuan.length + ')', '#16955f',
+  muc('✅ Done in the last 7 days (' + bc.xongTuan.length + ')', '#16955f',
     bc.xongTuan.map(function (t) {
       return thoat(t.title) + thoat(ten(t)) +
-             (t.rate ? ' <span style="color:#b96908">' + t.rate.sao + '/5 sao</span>' : '');
+             (t.rate ? ' <span style="color:#b96908">' + t.rate.sao + '/5</span>' : '');
     }));
 
   h.push('</div>');
@@ -349,28 +352,28 @@ function guiBaoCao(imKhiRong) {
   var kho = docKho();
   var nhan = layNguoiNhan(kho);
   if (!nhan.length) {
-    return 'Chưa có người nhận nào. Điền địa chỉ mail ở nút ✉️ Nhắc qua mail trong trang, ' +
-           'hoặc điền vào NGUOI_NHAN trong file này.';
+    return 'No recipients yet. Add addresses under the ✉️ Email button in the app, ' +
+           'or fill in NGUOI_NHAN in this file.';
   }
 
   var viec = layViec(kho);
   var bc = dungBaoCao(viec);
 
   if (imKhiRong && !bc.dangCan && !bc.xongTuan.length) {
-    return 'Hôm nay không có gì đáng nhắc, không gửi.';
+    return 'Nothing worth reporting today, so no email was sent.';
   }
 
-  var tieuDe = 'Việc của team — ' + homNayVN();
-  if (bc.tre.length) tieuDe += ' · ' + bc.tre.length + ' việc trễ hạn';
-  else if (bc.homNay.length) tieuDe += ' · ' + bc.homNay.length + ' việc đến hạn hôm nay';
+  var tieuDe = 'Team tasks — ' + homNayVN();
+  if (bc.tre.length) tieuDe += ' · ' + bc.tre.length + ' overdue';
+  else if (bc.homNay.length) tieuDe += ' · ' + bc.homNay.length + ' due today';
 
   MailApp.sendEmail({
     to: nhan.join(','),
     subject: tieuDe,
     body: chuThuong(bc),
     htmlBody: chuHtml(bc),
-    name: 'Việc của team'
+    name: 'Team Task Tracker'
   });
 
-  return 'Đã gửi cho ' + nhan.length + ' người: ' + nhan.join(', ');
+  return 'Sent to ' + nhan.length + ' recipients: ' + nhan.join(', ');
 }

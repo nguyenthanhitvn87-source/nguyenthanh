@@ -210,18 +210,26 @@ thông báo khi trang đã được **Thêm vào màn hình chính**.
 
 ---
 
-# 🗂 Việc của team — làm gì, xong chưa, tiếp theo làm gì
+# 🗂 Team Task Tracker — làm gì, xong chưa, tiếp theo làm gì
 
 Mở `cong-viec.html` bằng trình duyệt. Cũng là **một file HTML duy nhất**, không cần build,
 không phụ thuộc thư viện nào.
+
+**Giao diện tiếng Anh** cho hợp môi trường công ty; hướng dẫn dưới đây vẫn tiếng Việt.
+Tên ở đầu trang bấm vào sửa được ngay, đổi thành tên phòng ban của mình cũng được, và tên
+đó đi theo kho chung nên cả team thấy như nhau. Ngày viết dạng `11 Aug` chứ không phải
+`11/8` — kiểu số dễ bị người đọc tiếng Anh hiểu thành 8 November.
 
 Trang trả lời đúng ba câu hỏi hay phải hỏi nhau trong team:
 
 | Câu hỏi | Chỗ trả lời |
 | --- | --- |
-| Đang làm gì? | Bốn cột **Chưa làm · Đang làm · Vướng · Xong** |
-| Xong chưa? | Ô đếm ở đầu trang, và nhãn hạn tự đổi màu khi tới hạn hay trễ |
-| Tiếp theo làm gì? | Khung **Kế hoạch tiếp theo**, gom mọi bước kế tiếp và xếp theo hạn |
+| Đang làm gì? | Bốn cột **To do · In progress · Blocked · Done** |
+| Xong chưa? | Hàng đếm ở đầu trang, và nhãn hạn tự đổi màu khi tới hạn hay trễ |
+| Tiếp theo làm gì? | Cột **Next steps** bên phải, gom mọi bước kế tiếp và xếp theo hạn |
+
+Màn hình rộng thì bảng việc nằm bên trái, **Next steps** bám bên phải nên cuộn tới đâu vẫn
+nhìn thấy. Màn hình hẹp thì xếp dọc, bảng việc lên trước.
 
 ## Tính năng
 

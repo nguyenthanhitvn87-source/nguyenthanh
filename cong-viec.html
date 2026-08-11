@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Việc của team — làm gì, xong chưa, tiếp theo làm gì</title>
+<title>Team Task Tracker</title>
 <style>
   :root{
     --bg:#f4f6fb;
@@ -107,6 +107,14 @@
   }
   h1{font-size:20px;margin:0;letter-spacing:-.01em}
   h1 span{color:var(--muted);font-weight:400;font-size:14px;display:block;margin-top:2px}
+  /* Tên bảng sửa được tại chỗ: trông như chữ thường cho tới khi bấm vào */
+  #tenTrang{
+    font:inherit;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--ink);
+    background:transparent;border:1px solid transparent;border-radius:8px;
+    padding:2px 6px;margin:-2px -6px;width:min(420px,72vw);box-shadow:none;
+  }
+  #tenTrang:hover{border-color:var(--line);background:var(--panel)}
+  #tenTrang:focus{border-color:var(--accent);background:var(--panel);outline:none}
   h2{font-size:15px;margin:0}
 
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -136,30 +144,41 @@
   .card > h2{padding:12px 14px;border-bottom:1px solid var(--line)}
 
   /* ---------- tổng quan ---------- */
-  .tongquan{
-    display:grid;gap:10px;margin-bottom:14px;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  }
+  .tongquan{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center}
   .o{
-    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:12px 14px;cursor:pointer;text-align:left;
+    display:inline-flex;align-items:baseline;gap:6px;
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    box-shadow:none;padding:5px 12px;cursor:pointer;text-align:left;font-size:13px;
   }
   .o:hover{border-color:var(--accent)}
-  .o .so{font-size:26px;font-weight:650;line-height:1.1;letter-spacing:-.02em}
-  .o .ten{font-size:13px;color:var(--muted);margin-top:2px}
+  .o .so{font-size:15px;font-weight:650;letter-spacing:-.01em}
+  .o .ten{font-size:13px;color:var(--muted)}
   .o[data-mau="xanh"] .so{color:var(--xanh)}
   .o[data-mau="cam"] .so{color:var(--cam)}
   .o[data-mau="do"] .so{color:var(--do)}
   .o[data-mau="accent"] .so{color:var(--accent)}
   .o[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  .o[aria-pressed="true"] .ten{color:var(--accent)}
+  /* Mục đang bằng 0 thì mờ đi, đỡ rối mắt — vẫn bấm được */
+  .o[data-khong="1"]{opacity:.5}
+
+  /* ---------- lưới hai cột ---------- */
+  .lam-viec{display:grid;gap:14px;align-items:start}
+  .cot-chinh{min-width:0}
+  @media (min-width:1080px){
+    .lam-viec{grid-template-columns:minmax(0,1fr) 320px}
+    /* Kế hoạch tiếp theo bám theo khi cuộn, luôn nhìn thấy */
+    .cot-ben{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+  }
 
   /* ---------- kế tiếp ---------- */
-  .ketiep{margin-bottom:14px}
+  .ketiep{margin-bottom:0}
   .ketiep ol{list-style:none;margin:0;padding:0}
   .ketiep li{
-    display:flex;gap:10px;align-items:flex-start;
-    padding:10px 14px;border-bottom:1px solid var(--line);
+    display:flex;gap:8px;align-items:flex-start;
+    padding:9px 12px;border-bottom:1px solid var(--line);
   }
+  .ketiep .buoc{font-size:14px}
   .ketiep li:last-child{border-bottom:0}
   .ketiep .stt{
     flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);
@@ -410,107 +429,115 @@
 <div class="wrap">
 
   <header class="top">
-    <h1>Việc của team
-      <span>Làm gì · Xong chưa · Tiếp theo làm gì</span>
+    <h1>
+      <input id="tenTrang" type="text" maxlength="60" spellcheck="false"
+             aria-label="Board name — click to edit" title="Click to rename">
+      <span>Team work tracking</span>
     </h1>
     <div class="toolbar">
-      <button id="btnKho" type="button">🗄 Kho chung</button>
-      <button id="btnNguoi" type="button">👥 Thành viên</button>
-      <button id="btnBaoCao" type="button">📋 Báo cáo</button>
-      <button id="btnMail" type="button">✉️ Nhắc mail</button>
-      <button id="btnGui" type="button">📤 Gửi</button>
-      <button id="btnNhan" type="button">📥 Nhận</button>
+      <button id="btnKho" type="button">🗄 Shared database</button>
+      <button id="btnNguoi" type="button">👥 People</button>
+      <button id="btnBaoCao" type="button">📋 Report</button>
+      <button id="btnMail" type="button">✉️ Email</button>
+      <button id="btnGui" type="button">📤 Send</button>
+      <button id="btnNhan" type="button">📥 Receive</button>
       <button id="btnXuat" type="button">⬇︎ JSON</button>
       <button id="btnNhap" type="button">⬆︎ JSON</button>
-      <button id="btnIn" type="button">🖨 In</button>
+      <button id="btnIn" type="button">🖨 Print</button>
     </div>
   </header>
 
   <div id="bangXemThu" class="bang-xem-thu" hidden>
-    <span id="xemThuChu">Đây là bảng việc người khác gửi. Bạn đang xem thử.</span>
-    <button id="xemThuLuu" type="button" class="primary">Lưu vào máy này</button>
-    <button id="xemThuBo" type="button">Bỏ, giữ bảng cũ</button>
+    <span id="xemThuChu">This board was sent to you by someone else. You are previewing it.</span>
+    <button id="xemThuLuu" type="button" class="primary">Save to this device</button>
+    <button id="xemThuBo" type="button">Discard, keep my board</button>
   </div>
 
   <div id="bangMau" class="bang-xem-thu" hidden>
-    <span>Đang hiển thị vài việc mẫu cho dễ hình dung.</span>
-    <button id="xoaMau" type="button">Xoá hết việc mẫu</button>
+    <span>Showing a few sample tasks so the board is not empty.</span>
+    <button id="xoaMau" type="button">Remove all samples</button>
   </div>
 
   <section class="tongquan" id="tongquan"></section>
 
-  <section class="card ketiep" id="ketiep">
-    <h2>➡️ Kế hoạch tiếp theo</h2>
-    <ol id="ketiepDS"></ol>
-  </section>
-
   <div class="themviec">
-    <input id="viecMoi" type="text" placeholder="Thêm việc mới rồi nhấn Enter…" autocomplete="off">
-    <button id="btnThem" type="button" class="primary">+ Thêm việc</button>
+    <input id="viecMoi" type="text" placeholder="Add a task, then press Enter…" autocomplete="off">
+    <button id="btnThem" type="button" class="primary">+ Add task</button>
   </div>
 
   <div class="loc">
-    <input id="oTim" class="tim" type="search" placeholder="Tìm trong tên việc, mô tả, bước tiếp theo…" autocomplete="off">
+    <input id="oTim" class="tim" type="search" placeholder="Search titles, descriptions, next steps…" autocomplete="off">
     <div class="nguoiloc" id="nguoiLoc"></div>
-    <select id="oSap" title="Sắp xếp">
-      <option value="han">Xếp theo hạn</option>
-      <option value="uutien">Xếp theo ưu tiên</option>
-      <option value="moi">Mới thêm trước</option>
-      <option value="capnhat">Vừa cập nhật</option>
+    <select id="oSap" title="Sort">
+      <option value="han">Sort by due date</option>
+      <option value="uutien">Sort by priority</option>
+      <option value="moi">Newest first</option>
+      <option value="capnhat">Recently updated</option>
     </select>
-    <button id="btnKieu" type="button">📋 Xem dạng bảng</button>
-    <span class="dot-saved" id="daLuu"><i></i>Đã lưu</span>
-    <span class="kho-trang-thai" id="khoTrangThai" data-muc="off" title="Bấm để mở cài đặt kho chung">
-      <i></i><span id="khoChu">Chỉ máy này</span>
+    <button id="btnKieu" type="button">📋 Table view</button>
+    <span class="dot-saved" id="daLuu"><i></i>Saved</span>
+    <span class="kho-trang-thai" id="khoTrangThai" data-muc="off" title="Click to open shared database settings">
+      <i></i><span id="khoChu">This device only</span>
     </span>
   </div>
 
-  <section id="board" class="board"></section>
+  <div class="lam-viec">
+    <div class="cot-chinh">
+      <section id="board" class="board"></section>
 
-  <section id="bangViec" class="card an">
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Việc</th>
-            <th>Người làm</th>
-            <th>Trạng thái</th>
-            <th>Ưu tiên</th>
-            <th>Hạn</th>
-            <th>Bước tiếp theo</th>
-            <th>Cập nhật</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="bangThan"></tbody>
-      </table>
+      <section id="bangViec" class="card an">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Assignee</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Due</th>
+                <th>Next step</th>
+                <th>Updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="bangThan"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
-  </section>
+
+    <aside class="cot-ben">
+      <section class="card ketiep" id="ketiep">
+        <h2>➡️ Next steps</h2>
+        <ol id="ketiepDS"></ol>
+      </section>
+    </aside>
+  </div>
 
   <section class="card bieudo" id="bieudo">
-    <h2>📊 Báo cáo bằng biểu đồ</h2>
+    <h2>📊 Charts</h2>
 
     <div class="khoi">
-      <h3>Tiến độ chung</h3>
+      <h3>Overall progress</h3>
       <p class="phu" id="bdChungPhu"></p>
       <div id="bdChung"></div>
     </div>
 
     <div class="khoi">
-      <h3>Ai đang gánh việc gì</h3>
-      <p class="phu">Mỗi người bao nhiêu việc, chia theo trạng thái. Một việc hai người thì mỗi người tính một.</p>
+      <h3>Who is carrying what</h3>
+      <p class="phu">Tasks per person, split by status. A task with two assignees counts once for each.</p>
       <div id="bdNguoi"></div>
     </div>
 
     <div class="khoi">
-      <h3>⭐ Đánh giá thành viên</h3>
-      <p class="phu">Chỉ tính việc đã xong. Chấm sao ở trong từng việc — mở việc ra, kéo xuống mục Đánh giá.</p>
+      <h3>⭐ Team ratings</h3>
+      <p class="phu">Finished tasks only. Rate a task by opening it and scrolling to Rating.</p>
       <div id="bdXepHang"></div>
     </div>
 
     <div class="khoi">
-      <h3>Xong theo tuần</h3>
-      <p class="phu">Số việc đánh dấu xong trong sáu tuần gần đây.</p>
+      <h3>Completed per week</h3>
+      <p class="phu">Tasks marked done over the last six weeks.</p>
       <div id="bdTuan"></div>
     </div>
   </section>
@@ -519,79 +546,79 @@
 
   <footer>
     <span id="chanNguon"></span>
-    <span id="khoiPhuc" hidden> · <a href="#" id="khoiPhucLink">Khôi phục bản trước đó</a></span>
+    <span id="khoiPhuc" hidden> · <a href="#" id="khoiPhucLink">Restore the previous version</a></span>
   </footer>
 </div>
 
 <!-- ============ hộp chi tiết việc ============ -->
 <div class="man" id="manViec" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Chi tiết việc">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Task details">
     <div class="dau">
-      <h2>Chi tiết việc</h2>
+      <h2>Task details</h2>
       <button id="viecDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <div>
-        <label class="nhan" for="fTieuDe">Việc gì</label>
-        <input id="fTieuDe" type="text" placeholder="Tên việc">
+        <label class="nhan" for="fTieuDe">Task</label>
+        <input id="fTieuDe" type="text" placeholder="What needs doing">
       </div>
       <div>
-        <label class="nhan" for="fMoTa">Mô tả</label>
-        <textarea id="fMoTa" rows="2" placeholder="Làm cái gì, để làm gì…"></textarea>
+        <label class="nhan" for="fMoTa">Description</label>
+        <textarea id="fMoTa" rows="2" placeholder="What it involves, and why…"></textarea>
       </div>
       <div class="doi">
         <div>
-          <label class="nhan" for="fTrangThai">Xong chưa</label>
+          <label class="nhan" for="fTrangThai">Status</label>
           <select id="fTrangThai"></select>
         </div>
         <div>
-          <label class="nhan" for="fUuTien">Ưu tiên</label>
+          <label class="nhan" for="fUuTien">Priority</label>
           <select id="fUuTien">
-            <option value="cao">Cao</option>
-            <option value="thuong">Thường</option>
-            <option value="thap">Thấp</option>
+            <option value="cao">High</option>
+            <option value="thuong">Normal</option>
+            <option value="thap">Low</option>
           </select>
         </div>
       </div>
       <div>
-        <label class="nhan">Ai làm</label>
+        <label class="nhan">Assignees</label>
         <div class="nguoiloc" id="fNguoi"></div>
       </div>
       <div class="doi">
         <div>
-          <label class="nhan" for="fHan">Hạn xong</label>
+          <label class="nhan" for="fHan">Due date</label>
           <input id="fHan" type="date">
         </div>
         <div>
-          <label class="nhan" for="fBuocHan">Hạn cho bước tiếp theo</label>
+          <label class="nhan" for="fBuocHan">Due date for the next step</label>
           <input id="fBuocHan" type="date">
         </div>
       </div>
       <div>
-        <label class="nhan" for="fBuoc">Bước tiếp theo — làm gì kế tiếp</label>
-        <input id="fBuoc" type="text" placeholder="Ví dụ: gửi bản nháp cho anh Nam duyệt">
+        <label class="nhan" for="fBuoc">Next step — what happens next</label>
+        <input id="fBuoc" type="text" placeholder="For example: send the draft to Nam for review">
       </div>
       <div id="fKhungDiem" hidden>
-        <label class="nhan">Đánh giá việc này — tính điểm cho người làm</label>
+        <label class="nhan">Rate this task — the score counts for whoever did it</label>
         <div class="cham-sao" id="fSao"></div>
-        <input id="fSaoY" type="text" placeholder="Nhận xét ngắn: làm nhanh, cần bám hạn hơn…" style="margin-top:8px">
+        <input id="fSaoY" type="text" placeholder="Short note: quick turnaround, needs to watch deadlines…" style="margin-top:8px">
         <p class="phu-nho" id="fSaoAi"></p>
       </div>
 
       <div>
-        <label class="nhan">Nhật ký cập nhật</label>
+        <label class="nhan">Update log</label>
         <div class="nhatky" id="fNhatKy"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <input id="fGhiMoi" type="text" placeholder="Hôm nay làm được gì…">
-          <button id="fGhiThem" type="button">Ghi</button>
+          <input id="fGhiMoi" type="text" placeholder="What moved today…">
+          <button id="fGhiThem" type="button">Log it</button>
         </div>
       </div>
     </div>
     <div class="chan">
-      <button id="viecXoa" type="button" class="danger">Xoá việc</button>
+      <button id="viecXoa" type="button" class="danger">Delete task</button>
       <div class="phai">
-        <button id="viecXong" type="button">✓ Đánh dấu xong</button>
-        <button id="viecLuu" type="button" class="primary">Xong, đóng lại</button>
+        <button id="viecXong" type="button">✓ Mark done</button>
+        <button id="viecLuu" type="button" class="primary">Done, close</button>
       </div>
     </div>
   </div>
@@ -599,20 +626,20 @@
 
 <!-- ============ hộp thành viên ============ -->
 <div class="man" id="manNguoi" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Thành viên">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="People">
     <div class="dau">
-      <h2>Thành viên trong team</h2>
+      <h2>People on the team</h2>
       <button id="nguoiDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <p style="margin:0;color:var(--muted);font-size:14px">
-        Mỗi dòng một tên. Người đã bị xoá khỏi đây mà còn được gán ở việc nào thì vẫn giữ nguyên, không mất dữ liệu.
+        One name per line. Someone removed here but still assigned to a task stays on that task — nothing is lost.
       </p>
-      <textarea id="nguoiDS" rows="8" placeholder="Nguyễn Thanh&#10;Anh Nam&#10;Chị Hà"></textarea>
+      <textarea id="nguoiDS" rows="8" placeholder="Alex Nguyen&#10;Sam Tran&#10;Chris Le"></textarea>
     </div>
     <div class="chan">
       <div class="phai">
-        <button id="nguoiLuu" type="button" class="primary">Lưu danh sách</button>
+        <button id="nguoiLuu" type="button" class="primary">Save list</button>
       </div>
     </div>
   </div>
@@ -620,58 +647,58 @@
 
 <!-- ============ hộp kho chung ============ -->
 <div class="man" id="manKho" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Kho chung">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Shared database">
     <div class="dau">
-      <h2>Kho chung — cả team một cơ sở dữ liệu</h2>
+      <h2>Shared database — one board for the whole team</h2>
       <button id="khoDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <div id="khoDangDung" class="bao" data-kind="good" hidden></div>
 
       <p style="margin:0;color:var(--muted);font-size:14px">
-        Nối máy này vào một <b>Firebase Realtime Database</b>. Ai sửa gì thì khoảng 8 giây sau
-        máy khác thấy, kể cả việc người trước đã nhập. Trang đọc ghi thẳng vào kho qua REST nên
-        không cần dựng máy chủ nào.
+        Connect this device to a <b>Firebase Realtime Database</b>. Any edit shows up on the other
+        devices within about 8 seconds, including everything entered before you joined. The page reads
+        and writes straight to the database over REST, so there is no server to run.
       </p>
 
       <div>
-        <label class="nhan" for="khoO">Địa chỉ kho, hoặc mã kho người khác gửi</label>
+        <label class="nhan" for="khoO">Database address, or a share code someone sent you</label>
         <input id="khoO" type="text" spellcheck="false"
-               placeholder="https://ten-cua-ban-default-rtdb.asia-southeast1.firebasedatabase.app">
+               placeholder="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app">
       </div>
 
       <div>
-        <label class="nhan" for="khoPhong">Tên bảng trong kho</label>
+        <label class="nhan" for="khoPhong">Table name inside the database</label>
         <input id="khoPhong" type="text" spellcheck="false" placeholder="viec-team">
       </div>
 
       <div id="khoBao" class="bao" data-kind="bad" hidden></div>
 
       <div id="khoMaBox" hidden>
-        <label class="nhan" for="khoMa">Mã kho — gửi cho người trong team</label>
+        <label class="nhan" for="khoMa">Share code — send this to your teammates</label>
         <input id="khoMa" type="text" readonly spellcheck="false">
         <p style="margin:6px 0 0;color:var(--muted);font-size:13px">
-          Họ mở trang này, bấm 🗄 Kho chung, dán mã vào là xong — không cần biết địa chỉ đầy đủ.
+          They open this page, click 🗄 Shared database, paste the code, and they are in — no need for the full address.
         </p>
       </div>
 
       <details>
-        <summary style="cursor:pointer;color:var(--muted);font-size:14px">Chưa có kho? Tạo trong 4 phút</summary>
+        <summary style="cursor:pointer;color:var(--muted);font-size:14px">No database yet? Set one up in 4 minutes</summary>
         <ol class="buoc-so" style="margin-top:10px">
-          <li>Vào <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>, tạo một project (bấm qua, không cần bật Analytics).</li>
-          <li>Menu bên trái chọn <b>Build → Realtime Database</b> → <b>Create Database</b>, chọn vùng gần (Singapore), chọn <b>Start in test mode</b>.</li>
-          <li>Chép địa chỉ hiện ở đầu bảng, dạng <code>https://…-default-rtdb.asia-southeast1.firebasedatabase.app</code>, dán vào ô trên rồi bấm <b>Kiểm tra và nối</b>.</li>
-          <li>Test mode tự khoá sau 30 ngày. Vào thẻ <b>Rules</b>, sửa hai dòng <code>.read</code> và <code>.write</code> thành <code>true</code> rồi Publish là dùng lâu dài.</li>
+          <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> and create a project (click through; Analytics is not needed).</li>
+          <li>In the left menu pick <b>Build → Realtime Database</b> → <b>Create Database</b>, choose a nearby region, and select <b>Start in test mode</b>.</li>
+          <li>Copy the address shown at the top, in the form <code>https://…-default-rtdb.asia-southeast1.firebasedatabase.app</code>, paste it above and click <b>Test and connect</b>.</li>
+          <li>Test mode locks itself after 30 days. Open the <b>Rules</b> tab, set <code>.read</code> and <code>.write</code> to <code>true</code>, and publish — then it keeps working.</li>
         </ol>
         <p style="margin:10px 0 0;color:var(--muted);font-size:13px">
-          Ai có địa chỉ kho đều đọc và sửa được, không cần đăng nhập — chỉ gửi cho người trong team.
+          Anyone with the address can read and edit without signing in — only share it inside your team.
         </p>
       </details>
     </div>
     <div class="chan">
-      <button id="khoNgung" type="button" class="danger" hidden>Ngưng dùng chung</button>
+      <button id="khoNgung" type="button" class="danger" hidden>Stop sharing</button>
       <div class="phai">
-        <button id="khoNoi" type="button" class="primary">Kiểm tra và nối</button>
+        <button id="khoNoi" type="button" class="primary">Test and connect</button>
       </div>
     </div>
   </div>
@@ -679,21 +706,21 @@
 
 <!-- ============ hộp báo cáo ============ -->
 <div class="man" id="manBaoCao" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Báo cáo">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Report">
     <div class="dau">
-      <h2>Báo cáo gửi team</h2>
+      <h2>Report for the team</h2>
       <button id="baoCaoDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <p style="margin:0;color:var(--muted);font-size:14px">
-        Bản tóm tắt theo bộ lọc đang xem. Chép rồi dán thẳng vào Zalo, Slack hay email.
+        A summary of whatever the current filter shows. Copy it straight into chat or email.
       </p>
       <textarea id="baoCaoChu" rows="16" spellcheck="false"></textarea>
       <div id="baoCaoBao" class="bao" data-kind="good" hidden></div>
     </div>
     <div class="chan">
       <div class="phai">
-        <button id="baoCaoChep" type="button" class="primary">Sao chép</button>
+        <button id="baoCaoChep" type="button" class="primary">Copy</button>
       </div>
     </div>
   </div>
@@ -701,41 +728,41 @@
 
 <!-- ============ hộp nhắc qua mail ============ -->
 <div class="man" id="manMail" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Nhắc qua mail">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Email reminders">
     <div class="dau">
-      <h2>Nhắc việc qua mail</h2>
+      <h2>Email reminders</h2>
       <button id="mailDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <div>
-        <label class="nhan" for="mailAi">Người nhận — mỗi dòng một địa chỉ</label>
+        <label class="nhan" for="mailAi">Recipients — one address per line</label>
         <textarea id="mailAi" rows="3" spellcheck="false"
-                  placeholder="anh.nam@congty.vn&#10;chi.ha@congty.vn"></textarea>
-        <p class="phu-nho">Danh sách này đi theo kho chung, nên cả team sửa ở đâu cũng thấy như nhau.</p>
+                  placeholder="sam@company.com&#10;chris@company.com"></textarea>
+        <p class="phu-nho">This list travels with the shared database, so the whole team sees the same one.</p>
       </div>
 
       <div>
-        <label class="nhan">Cách 1 — gửi ngay bằng hòm thư của máy</label>
+        <label class="nhan">Option 1 — send from this device's mail app</label>
         <p style="margin:0 0 8px;color:var(--muted);font-size:14px">
-          Mở sẵn một thư đã điền tiêu đề và nội dung báo cáo, anh chỉ việc bấm Gửi.
-          Không phải cài gì, không phải dựng gì.
+          Opens a draft with the subject and the full report already filled in — you just hit Send.
+          Nothing to install, nothing to set up.
         </p>
-        <button id="mailMo" type="button" class="primary">✉️ Soạn thư ngay</button>
+        <button id="mailMo" type="button" class="primary">✉️ Open a draft</button>
       </div>
 
       <div>
-        <label class="nhan" for="mailUrl">Cách 2 — tự gửi hằng ngày, không cần ai mở trang</label>
+        <label class="nhan" for="mailUrl">Option 2 — send daily on its own, with nobody opening the page</label>
         <p style="margin:0 0 8px;color:var(--muted);font-size:14px">
-          Cần kho chung và một Apps Script. Dán file <code>nhac-qua-mail.gs</code> vào
+          Needs the shared database and an Apps Script. Paste <code>nhac-qua-mail.gs</code> into
           <a href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a>,
-          sửa hai dòng KHO và PHONG, chạy <code>datLichHangNgay</code> một lần. Muốn bấm gửi
-          từ đây thì Deploy thành Web app rồi dán URL vào ô dưới.
+          edit the KHO and PHONG lines, and run <code>datLichHangNgay</code> once. To trigger a send
+          from here, deploy it as a Web app and paste the URL below.
         </p>
         <input id="mailUrl" type="text" spellcheck="false"
                placeholder="https://script.google.com/macros/s/…/exec">
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-          <button id="mailNoi" type="button">Kiểm tra kết nối</button>
-          <button id="mailGui" type="button">Gửi ngay một bản</button>
+          <button id="mailNoi" type="button">Test connection</button>
+          <button id="mailGui" type="button">Send one now</button>
         </div>
       </div>
 
@@ -743,7 +770,7 @@
     </div>
     <div class="chan">
       <div class="phai">
-        <button id="mailLuu" type="button" class="primary">Lưu</button>
+        <button id="mailLuu" type="button" class="primary">Save</button>
       </div>
     </div>
   </div>
@@ -751,23 +778,23 @@
 
 <!-- ============ hộp gửi link ============ -->
 <div class="man" id="manGui" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Gửi bảng việc">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Send the board">
     <div class="dau">
-      <h2>Gửi bảng việc</h2>
+      <h2>Send the board</h2>
       <button id="guiDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
       <p style="margin:0;color:var(--muted);font-size:14px">
-        Cả bảng việc được gói vào một đường link. Người nhận bấm vào là thấy — không cài gì,
-        không đăng nhập. Phần dữ liệu nằm sau dấu <code>#</code> nên không đi lên máy chủ nào.
+        The whole board is packed into one link. Whoever opens it sees the board — nothing to install,
+        no sign-in. The data sits after the <code>#</code>, so it never reaches any server.
       </p>
       <textarea id="guiLink" rows="4" spellcheck="false" readonly></textarea>
       <div id="guiBao" class="bao" data-kind="bad" hidden></div>
     </div>
     <div class="chan">
       <div class="phai">
-        <button id="guiChiaSe" type="button" hidden>Chia sẻ…</button>
-        <button id="guiChep" type="button" class="primary">Sao chép link</button>
+        <button id="guiChiaSe" type="button" hidden>Share…</button>
+        <button id="guiChep" type="button" class="primary">Copy link</button>
       </div>
     </div>
   </div>
@@ -775,19 +802,19 @@
 
 <!-- ============ hộp nhận link ============ -->
 <div class="man" id="manNhan" hidden>
-  <div class="hop" role="dialog" aria-modal="true" aria-label="Nhận bảng việc">
+  <div class="hop" role="dialog" aria-modal="true" aria-label="Receive a board">
     <div class="dau">
-      <h2>Nhận bảng việc</h2>
+      <h2>Receive a board</h2>
       <button id="nhanDong" type="button" class="ghost">✕</button>
     </div>
     <div class="than">
-      <p style="margin:0;color:var(--muted);font-size:14px">Dán link người khác gửi vào đây.</p>
-      <textarea id="nhanLink" rows="4" spellcheck="false" placeholder="Dán link vào đây…"></textarea>
+      <p style="margin:0;color:var(--muted);font-size:14px">Paste the link someone sent you.</p>
+      <textarea id="nhanLink" rows="4" spellcheck="false" placeholder="Paste the link here…"></textarea>
       <div id="nhanBao" class="bao" data-kind="bad" hidden></div>
     </div>
     <div class="chan">
       <div class="phai">
-        <button id="nhanMo" type="button" class="primary">Mở bảng việc này</button>
+        <button id="nhanMo" type="button" class="primary">Open this board</button>
       </div>
     </div>
   </div>
@@ -811,19 +838,22 @@
   var PHONG_MAC_DINH = "viec-team";
 
   var TRANG_THAI = [
-    { id:"todo",    ten:"Chưa làm" },
-    { id:"doing",   ten:"Đang làm" },
-    { id:"blocked", ten:"Vướng" },
-    { id:"done",    ten:"Xong" }
+    { id:"todo",    ten:"To do" },
+    { id:"doing",   ten:"In progress" },
+    { id:"blocked", ten:"Blocked" },
+    { id:"done",    ten:"Done" }
   ];
 
-  var UU_TIEN = { cao:"Cao", thuong:"Thường", thap:"Thấp" };
+  var UU_TIEN = { cao:"High", thuong:"Normal", thap:"Low" };
 
   // Màu người: lấy theo thứ tự trong danh sách nên các sắc cách xa nhau,
   // ai không có trong danh sách thì suy màu từ chính cái tên.
   var HUES = [212, 150, 28, 322, 252, 96, 4, 186, 45, 270];
 
-  var DEFAULT_PEOPLE = ["Tôi"];
+  var DEFAULT_PEOPLE = ["Me"];
+
+  // Tên hiện ở đầu trang. Sửa được ngay trên trang nên đây chỉ là tên khởi đầu.
+  var TEN_MAC_DINH = "Team Task Tracker";
 
   /* ---------- ngày tháng ---------- */
 
@@ -849,14 +879,17 @@
     return x;
   }
 
+  var THANG = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  // "11 Aug" chứ không phải "11/8": kiểu số dễ bị đọc nhầm thành 8 November
   function fmtNgan(iso){
     if (!iso) return "";
     var d = parseIso(iso);
-    return d.getDate() + "/" + (d.getMonth() + 1);
+    return d.getDate() + " " + THANG[d.getMonth()];
   }
 
   function fmtVN(d){
-    return d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+    return d.getDate() + " " + THANG[d.getMonth()] + " " + d.getFullYear();
   }
 
   // Số ngày từ hôm nay tới hạn: âm là đã trễ
@@ -879,25 +912,25 @@
     var t = today();
     return [
       {
-        id: uid(), title: "Chốt yêu cầu với khách", desc: "Gom hết yêu cầu rồi viết lại thành một trang.",
+        id: uid(), title: "Finalize requirements with the client", desc: "Collect every requirement and write it up on one page.",
         who: [], status: "doing", priority: "cao",
-        due: isoOf(addDays(t, 2)), next: "Gửi bản tóm tắt cho khách duyệt", nextDue: isoOf(addDays(t, 1)),
+        due: isoOf(addDays(t, 2)), next: "Send the summary to the client for sign-off", nextDue: isoOf(addDays(t, 1)),
         log: [], created: Date.now(), updated: Date.now(), doneAt: 0, demo: true
       },
       {
-        id: uid(), title: "Dựng bản chạy thử", desc: "",
+        id: uid(), title: "Build a working prototype", desc: "",
         who: [], status: "todo", priority: "thuong",
-        due: isoOf(addDays(t, 7)), next: "Chờ chốt yêu cầu xong mới bắt đầu", nextDue: "",
+        due: isoOf(addDays(t, 7)), next: "Waiting on requirements before this can start", nextDue: "",
         log: [], created: Date.now(), updated: Date.now(), doneAt: 0, demo: true
       },
       {
-        id: uid(), title: "Xin quyền truy cập máy chủ", desc: "Đang chờ bên IT cấp tài khoản.",
+        id: uid(), title: "Request server access", desc: "Waiting for IT to issue the account.",
         who: [], status: "blocked", priority: "cao",
-        due: isoOf(addDays(t, -1)), next: "Nhắc lại IT vào sáng mai", nextDue: isoOf(t),
+        due: isoOf(addDays(t, -1)), next: "Follow up with IT tomorrow morning", nextDue: isoOf(t),
         log: [], created: Date.now(), updated: Date.now(), doneAt: 0, demo: true
       },
       {
-        id: uid(), title: "Họp đầu tuần", desc: "",
+        id: uid(), title: "Monday kickoff meeting", desc: "",
         who: [], status: "done", priority: "thap",
         due: isoOf(addDays(t, -3)), next: "", nextDue: "",
         log: [], created: Date.now(), updated: Date.now(), doneAt: Date.now(), demo: true
@@ -974,6 +1007,8 @@
       peopleAt: typeof parsed.peopleAt === "number" ? parsed.peopleAt : 0,
       mail: typeof parsed.mail === "string" ? parsed.mail : "",
       mailAt: typeof parsed.mailAt === "number" ? parsed.mailAt : 0,
+      ten: typeof parsed.ten === "string" && parsed.ten.trim() ? parsed.ten : TEN_MAC_DINH,
+      tenAt: typeof parsed.tenAt === "number" ? parsed.tenAt : 0,
       graves: mo,
       touched: parsed.touched === true
     };
@@ -987,7 +1022,8 @@
       catch (e) { /* dữ liệu hỏng -> dùng mặc định */ }
     }
     return { tasks: seedTasks(), people: DEFAULT_PEOPLE.slice(), peopleAt: 0,
-             mail: "", mailAt: 0, graves: {}, touched: false };
+             mail: "", mailAt: 0, ten: TEN_MAC_DINH, tenAt: 0,
+             graves: {}, touched: false };
   }
 
   var saveTimer = null;
@@ -1048,6 +1084,13 @@
     state.touched = true;
     state.mailAt = Date.now();
     dayMail = true;
+    daySoon();
+  }
+
+  function chamTen(){
+    state.touched = true;
+    state.tenAt = Date.now();
+    dayTen = true;
     daySoon();
   }
 
@@ -1160,6 +1203,36 @@
     return sapXep(state.tasks.filter(hopLoc));
   }
 
+  /* ---------- tên bảng ---------- */
+
+  var oTenTrang = document.getElementById("tenTrang");
+
+  function veTenTrang(){
+    if (document.activeElement !== oTenTrang) oTenTrang.value = state.ten;
+    document.title = state.ten || TEN_MAC_DINH;
+  }
+
+  oTenTrang.addEventListener("input", function(){
+    state.ten = oTenTrang.value;
+    chamTen();
+    saveSoon();
+    document.title = state.ten || TEN_MAC_DINH;
+  });
+
+  // Bỏ trống thì quay về tên mặc định, đừng để đầu trang trắng trơn
+  oTenTrang.addEventListener("blur", function(){
+    if (!oTenTrang.value.trim()) {
+      state.ten = TEN_MAC_DINH;
+      chamTen();
+      save();
+      veTenTrang();
+    }
+  });
+
+  oTenTrang.addEventListener("keydown", function(ev){
+    if (ev.key === "Enter") { ev.preventDefault(); oTenTrang.blur(); }
+  });
+
   /* ---------- vẽ: tổng quan ---------- */
 
   var tongQuanEl = document.getElementById("tongquan");
@@ -1179,12 +1252,12 @@
     });
 
     var muc = [
-      { key:"",         so: so.tong,     ten:"Tổng số việc",        mau:"" },
-      { key:"doing",    so: so.doing,    ten:"Đang làm",            mau:"accent" },
-      { key:"blocked",  so: so.blocked,  ten:"Đang vướng",          mau:"do" },
-      { key:"tre",      so: so.tre,      ten:"Trễ hạn",             mau:"do" },
-      { key:"chuabuoc", so: so.chuabuoc, ten:"Chưa có bước tiếp",   mau:"cam" },
-      { key:"xongtuan", so: so.xongtuan, ten:"Xong trong 7 ngày",   mau:"xanh" }
+      { key:"",         so: so.tong,     ten:"tasks",              mau:"" },
+      { key:"doing",    so: so.doing,    ten:"in progress",          mau:"accent" },
+      { key:"blocked",  so: so.blocked,  ten:"blocked",             mau:"do" },
+      { key:"tre",      so: so.tre,      ten:"overdue",           mau:"do" },
+      { key:"chuabuoc", so: so.chuabuoc, ten:"no next step", mau:"cam" },
+      { key:"xongtuan", so: so.xongtuan, ten:"done in 7 days", mau:"xanh" }
     ];
 
     tongQuanEl.textContent = "";
@@ -1194,12 +1267,14 @@
       b.className = "o";
       if (m.mau) b.setAttribute("data-mau", m.mau);
       b.setAttribute("aria-pressed", loc.nhanh === m.key && m.key !== "" ? "true" : "false");
-      b.title = m.key ? "Bấm để lọc" : "Bấm để bỏ mọi bộ lọc nhanh";
+      b.title = m.key ? "Click to show only this group" : "Click to clear the quick filters";
 
-      var so = document.createElement("div");
+      if (m.key && !m.so) b.setAttribute("data-khong", "1");
+
+      var so = document.createElement("span");
       so.className = "so";
       so.textContent = m.so;
-      var ten = document.createElement("div");
+      var ten = document.createElement("span");
       ten.className = "ten";
       ten.textContent = m.ten;
       b.appendChild(so);
@@ -1235,13 +1310,13 @@
       var p = document.createElement("li");
       p.className = "trong";
       p.textContent = state.tasks.length
-        ? "Không có việc nào đang chờ bước tiếp theo. Nhẹ người."
-        : "Chưa có việc nào. Thêm việc đầu tiên ở ô bên dưới.";
+        ? "Nothing is waiting on a next step. Nice."
+        : "No tasks yet. Add your first one in the box below.";
       keTiepDS.appendChild(p);
       return;
     }
 
-    ds.slice(0, 8).forEach(function(t, i){
+    ds.slice(0, 6).forEach(function(t, i){
       var li = document.createElement("li");
 
       var stt = document.createElement("span");
@@ -1253,7 +1328,7 @@
 
       var viec = document.createElement("div");
       viec.className = "viec";
-      viec.textContent = t.title || "(việc chưa đặt tên)";
+      viec.textContent = t.title || "(untitled task)";
 
       var buoc = document.createElement("div");
       buoc.className = "buoc";
@@ -1263,7 +1338,7 @@
       meta.className = "meta";
       t.who.forEach(function(n){ meta.appendChild(chipNguoi(n)); });
       var hanIso = t.nextDue || t.due;
-      if (hanIso) meta.appendChild(nhanHan(hanIso, t.status, t.nextDue ? "Bước này" : "Hạn việc"));
+      if (hanIso) meta.appendChild(nhanHan(hanIso, t.status, t.nextDue ? "This step" : "Task due"));
 
       noi.appendChild(viec);
       noi.appendChild(buoc);
@@ -1272,7 +1347,7 @@
       var mo = document.createElement("button");
       mo.type = "button";
       mo.className = "nho";
-      mo.textContent = "Mở";
+      mo.textContent = "Open";
       mo.addEventListener("click", function(){ moViec(t.id); });
 
       li.appendChild(stt);
@@ -1293,11 +1368,12 @@
       noi2.className = "noi";
       var b2 = document.createElement("div");
       b2.className = "buoc";
-      b2.textContent = thieu.length + " việc chưa ghi bước tiếp theo";
+      b2.textContent = thieu.length + (thieu.length === 1 ? " task has" : " tasks have") +
+                       " no next step";
       var v2 = document.createElement("div");
       v2.className = "viec";
       v2.textContent = thieu.slice(0, 4).map(function(t){
-        return t.title || "(chưa đặt tên)";
+        return t.title || "(untitled)";
       }).join(" · ") + (thieu.length > 4 ? " …" : "");
       noi2.appendChild(b2);
       noi2.appendChild(v2);
@@ -1305,7 +1381,7 @@
       var xem = document.createElement("button");
       xem.type = "button";
       xem.className = "nho";
-      xem.textContent = "Xem";
+      xem.textContent = "View";
       xem.addEventListener("click", function(){
         loc.nhanh = "chuabuoc";
         render();
@@ -1328,19 +1404,19 @@
       muc = "xong";
     } else if (con < 0) {
       muc = "tre";
-      chu = "Trễ " + (-con) + " ngày";
+      chu = con === -1 ? "1 day late" : (-con) + " days late";
     } else if (con === 0) {
       muc = "gan";
-      chu = "Hôm nay";
+      chu = "Today";
     } else if (con === 1) {
       muc = "gan";
-      chu = "Ngày mai";
+      chu = "Tomorrow";
     } else if (con <= 3) {
       muc = "gan";
     }
     s.setAttribute("data-muc", muc);
     s.textContent = chu;
-    s.title = "Hạn " + fmtVN(parseIso(iso));
+    s.title = "Due " + fmtVN(parseIso(iso));
     return s;
   }
 
@@ -1409,7 +1485,7 @@
 
     var td = document.createElement("div");
     td.className = "tieude";
-    td.textContent = t.title || "(việc chưa đặt tên)";
+    td.textContent = t.title || "(untitled task)";
     el.appendChild(td);
 
     var hang = document.createElement("div");
@@ -1420,14 +1496,14 @@
       var ut = document.createElement("span");
       ut.className = "uutien";
       ut.setAttribute("data-muc", t.priority);
-      ut.textContent = t.priority === "cao" ? "Ưu tiên cao" : "Thấp";
+      ut.textContent = t.priority === "cao" ? "High priority" : "Low";
       hang.appendChild(ut);
     }
     if (t.rate) {
       var sa = document.createElement("span");
       sa.className = "nhan-nho sao-nho";
       sa.textContent = chuSao(t.rate.sao) + " " + t.rate.sao;
-      sa.title = "Đánh giá " + t.rate.sao + " sao" + (t.rate.y ? ": " + t.rate.y : "");
+      sa.title = "Rated " + t.rate.sao + "/5" + (t.rate.y ? ": " + t.rate.y : "");
       hang.appendChild(sa);
     }
     if (hang.childNodes.length) el.appendChild(hang);
@@ -1448,7 +1524,7 @@
         buoc.appendChild(chu);
       } else {
         buoc.className = "buoc thieu";
-        buoc.textContent = "⚠︎ Chưa ghi bước tiếp theo";
+        buoc.textContent = "⚠︎ No next step yet";
       }
       el.appendChild(buoc);
     }
@@ -1458,7 +1534,7 @@
     var idx = chiSoTrangThai(t.status);
 
     var lui = document.createElement("button");
-    lui.type = "button"; lui.textContent = "←"; lui.title = "Lùi một cột";
+    lui.type = "button"; lui.textContent = "←"; lui.title = "Move back one column";
     lui.disabled = idx === 0;
     lui.addEventListener("click", function(ev){
       ev.stopPropagation();
@@ -1466,7 +1542,7 @@
     });
 
     var toi = document.createElement("button");
-    toi.type = "button"; toi.textContent = "→"; toi.title = "Tới một cột";
+    toi.type = "button"; toi.textContent = "→"; toi.title = "Move forward one column";
     toi.disabled = idx === TRANG_THAI.length - 1;
     toi.addEventListener("click", function(ev){
       ev.stopPropagation();
@@ -1474,7 +1550,7 @@
     });
 
     var mo = document.createElement("button");
-    mo.type = "button"; mo.textContent = "Sửa";
+    mo.type = "button"; mo.textContent = "Edit";
     mo.style.marginLeft = "auto";
     mo.addEventListener("click", function(ev){
       ev.stopPropagation();
@@ -1513,10 +1589,10 @@
     t.updated = Date.now();
     if (tt === "done") {
       t.doneAt = Date.now();
-      ghiNhatKy(t, "Đánh dấu xong");
+      ghiNhatKy(t, "Marked done");
     } else {
-      if (t.doneAt) ghiNhatKy(t, "Mở lại: " + tenTrangThai(tt));
-      else ghiNhatKy(t, "Chuyển sang: " + tenTrangThai(tt));
+      if (t.doneAt) ghiNhatKy(t, "Reopened: " + tenTrangThai(tt));
+      else ghiNhatKy(t, "Moved to: " + tenTrangThai(tt));
       t.doneAt = 0;
     }
     chamVao(t.id);
@@ -1547,7 +1623,7 @@
       var td0 = document.createElement("td");
       td0.colSpan = 8;
       td0.style.color = "var(--muted)";
-      td0.textContent = "Không có việc nào khớp bộ lọc.";
+      td0.textContent = "No tasks match the current filter.";
       tr0.appendChild(td0);
       bangThan.appendChild(tr0);
       return;
@@ -1561,7 +1637,7 @@
       var tdV = document.createElement("td");
       tdV.className = "viec";
       var b = document.createElement("b");
-      b.textContent = t.title || "(việc chưa đặt tên)";
+      b.textContent = t.title || "(untitled task)";
       b.addEventListener("click", function(){ moViec(t.id); });
       tdV.appendChild(b);
       if (t.desc) {
@@ -1599,7 +1675,7 @@
         sa.className = "sao-nho";
         sa.style.marginTop = "4px";
         sa.textContent = chuSao(t.rate.sao) + " " + t.rate.sao;
-        sa.title = t.rate.y || ("Đánh giá " + t.rate.sao + " sao");
+        sa.title = t.rate.y || ("Rated " + t.rate.sao + "/5");
         tdT.appendChild(sa);
       }
 
@@ -1629,7 +1705,7 @@
       inp.type = "text";
       inp.className = "o-buoc";
       inp.value = t.next;
-      inp.placeholder = t.status === "done" ? "—" : "Ghi bước tiếp theo…";
+      inp.placeholder = t.status === "done" ? "—" : "Write the next step…";
       inp.addEventListener("input", function(){
         t.next = inp.value; t.updated = Date.now();
         chamVao(t.id); saveSoon();
@@ -1639,7 +1715,7 @@
       if (t.nextDue) {
         var hb = document.createElement("div");
         hb.style.marginTop = "4px";
-        hb.appendChild(nhanHan(t.nextDue, t.status, "Bước"));
+        hb.appendChild(nhanHan(t.nextDue, t.status, "Step"));
         tdB.appendChild(hb);
       }
 
@@ -1653,7 +1729,7 @@
       // Nút
       var tdX = document.createElement("td");
       var nut = document.createElement("button");
-      nut.type = "button"; nut.className = "nho"; nut.textContent = "Mở";
+      nut.type = "button"; nut.className = "nho"; nut.textContent = "Open";
       nut.addEventListener("click", function(){ moViec(t.id); });
       tdX.appendChild(nut);
 
@@ -1674,7 +1750,7 @@
     var tatCa = document.createElement("button");
     tatCa.type = "button";
     tatCa.className = "chip";
-    tatCa.textContent = "Cả team";
+    tatCa.textContent = "Whole team";
     tatCa.setAttribute("aria-pressed", loc.nguoi ? "false" : "true");
     tatCa.addEventListener("click", function(){ loc.nguoi = ""; render(); });
     nguoiLocEl.appendChild(tatCa);
@@ -1707,10 +1783,10 @@
   var SVGNS = "http://www.w3.org/2000/svg";
 
   var XEP = [
-    { id:"todo",    ten:"Chưa làm", bien:"--c-todo" },
-    { id:"blocked", ten:"Vướng",    bien:"--c-blocked" },
-    { id:"doing",   ten:"Đang làm", bien:"--c-doing" },
-    { id:"done",    ten:"Xong",     bien:"--c-done" }
+    { id:"todo",    ten:"To do", bien:"--c-todo" },
+    { id:"blocked", ten:"Blocked",    bien:"--c-blocked" },
+    { id:"doing",   ten:"In progress", bien:"--c-doing" },
+    { id:"done",    ten:"Done",     bien:"--c-done" }
   ];
 
   var KHE = 2;        // khe hở màu nền giữa hai mảnh kề nhau
@@ -1806,10 +1882,10 @@
 
     var xongPhanTram = tong ? Math.round(dem.done / tong * 100) : 0;
     phu.textContent = tong
-      ? tong + " việc đang xem · xong " + xongPhanTram + "%"
-      : "Chưa có việc nào.";
+      ? tong + " tasks in view · " + xongPhanTram + "% done"
+      : "No tasks yet.";
 
-    if (!tong) { noiTrong(box, "Thêm việc rồi biểu đồ hiện ở đây."); return; }
+    if (!tong) { noiTrong(box, "Add a task and the chart appears here."); return; }
 
     var W = beRong(box), H = 24;   // bề dày tối đa của thanh
     var co = XEP.filter(function(x){ return dem[x.id] > 0; });
@@ -1817,7 +1893,7 @@
     var dung = W - khe;
 
     var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
-                              role: "img", "aria-label": "Tiến độ chung theo trạng thái" });
+                              role: "img", "aria-label": "Overall progress by status" });
     var x = 0;
     co.forEach(function(m, i){
       var w = dung * dem[m.id] / tong;
@@ -1828,7 +1904,7 @@
         fill: "var(" + m.bien + ")",
         "class": "mieng"
       });
-      ganTip(p, m.ten + ": " + dem[m.id] + " việc (" +
+      ganTip(p, m.ten + ": " + dem[m.id] + " tasks (" +
                 Math.round(dem[m.id] / tong * 100) + "%)");
       svg.appendChild(p);
       x += w + KHE;
@@ -1843,7 +1919,7 @@
   function veNguoi(ds){
     var box = document.getElementById("bdNguoi");
     box.textContent = "";
-    if (!ds.length) { noiTrong(box, "Chưa có việc nào."); return; }
+    if (!ds.length) { noiTrong(box, "No tasks yet."); return; }
 
     var theo = {}, thuTu = [];
     function o(ten){
@@ -1851,7 +1927,7 @@
       return theo[ten];
     }
     ds.forEach(function(t){
-      var ai = t.who.length ? t.who : ["Chưa gán ai"];
+      var ai = t.who.length ? t.who : ["Unassigned"];
       ai.forEach(function(n){
         var r = o(n);
         r[t.status] = (r[t.status] || 0) + 1;
@@ -1860,15 +1936,15 @@
     });
 
     thuTu.sort(function(a, b){
-      if (a.ten === "Chưa gán ai") return 1;
-      if (b.ten === "Chưa gán ai") return -1;
+      if (a.ten === "Unassigned") return 1;
+      if (b.ten === "Unassigned") return -1;
       return b.tong - a.tong;
     });
 
     // Quá tám dòng thì gộp đuôi lại, thêm màu mới không giải quyết được gì
     if (thuTu.length > 9) {
       var duoi = thuTu.splice(8, thuTu.length - 9);
-      var gop = { ten: "Người khác (" + duoi.length + ")", tong: 0 };
+      var gop = { ten: "Others (" + duoi.length + ")", tong: 0 };
       duoi.forEach(function(r){
         gop.tong += r.tong;
         XEP.forEach(function(x){ if (r[x.id]) gop[x.id] = (gop[x.id] || 0) + r[x.id]; });
@@ -1886,13 +1962,20 @@
     thuTu.forEach(function(r){ if (r.tong > lonNhat) lonNhat = r.tong; });
 
     var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
-                              role: "img", "aria-label": "Số việc mỗi người theo trạng thái" });
+                              role: "img", "aria-label": "Tasks per person, split by status" });
 
     thuTu.forEach(function(r, i){
       var y = i * CAO;
+      // Cắt tên theo bề ngang thật của cột, không theo số chữ: màn hình hẹp thì
+      // cột tên co lại, đếm chữ sẽ để tên đè lên thanh.
       var ten = nutSvg("text", { x: 0, y: y + THANH / 2 + 4, "class": "nhan-truc" });
-      ten.textContent = r.ten.length > 16 ? r.ten.slice(0, 15) + "…" : r.ten;
-      if (r.ten.length > 16) { var tt = nutSvg("title", {}); tt.textContent = r.ten; ten.appendChild(tt); }
+      var soChu = Math.max(5, Math.floor((TEN_W - 10) / 6.6));
+      ten.textContent = r.ten.length > soChu ? r.ten.slice(0, soChu - 1) + "…" : r.ten;
+      if (r.ten.length > soChu) {
+        var tt = nutSvg("title", {});
+        tt.textContent = r.ten;
+        ten.appendChild(tt);
+      }
       svg.appendChild(ten);
 
       var co = XEP.filter(function(x){ return r[x.id]; });
@@ -1910,7 +1993,7 @@
           fill: "var(" + m.bien + ")",
           "class": "mieng"
         });
-        ganTip(p, r.ten + " · " + m.ten + ": " + r[m.id] + " việc");
+        ganTip(p, r.ten + " · " + m.ten + ": " + r[m.id] + " tasks");
         svg.appendChild(p);
         x += w + KHE;
       });
@@ -1950,7 +2033,7 @@
     tuan.forEach(function(x){ if (x.so > lonNhat) lonNhat = x.so; });
 
     if (!lonNhat) {
-      noiTrong(box, "Sáu tuần gần đây chưa việc nào được đánh dấu xong.");
+      noiTrong(box, "Nothing has been marked done in the last six weeks.");
       return;
     }
 
@@ -1959,7 +2042,7 @@
     var rong = Math.min(24, bang - 16);
 
     var svg = nutSvg("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H,
-                              role: "img", "aria-label": "Số việc xong theo từng tuần" });
+                              role: "img", "aria-label": "Tasks completed each week" });
 
     svg.appendChild(nutSvg("line", {
       x1: 0, y1: CAO_VE, x2: W, y2: CAO_VE,
@@ -1976,7 +2059,7 @@
           fill: "var(--c-done)",
           "class": "mieng"
         });
-        ganTip(p, "Tuần " + fmtVN(x.dau) + " – " + fmtVN(x.cuoi) + ": xong " + x.so + " việc");
+        ganTip(p, "Week of " + fmtVN(x.dau) + " – " + fmtVN(x.cuoi) + ": " + x.so + " done");
         svg.appendChild(p);
       }
       var so = nutSvg("text", { x: giua, y: CAO_VE - cao - 6,
@@ -1986,7 +2069,7 @@
 
       var nhan = nutSvg("text", { x: giua, y: CAO_VE + 15,
                                   "text-anchor": "middle", "class": "nhan-truc" });
-      nhan.textContent = x.dau.getDate() + "/" + (x.dau.getMonth() + 1);
+      nhan.textContent = x.dau.getDate() + " " + THANG[x.dau.getMonth()];
       svg.appendChild(nhan);
     });
 
@@ -2012,7 +2095,7 @@
     var theo = {}, thuTu = [];
     ds.forEach(function(t){
       if (t.status !== "done") return;
-      var ai = t.who.length ? t.who : ["Chưa gán ai"];
+      var ai = t.who.length ? t.who : ["Unassigned"];
       ai.forEach(function(n){
         if (!theo[n]) {
           theo[n] = { ten: n, xong: 0, coHan: 0, dungHan: 0, soCham: 0, tongSao: 0 };
@@ -2048,7 +2131,7 @@
 
     var ds2 = tinhXepHang(ds);
     if (!ds2.length) {
-      noiTrong(box, "Chưa có việc nào xong nên chưa có gì để đánh giá.");
+      noiTrong(box, "Nothing is done yet, so there is nothing to rate.");
       return;
     }
 
@@ -2056,7 +2139,7 @@
     bang.className = "bxh";
     var thead = document.createElement("thead");
     var trh = document.createElement("tr");
-    ["Người", "Việc xong", "Đúng hạn", "Điểm trung bình"].forEach(function(h, i){
+    ["Person", "Done", "On time", "Average rating"].forEach(function(h, i){
       var th = document.createElement("th");
       th.textContent = h;
       if (i > 0) th.style.textAlign = "right";
@@ -2080,13 +2163,13 @@
       tdH.className = "so";
       tdH.textContent = r.tiLe < 0 ? "—" : Math.round(r.tiLe * 100) + "%";
       tdH.title = r.tiLe < 0
-        ? "Việc của người này không đặt hạn nên không tính được"
-        : r.dungHan + "/" + r.coHan + " việc có hạn được xong đúng hạn";
+        ? "This person's tasks have no due dates, so on-time cannot be measured"
+        : r.dungHan + "/" + r.coHan + " tasks with a due date finished on time";
 
       var tdD = document.createElement("td");
       tdD.className = "so";
       if (!r.soCham) {
-        tdD.textContent = "chưa chấm";
+        tdD.textContent = "not rated";
         tdD.style.color = "var(--muted)";
       } else {
         var chu = document.createElement("span");
@@ -2103,8 +2186,8 @@
         trong.style.width = (r.diem / 5 * 100) + "%";
         thanh.appendChild(trong);
         tdD.appendChild(thanh);
-        tdD.title = "Trung bình " + r.diem.toFixed(2) + " sao trên " + r.soCham +
-                    " việc đã chấm (trong " + r.xong + " việc xong)";
+        tdD.title = "Average " + r.diem.toFixed(2) + "/5 across " + r.soCham +
+                    " rated tasks (out of " + r.xong + " done)";
       }
 
       [tdT, tdX, tdH, tdD].forEach(function(td){ tr.appendChild(td); });
@@ -2117,7 +2200,8 @@
     if (chuaCham) {
       var p = document.createElement("p");
       p.className = "phu-nho";
-      p.textContent = "Còn " + chuaCham + " việc đã xong chưa chấm sao.";
+      p.textContent = chuaCham + (chuaCham === 1 ? " finished task has" : " finished tasks have") +
+                      " no rating yet.";
       box.appendChild(p);
     }
   }
@@ -2236,8 +2320,8 @@
         b.type = "button";
         b.textContent = n <= dangCo ? "★" : "☆";
         b.setAttribute("aria-pressed", n <= dangCo ? "true" : "false");
-        b.setAttribute("aria-label", n + " sao");
-        b.title = n + " sao";
+        b.setAttribute("aria-label", n + (n === 1 ? " star" : " stars"));
+        b.title = n + (n === 1 ? " star" : " stars");
         b.addEventListener("click", function(){ datSao(n); });
         fSao.appendChild(b);
       })(i);
@@ -2247,7 +2331,7 @@
       var xoa = document.createElement("button");
       xoa.type = "button";
       xoa.className = "xoa";
-      xoa.textContent = "Bỏ chấm";
+      xoa.textContent = "Clear rating";
       xoa.addEventListener("click", function(){ datSao(0); });
       fSao.appendChild(xoa);
     }
@@ -2255,9 +2339,9 @@
     fSaoY.value = t.rate ? t.rate.y : "";
     fSaoY.hidden = !dangCo;
     fSaoAi.textContent = t.rate
-      ? "Chấm " + fmtKhi(t.rate.at) + (t.rate.boi ? " bởi " + t.rate.boi : "") +
-        " · tính cho: " + (t.who.length ? t.who.join(", ") : "chưa gán ai")
-      : "Chấm xong thì điểm cộng cho người được gán ở việc này.";
+      ? "Rated " + fmtKhi(t.rate.at) + (t.rate.boi ? " by " + t.rate.boi : "") +
+        " · counts for: " + (t.who.length ? t.who.join(", ") : "nobody assigned")
+      : "Once rated, the score counts for whoever is assigned to this task.";
   }
 
   function datSao(n){
@@ -2265,7 +2349,7 @@
     if (!t) return;
     if (!n) {
       t.rate = null;
-      ghiNhatKy(t, "Bỏ đánh giá");
+      ghiNhatKy(t, "Rating cleared");
     } else {
       t.rate = {
         sao: n,
@@ -2273,7 +2357,7 @@
         at: Date.now(),
         boi: state.people.length === 1 ? state.people[0] : ""
       };
-      ghiNhatKy(t, "Đánh giá " + n + " sao");
+      ghiNhatKy(t, "Rated " + n + "/5");
     }
     t.updated = Date.now();
     chamVao(t.id);
@@ -2299,7 +2383,7 @@
       var p = document.createElement("span");
       p.style.color = "var(--muted)";
       p.style.fontSize = "14px";
-      p.textContent = "Chưa có ai trong team — thêm ở nút 👥 Thành viên.";
+      p.textContent = "No people yet — add them under 👥 People.";
       fNguoi.appendChild(p);
       return;
     }
@@ -2325,7 +2409,7 @@
     if (!t.log.length) {
       var p = document.createElement("div");
       p.className = "trong";
-      p.textContent = "Chưa có ghi chú nào.";
+      p.textContent = "No updates yet.";
       fNhatKy.appendChild(p);
       return;
     }
@@ -2397,7 +2481,7 @@
   document.getElementById("viecXoa").addEventListener("click", function(){
     var t = timViec(dangSua);
     if (!t) return;
-    if (!confirm('Xoá việc "' + (t.title || "chưa đặt tên") + '"? Không lấy lại được.')) return;
+    if (!confirm('Delete "' + (t.title || "untitled") + '"? This cannot be undone.')) return;
     state.tasks = state.tasks.filter(function(x){ return x.id !== t.id; });
     state.graves[t.id] = Date.now();
     dangSua = null;
@@ -2452,7 +2536,7 @@
   function taoBaoCao(){
     var ds = viecDaLoc();
     var d = [];
-    var tieu = "BÁO CÁO CÔNG VIỆC — " + fmtVN(today());
+    var tieu = "WORK REPORT — " + fmtVN(today());
     if (loc.nguoi) tieu += " — " + loc.nguoi;
     d.push(tieu);
     d.push("");
@@ -2462,24 +2546,26 @@
       if (!l.length) return;
       d.push(nhan + " (" + l.length + ")");
       l.forEach(function(t){
-        var dong = "- " + (t.title || "(chưa đặt tên)") + tenNguoi(t);
+        var dong = "- " + (t.title || "(untitled)") + tenNguoi(t);
         if (t.due) {
           var con = conMayNgay(t.due);
-          if (t.status !== "done" && con < 0) dong += " — TRỄ " + (-con) + " ngày";
-          else if (t.status !== "done") dong += " — hạn " + fmtNgan(t.due);
+          if (t.status !== "done" && con < 0) {
+          dong += " — OVERDUE BY " + (-con) + (con === -1 ? " day" : " days");
+        }
+          else if (t.status !== "done") dong += " — due " + fmtNgan(t.due);
         }
         if (moTa && t.next.trim()) {
-          dong += "\n  → tiếp theo: " + t.next + (t.nextDue ? " (" + fmtNgan(t.nextDue) + ")" : "");
+          dong += "\n  → next: " + t.next + (t.nextDue ? " (" + fmtNgan(t.nextDue) + ")" : "");
         }
         d.push(dong);
       });
       d.push("");
     }
 
-    nhom("done", "✅ ĐÃ XONG", false);
-    nhom("doing", "🔵 ĐANG LÀM", true);
-    nhom("blocked", "⛔ ĐANG VƯỚNG", true);
-    nhom("todo", "⚪ CHƯA LÀM", true);
+    nhom("done", "✅ DONE", false);
+    nhom("doing", "🔵 IN PROGRESS", true);
+    nhom("blocked", "⛔ BLOCKED", true);
+    nhom("todo", "⚪ TO DO", true);
 
     var ketiep = ds.filter(function(t){
       return t.status !== "done" && t.next.trim();
@@ -2490,7 +2576,7 @@
     });
 
     if (ketiep.length) {
-      d.push("➡️ KẾ HOẠCH TIẾP THEO");
+      d.push("➡️ NEXT STEPS");
       ketiep.slice(0, 10).forEach(function(t, i){
         var khi = t.nextDue || t.due;
         d.push((i + 1) + ". " + t.next + tenNguoi(t) +
@@ -2501,18 +2587,18 @@
 
     var bxh = tinhXepHang(ds);
     if (bxh.length) {
-      d.push("⭐ ĐÁNH GIÁ THÀNH VIÊN");
+      d.push("⭐ TEAM RATINGS");
       bxh.forEach(function(r){
-        d.push("- " + r.ten + ": xong " + r.xong + " việc" +
-               (r.tiLe < 0 ? "" : ", đúng hạn " + Math.round(r.tiLe * 100) + "%") +
-               (r.soCham ? ", điểm " + r.diem.toFixed(1) + "/5" : ", chưa chấm điểm"));
+        d.push("- " + r.ten + ": " + r.xong + " done" +
+               (r.tiLe < 0 ? "" : ", on time " + Math.round(r.tiLe * 100) + "%") +
+               (r.soCham ? ", rating " + r.diem.toFixed(1) + "/5" : ", not rated yet"));
       });
       d.push("");
     }
 
     var tre = ds.filter(laTre);
     if (tre.length) {
-      d.push("⚠️ CẦN GỠ NGAY: " + tre.length + " việc đang trễ hạn.");
+      d.push("⚠️ NEEDS ATTENTION: " + tre.length + " tasks are overdue.");
     }
 
     return d.join("\n").replace(/\n{3,}/g, "\n\n").trim();
@@ -2528,7 +2614,7 @@
   document.getElementById("baoCaoDong").addEventListener("click", function(){ manBaoCao.hidden = true; });
   manBaoCao.addEventListener("click", function(ev){ if (ev.target === manBaoCao) manBaoCao.hidden = true; });
   document.getElementById("baoCaoChep").addEventListener("click", function(){
-    chepChu(baoCaoChu, baoCaoBao, "Đã chép. Dán vào Zalo hay email rồi gửi đi.");
+    chepChu(baoCaoChu, baoCaoBao, "Copied. Paste it into chat or email and send.");
   });
 
   function chepChu(el, bao, chuOk){
@@ -2542,7 +2628,7 @@
     }
     bao.hidden = false;
     bao.setAttribute("data-kind", xong ? "good" : "bad");
-    bao.textContent = xong ? chuOk : "Trình duyệt không cho chép tự động. Bấm giữ để chọn rồi chép tay.";
+    bao.textContent = xong ? chuOk : "The browser blocked automatic copying. Select the text and copy it manually.";
   }
 
   /* ================================================================
@@ -2615,7 +2701,7 @@
   document.getElementById("mailMo").addEventListener("click", function(){
     luuMail();
     var ai = diaChiMail();
-    var tieuDe = "Việc của team — " + fmtVN(today());
+    var tieuDe = "Team tasks — " + fmtVN(today());
     var than = taoBaoCao();
 
     // mailto: dài quá thì nhiều hòm thư cắt mất đuôi, nên cắt gọn trước
@@ -2628,7 +2714,7 @@
       }
       var xuong = than.lastIndexOf("\n");     // cắt gọn ở cuối dòng, đừng đứt giữa chữ
       if (xuong > 200) than = than.slice(0, xuong);
-      than += "\n\n… (cắt bớt cho vừa một lá thư — xem đầy đủ trong trang)";
+      than += "\n\n… (trimmed to fit one email — see the full report in the app)";
     }
 
     // Bấm qua một thẻ a thay vì đổi location: trang hiện tại không bị coi là
@@ -2641,8 +2727,8 @@
     document.body.removeChild(a);
 
     mailNoi("good", ai.length
-      ? "Đã mở thư gửi cho " + ai.length + " người. Kiểm lại rồi bấm Gửi."
-      : "Đã mở thư. Chưa điền người nhận nên anh tự điền vào ô To.");
+      ? "Draft opened for " + ai.length + " recipients. Check it over and hit Send."
+      : "Draft opened. No recipients are set, so fill in the To field yourself.");
   });
 
   /* ---------- cách 2: gọi Apps Script ---------- */
@@ -2661,7 +2747,7 @@
     var hetGio = setTimeout(function(){
       if (roi) return;
       roi = true; don();
-      hong(new Error("gọi mãi không thấy trả lời"));
+      hong(new Error("the call timed out with no reply"));
     }, 25000);
 
     window[ten] = function(kq){
@@ -2673,7 +2759,7 @@
     the.onerror = function(){
       if (roi) return;
       roi = true; don();
-      hong(new Error("không gọi được địa chỉ này"));
+      hong(new Error("could not reach that address"));
     };
 
     the.src = url + (url.indexOf("?") > -1 ? "&" : "?") + tham + "&callback=" + ten;
@@ -2683,31 +2769,31 @@
   function chayScript(tham, dangLam, xongChu){
     luuMail();
     var u = mailUrl.value.trim();
-    if (!u) { mailNoi("bad", "Chưa dán địa chỉ Apps Script."); return; }
+    if (!u) { mailNoi("bad", "No Apps Script address entered."); return; }
     if (u.indexOf("script.google.com") === -1) {
-      mailNoi("bad", "Địa chỉ phải là link Apps Script, dạng https://script.google.com/macros/s/…/exec");
+      mailNoi("bad", "That must be an Apps Script link, in the form https://script.google.com/macros/s/…/exec");
       return;
     }
     mailNoi("tin", dangLam);
     goiScript(u, tham, function(kq){
       if (kq && kq.ok) mailNoi("good", xongChu(kq));
-      else mailNoi("bad", "Apps Script báo lỗi: " + ((kq && kq.loi) || "không rõ"));
+      else mailNoi("bad", "Apps Script returned an error: " + ((kq && kq.loi) || "no details"));
     }, function(err){
-      mailNoi("bad", "Không nối được: " + err.message +
-        ". Kiểm tra đã Deploy thành Web app với quyền “Anyone” chưa.");
+      mailNoi("bad", "Could not connect: " + err.message +
+        ". Check that it is deployed as a Web app with access set to Anyone.");
     });
   }
 
   document.getElementById("mailNoi").addEventListener("click", function(){
-    chayScript("fn=song", "Đang thử nối…", function(kq){
-      return "Nối được. Apps Script đọc thấy " + (kq.so_viec || 0) + " việc trong kho, " +
-             "gửi tới " + ((kq.nguoi_nhan && kq.nguoi_nhan.length) || 0) + " địa chỉ.";
+    chayScript("fn=song", "Connecting…", function(kq){
+      return "Connected. Apps Script sees " + (kq.so_viec || 0) + " tasks in the database, " +
+             "sending to " + ((kq.nguoi_nhan && kq.nguoi_nhan.length) || 0) + " addresses.";
     });
   });
 
   document.getElementById("mailGui").addEventListener("click", function(){
-    chayScript("fn=gui", "Đang gửi…", function(kq){
-      return kq.ket_qua || "Đã gửi.";
+    chayScript("fn=gui", "Sending…", function(kq){
+      return kq.ket_qua || "Sent.";
     });
   });
 
@@ -2753,7 +2839,7 @@
     if (kind === "p") {
       return Promise.resolve(JSON.parse(new TextDecoder().decode(bytes)));
     }
-    if (kind !== "z") return Promise.reject(new Error("Không hiểu dạng link"));
+    if (kind !== "z") return Promise.reject(new Error("Unrecognised link format"));
     return new Response(
       new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))
     ).arrayBuffer().then(function(buf){
@@ -2768,7 +2854,7 @@
 
   document.getElementById("btnGui").addEventListener("click", function(){
     guiBao.hidden = true;
-    guiLink.value = "Đang gói bảng việc lại…";
+    guiLink.value = "Packing the board up…";
     manGui.hidden = false;
     encodeShare().then(function(payload){
       var url = location.href.split("#")[0] + "#l=" + payload;
@@ -2779,22 +2865,22 @@
       if (url.length > 6000) {
         guiBao.hidden = false;
         guiBao.setAttribute("data-kind", "bad");
-        guiBao.textContent = "Link dài " + url.length + " ký tự. Vài ứng dụng nhắn tin cắt bớt link " +
-          "quá dài; nếu người nhận mở không được thì xoá bớt việc cũ đã xong rồi gửi lại.";
+        guiBao.textContent = "The link is " + url.length + " characters long. Some messaging apps truncate " +
+          "long links; if it will not open for them, delete some finished tasks and send again.";
       }
     })["catch"](function(err){
       guiLink.value = "";
       guiBao.hidden = false;
       guiBao.setAttribute("data-kind", "bad");
-      guiBao.textContent = "Không gói được: " + (err.message || err);
+      guiBao.textContent = "Could not pack the board: " + (err.message || err);
     });
   });
 
   document.getElementById("guiChep").addEventListener("click", function(){
-    chepChu(guiLink, guiBao, "Đã chép. Dán vào Zalo hay tin nhắn rồi gửi đi.");
+    chepChu(guiLink, guiBao, "Copied. Paste it into chat or a message and send.");
   });
   guiChiaSe.addEventListener("click", function(){
-    if (navigator.share) navigator.share({ title: "Bảng việc của team", url: guiLink.value })["catch"](function(){});
+    if (navigator.share) navigator.share({ title: "Team task board", url: guiLink.value })["catch"](function(){});
   });
   document.getElementById("guiDong").addEventListener("click", function(){ manGui.hidden = true; });
   manGui.addEventListener("click", function(ev){ if (ev.target === manGui) manGui.hidden = true; });
@@ -2818,7 +2904,7 @@
     if (i === -1) {
       nhanBao.hidden = false;
       nhanBao.setAttribute("data-kind", "bad");
-      nhanBao.textContent = "Link này không chứa bảng việc. Phải là link có đoạn #l=…";
+      nhanBao.textContent = "That link carries no board. It has to contain the #l=… part.";
       return;
     }
     location.hash = chu.slice(i + 1);
@@ -2837,14 +2923,14 @@
     decodeShare(payload).then(function(goi){
       incoming = chuanHoaState({ tasks: goi.tasks, people: goi.people, touched: true });
       state = incoming;
-      xemThuChu.textContent = "Đây là bảng việc người khác gửi (" +
-        state.tasks.length + " việc" + (goi.at ? ", gói ngày " + fmtVN(parseIso(goi.at)) : "") +
-        "). Bạn đang xem thử — chưa có gì được ghi vào máy này.";
+      xemThuChu.textContent = "This board was sent to you by someone else (" +
+        state.tasks.length + " tasks" + (goi.at ? ", packed on " + fmtVN(parseIso(goi.at)) : "") +
+        "). You are only previewing it — nothing has been written to this device.";
       bangXemThu.hidden = false;
       render();
     })["catch"](function(){
       bangXemThu.hidden = false;
-      xemThuChu.textContent = "Link gửi tới bị hỏng hoặc cắt mất đuôi. Nhờ người gửi gửi lại.";
+      xemThuChu.textContent = "The link is damaged or was cut short. Ask the sender to send it again.";
       document.getElementById("xemThuLuu").hidden = true;
     });
   }
@@ -2890,7 +2976,7 @@
     fr.onload = function(){
       try {
         var moi = chuanHoaState(JSON.parse(fr.result));
-        if (!confirm("Nhập " + moi.tasks.length + " việc, thay cho bảng đang có trên máy?")) return;
+        if (!confirm("Import " + moi.tasks.length + " tasks, replacing the board on this device?")) return;
         backupNow();
         state = moi;
         state.touched = true;
@@ -2898,7 +2984,7 @@
         render();
         dayTatCa();
       } catch (e) {
-        alert("Tệp không đọc được: " + (e.message || e));
+        alert("Could not read that file: " + (e.message || e));
       }
     };
     fr.readAsText(f);
@@ -2923,7 +3009,7 @@
       dangCo = localStorage.getItem(STORE_KEY);
     } catch (e) { raw = null; }
     if (!raw) return;
-    if (!confirm("Đổi về bản trước đó? Bản đang xem được cất lại, bấm lần nữa là quay về.")) return;
+    if (!confirm("Switch back to the previous version? The current one is kept, so clicking again brings it back.")) return;
     try {
       state = chuanHoaState(JSON.parse(raw));
       if (dangCo) localStorage.setItem(BACKUP_KEY, dangCo);
@@ -2952,7 +3038,7 @@
   var btnKieu = document.getElementById("btnKieu");
   btnKieu.addEventListener("click", function(){
     kieuXem = (kieuXem === "board") ? "table" : "board";
-    btnKieu.textContent = (kieuXem === "board") ? "📋 Xem dạng bảng" : "🗂 Xem dạng cột";
+    btnKieu.textContent = (kieuXem === "board") ? "📋 Table view" : "🗂 Board view";
     render();
   });
 
@@ -2994,6 +3080,7 @@
   var banDay = {};        // id việc đang chờ đẩy lên
   var dayNguoi = false;   // danh sách thành viên đang chờ đẩy
   var dayMail = false;    // danh sách người nhận mail đang chờ đẩy
+  var dayTen = false;     // tên bảng đang chờ đẩy
   var dangDay = false;
   var dayTimer = null;
   var keoTimer = null;
@@ -3066,7 +3153,7 @@
   }
 
   function veTrangThaiKho(){
-    if (!kho) datKho("off", "Chỉ máy này");
+    if (!kho) datKho("off", "This device only");
     else datKho("ok", "Kho chung");
     veChanTrang();
   }
@@ -3077,16 +3164,16 @@
     chanNguon.textContent = "";
     if (kho) {
       chanNguon.appendChild(document.createTextNode(
-        "Cả team dùng chung một cơ sở dữ liệu — máy này vẫn giữ một bản để mất mạng " +
-        "vẫn gõ được, có mạng lại thì tự gửi lên. Kho: "));
+        "The whole team shares one database — this device keeps a copy so you can keep typing " +
+        "offline, and it uploads once you are back online. Database: "));
       var b = document.createElement("b");
       b.textContent = kho.base.replace(/^https?:\/\//, "") + " · " + kho.phong;
       chanNguon.appendChild(b);
     } else {
       chanNguon.appendChild(document.createTextNode(
-        "Bảng việc đang nằm riêng trong trình duyệt máy này (" +
-        (location.origin === "null" ? "tệp mở trực tiếp" : location.origin) +
-        "). Muốn cả team nhìn chung một bảng thì bấm 🗄 Kho chung."));
+        "This board lives only in this browser (" +
+        (location.origin === "null" ? "a file opened directly" : location.origin) +
+        "). To put the whole team on one board, click 🗄 Shared database."));
     }
   }
 
@@ -3107,7 +3194,7 @@
 
   function keo(imLang){
     if (!kho || incoming) return;
-    if (!imLang) datKho("dang", "Đang đồng bộ");
+    if (!imLang) datKho("dang", "Syncing");
     fetch(khoUrl() + "?t=" + Date.now(), { cache: "no-store" })
       .then(function(r){
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -3117,7 +3204,7 @@
         tronVao(goi);
         veTrangThaiKho();
       })["catch"](function(){
-        datKho("loi", "Mất kết nối");
+        datKho("loi", "Disconnected");
       });
   }
 
@@ -3202,6 +3289,17 @@
       dayMail = true;
     }
 
+    // Tên bảng: cũng bản ghi sau thắng
+    var tenAt = typeof goi.tenAt === "number" ? goi.tenAt : 0;
+    if (typeof goi.ten === "string" && goi.ten.trim() && tenAt > (state.tenAt || 0)) {
+      state.ten = goi.ten;
+      state.tenAt = tenAt;
+      veTenTrang();
+      doi = true;
+    } else if ((state.tenAt || 0) > tenAt && state.touched) {
+      dayTen = true;
+    }
+
     if (doi) {
       save();
       render();
@@ -3226,6 +3324,7 @@
     for (var g in state.graves) { if (coRieng(state.graves, g)) banDay[g] = true; }
     dayNguoi = true;
     dayMail = true;
+    dayTen = true;
     daySoon(0);
   }
 
@@ -3257,14 +3356,20 @@
       goi["mailAt"] = state.mailAt || Date.now();
       co = true;
     }
+    if (dayTen) {
+      goi["ten"] = state.ten;
+      goi["tenAt"] = state.tenAt || Date.now();
+      co = true;
+    }
     if (!co) return;
 
     banDay = {};
-    var nguoiDangDi = dayNguoi, mailDangDi = dayMail;
+    var nguoiDangDi = dayNguoi, mailDangDi = dayMail, tenDangDi = dayTen;
     dayNguoi = false;
     dayMail = false;
+    dayTen = false;
     dangDay = true;
-    datKho("dang", "Đang gửi lên");
+    datKho("dang", "Uploading");
 
     fetch(khoUrl(), {
       method: "PATCH",
@@ -3280,7 +3385,8 @@
       for (var k in hang) { if (coRieng(hang, k)) banDay[k] = true; }
       if (nguoiDangDi) dayNguoi = true;
       if (mailDangDi) dayMail = true;
-      datKho("loi", "Mất mạng — sẽ gửi lại");
+      if (tenDangDi) dayTen = true;
+      datKho("loi", "Offline — will retry");
       daySoon(5000);
     });
   }
@@ -3322,7 +3428,7 @@
     khoNgung.hidden = !kho;
     khoDangDung.hidden = !kho;
     if (kho) {
-      khoDangDung.textContent = "Máy này đang dùng chung kho: " + kho.base + " · bảng " + kho.phong;
+      khoDangDung.textContent = "This device is connected to: " + kho.base + " · table " + kho.phong;
       khoMaBox.hidden = false;
       khoMa.value = maKho(kho);
     } else {
@@ -3338,22 +3444,22 @@
 
   document.getElementById("khoNoi").addEventListener("click", function(){
     var chu = khoO.value.trim();
-    if (!chu) { noiKho("bad", "Chưa điền địa chỉ kho hay mã kho."); return; }
+    if (!chu) { noiKho("bad", "No database address or share code entered."); return; }
 
     var moi;
     if (/^https?:\/\//i.test(chu) || chu.indexOf(".") > -1) {
       moi = { base: chuanBase(chu), phong: khoPhong.value.trim() || PHONG_MAC_DINH };
     } else {
       moi = doMaKho(chu);
-      if (!moi) { noiKho("bad", "Mã kho không đọc được. Nhờ người gửi chép lại cho đủ."); return; }
+      if (!moi) { noiKho("bad", "That share code could not be read. Ask the sender to copy the whole thing."); return; }
     }
 
-    noiKho("tin", "Đang thử nối…");
+    noiKho("tin", "Connecting…");
     fetch(khoUrl(moi) + "?t=" + Date.now(), { cache: "no-store" })
       .then(function(r){
-        if (!r.ok) throw new Error("kho trả về HTTP " + r.status +
+        if (!r.ok) throw new Error("the database returned HTTP " + r.status +
           (r.status === 401 || r.status === 403
-            ? " — kho đang khoá, sửa Rules thành true rồi Publish lại"
+            ? " — the database is locked; set the Rules to true and publish again"
             : ""));
         return r.json();
       })
@@ -3378,25 +3484,26 @@
         khoMa.value = maKho(kho);
         khoNgung.hidden = false;
         khoDangDung.hidden = false;
-        khoDangDung.textContent = "Máy này đang dùng chung kho: " + kho.base + " · bảng " + kho.phong;
+        khoDangDung.textContent = "This device is connected to: " + kho.base + " · table " + kho.phong;
         noiKho("good", coSan
-          ? "Nối được. Kho đang có " + Object.keys(goi.tasks).length +
-            " việc, đã trộn vào bảng của máy này."
-          : "Nối được. Kho còn trống nên bảng trên máy này vừa được đẩy lên làm bản gốc.");
+          ? "Connected. The database holds " + Object.keys(goi.tasks).length +
+            " tasks, now merged into this device's board."
+          : "Connected. The database was empty, so this device's board was uploaded as the starting point.");
       })["catch"](function(err){
-        noiKho("bad", "Không nối được: " + (err.message || err) +
-          ". Kiểm tra lại địa chỉ, và nhớ mở Rules cho đọc ghi.");
+        noiKho("bad", "Could not connect: " + (err.message || err) +
+          ". Check the address, and make sure the Rules allow reads and writes.");
       });
   });
 
   khoNgung.addEventListener("click", function(){
-    if (!confirm("Ngưng dùng chung? Bảng việc vẫn còn nguyên trên máy này, chỉ là thôi đồng bộ.")) return;
+    if (!confirm("Stop sharing? The board stays on this device, it just stops syncing.")) return;
     kho = null;
     ghiKho(null);
     clearInterval(keoTimer);
     banDay = {};
     dayNguoi = false;
     dayMail = false;
+    dayTen = false;
     veTrangThaiKho();
     manKho.hidden = true;
   });
@@ -3405,13 +3512,14 @@
     khoMa.select();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(khoMa.value);
-      noiKho("good", "Đã chép mã kho. Gửi cho người trong team là xong.");
+      noiKho("good", "Share code copied. Send it to your teammates and you're done.");
     }
   });
 
   /* ---------- chạy ---------- */
 
   showRestore();
+  veTenTrang();
   render();
   doLink();
   batDauDongBo();
