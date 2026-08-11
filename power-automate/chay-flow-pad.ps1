@@ -11,6 +11,15 @@
 # ==========================================================
 
 param(
+    # Cach 1 (nen dung): dan nguyen URI lay tu Power Automate Desktop.
+    # Lay o dau: chuot phai flow trong PAD > Create desktop shortcut,
+    # roi chuot phai shortcut > Properties > o "Target".
+    # Dang:
+    #   ms-powerautomate:/console/flow/run?environmentid=<GUID>&workflowid=<GUID>&source=Other
+    # Dung GUID nen doi ten flow ve sau khong lam hong lich chay.
+    [string]$UriFlow = "",
+
+    # Cach 2 (du phong): goi flow theo TEN. Chi dung khi $UriFlow de trong.
     [string]$TenFlow = "run job",
 
     # Tham so dau vao cho flow, dang JSON. Vi du:
@@ -77,7 +86,7 @@ function Get-PADConsolePaths {
 
 # Protocol handler 'ms-powerautomate:' co xuat hien trong registry khong?
 # CHI DE THAM KHAO khi doc log - KHONG duoc dung lam dieu kien chan.
-# Voi ung dung MSIX, protocol dang ky theo app model chu khong phai lúc nao cung
+# Voi ung dung MSIX, protocol dang ky theo app model chu khong phai luc nao cung
 # tao khoa o HKEY_CLASSES_ROOT, nen ket qua $false o day rat hay la bao dong gia.
 function Test-PADProtocol {
     foreach ($k in @(
@@ -112,13 +121,21 @@ if ($ChiKiemTra) {
 }
 
 # ---------------- CHAY FLOW ----------------
-# Ten flow phai duoc URL-encode: 'run job' -> 'run%20job'
-$uri = "ms-powerautomate:/console/flow/run?workflowName=" + [uri]::EscapeDataString($TenFlow)
+if ($UriFlow) {
+    # Dung nguyen URI lay tu PAD - khong dung cham, no da dung dinh dang roi
+    $uri  = $UriFlow.Trim()
+    $nhan = "URI chi dinh san (theo workflowid)"
+} else {
+    # Du phong: ghep URI theo ten. Ten phai URL-encode: 'run job' -> 'run%20job'
+    $uri  = "ms-powerautomate:/console/flow/run?workflowName=" + [uri]::EscapeDataString($TenFlow)
+    $nhan = "ghep theo ten flow '$TenFlow'"
+}
+
 if ($InputArguments) {
     $uri += "&inputArguments=" + [uri]::EscapeDataString($InputArguments)
 }
 
-Write-Log "Goi flow '$TenFlow'"
+Write-Log "Chay flow - $nhan"
 Write-Log "URI: $uri"
 
 # Cach A - kich hoat qua protocol handler, de Windows tu tim ung dung.
@@ -126,7 +143,7 @@ Write-Log "URI: $uri"
 # neu protocol chua dang ky that thi Start-Process se nem loi va roi xuong Cach B.
 try {
     Start-Process -FilePath $uri -ErrorAction Stop
-    Write-Log "Da gui lenh chay flow '$TenFlow' (qua protocol handler)."
+    Write-Log "Da gui lenh chay flow (qua protocol handler)."
     exit 0
 } catch {
     Write-Log ("Protocol handler khong dung duoc: " + $_.Exception.Message) "CANH BAO"
@@ -136,12 +153,12 @@ try {
 foreach ($p in $PADPaths) {
     try {
         Start-Process -FilePath $p -ArgumentList "`"$uri`"" -ErrorAction Stop
-        Write-Log "Da gui lenh chay flow '$TenFlow' qua: $p"
+        Write-Log "Da gui lenh chay flow qua: $p"
         exit 0
     } catch {
         Write-Log ("Goi that bai [{0}]: {1}" -f $p, $_.Exception.Message) "CANH BAO"
     }
 }
 
-Write-Log "Khong the khoi chay flow '$TenFlow' bang bat ky cach nao." "LOI"
+Write-Log "Khong the khoi chay flow bang bat ky cach nao." "LOI"
 exit 1

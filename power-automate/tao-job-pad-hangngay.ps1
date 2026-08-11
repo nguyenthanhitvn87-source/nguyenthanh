@@ -15,8 +15,20 @@
 
 # ---------------- CAU HINH ----------------
 $TenTask = "ChayPowerAutomateFlowHangNgay"
-$TenFlow = "run job"     # Ten flow trong Power Automate Desktop (dung y het, ke ca hoa/thuong)
 $GioChay = "15:55"       # Gio chay moi ngay, dinh dang HH:mm (24h)
+
+# CACH CHI DINH FLOW - chon MOT trong hai:
+#
+# Cach 1 (NEN DUNG): dan nguyen URI lay tu Power Automate Desktop.
+#   Lay o dau: chuot phai flow trong PAD > Create desktop shortcut,
+#   roi chuot phai shortcut vua tao > Properties > copy o "Target".
+#   URI nay dung workflowid (GUID) nen doi ten flow ve sau khong lam hong lich chay,
+#   va co san environmentid nen khong nham moi truong.
+$UriFlow = "ms-powerautomate:/console/flow/run?environmentid=Default-fe9c4641-3b53-43d0-af72-8f3e64d3aa05&workflowid=a27713c9-83fd-44d9-be54-c1d1760e88bd&source=Other"
+#
+# Cach 2 (du phong): de $UriFlow = "" o tren, roi dien ten flow vao day.
+#   Ten phai dung y het, ke ca hoa/thuong va dau cach.
+$TenFlow = "run job"
 
 # Chay PAD voi quyen Administrator?
 #   $false (mac dinh) - giong nhu ban tu mo PAD binh thuong. Nen dung, vi ban PAD
@@ -36,9 +48,21 @@ if (-not (Test-Path -LiteralPath $Launcher)) {
     exit 1
 }
 
+# --- Xac dinh se goi flow theo cach nao ---
+if ($UriFlow) {
+    $ThamSoFlow = '-UriFlow "{0}"' -f $UriFlow.Trim()
+    $MoTaFlow   = "URI: " + $UriFlow.Trim()
+} elseif ($TenFlow) {
+    $ThamSoFlow = '-TenFlow "{0}"' -f $TenFlow
+    $MoTaFlow   = "Ten flow: " + $TenFlow
+} else {
+    Write-Host "Phai dien MOT trong hai: `$UriFlow hoac `$TenFlow o phan CAU HINH." -ForegroundColor Red
+    exit 1
+}
+
 # --- Kiem tra truoc: may nay co Power Automate Desktop khong? ---
 Write-Host "Dang kiem tra Power Automate Desktop..." -ForegroundColor Cyan
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Launcher -TenFlow $TenFlow -ChiKiemTra
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Launcher -ChiKiemTra
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Kiem tra that bai - dung tao task. Cai/mo Power Automate Desktop roi chay lai." -ForegroundColor Red
     exit 1
@@ -46,9 +70,11 @@ if ($LASTEXITCODE -ne 0) {
 
 # --- Action: goi launcher qua PowerShell, chay an cua so ---
 # Luu y: KHONG dat ten bien la $Args - do la bien tu dong cua PowerShell.
+# URI chua ky tu '&' nhung khong sao: Task Scheduler dua chuoi nay thang cho
+# CreateProcess, khong di qua cmd.exe, nen '&' khong bi dien giai.
 $PSExe   = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 $ThamSo  = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden ' +
-           ('-File "{0}" -TenFlow "{1}"' -f $Launcher, $TenFlow)
+           ('-File "{0}" {1}' -f $Launcher, $ThamSoFlow)
 
 $Action = New-ScheduledTaskAction -Execute $PSExe -Argument $ThamSo -WorkingDirectory $PSScriptRoot
 
@@ -83,7 +109,7 @@ Register-ScheduledTask -TaskName $TenTask `
     -Trigger $Trigger `
     -Principal $Principal `
     -Settings $Settings `
-    -Description "Tu dong chay flow '$TenFlow' trong Power Automate Desktop luc $GioChay moi ngay" `
+    -Description "Tu dong chay flow trong Power Automate Desktop luc $GioChay moi ngay. $MoTaFlow" `
     -Force | Out-Null
 
 $task = Get-ScheduledTask -TaskName $TenTask
@@ -92,7 +118,7 @@ $info = Get-ScheduledTaskInfo -TaskName $TenTask
 Write-Host ""
 Write-Host "=== DA TAO TASK THANH CONG ===" -ForegroundColor Green
 Write-Host ("  Ten task   : {0}" -f $TenTask)
-Write-Host ("  Flow       : {0}" -f $TenFlow)
+Write-Host ("  Flow       : {0}" -f $MoTaFlow)
 Write-Host ("  Chay luc   : {0} moi ngay" -f $GioChay)
 Write-Host ("  Chay duoi  : {0} (Interactive, RunLevel={1})" -f $UserId, $RunLevel)
 Write-Host ("  Lan ke tiep: {0}" -f $info.NextRunTime)

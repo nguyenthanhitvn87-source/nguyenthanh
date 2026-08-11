@@ -15,10 +15,18 @@ vào đúng giờ mỗi ngày. Không cần license Premium.
 1. Copy cả **hai file** vào cùng một thư mục trên máy Windows, ví dụ `C:\PAD\`.
 2. Mở `tao-job-pad-hangngay.ps1`, sửa phần `CAU HINH`:
    ```powershell
-   $TenFlow  = "run job"     # tên flow trong PAD, gõ y hệt
    $GioChay  = "15:55"       # giờ chạy, định dạng HH:mm 24h
+   $UriFlow  = "ms-powerautomate:/console/flow/run?environmentid=...&workflowid=...&source=Other"
    $QuyenCao = $false        # chỉ bật $true nếu flow phải điều khiển app chạy quyền admin
    ```
+
+   **Lấy `$UriFlow` ở đâu:** trong Power Automate Desktop, chuột phải flow →
+   *Create desktop shortcut*. Chuột phải shortcut vừa tạo → *Properties* → copy ô **Target**.
+
+   URI này định danh flow bằng `workflowid` (GUID) và kèm sẵn `environmentid`, nên
+   đổi tên flow về sau cũng không làm hỏng lịch chạy, và không lo gõ sai tên.
+   Nếu không lấy được URI, để `$UriFlow = ""` rồi điền `$TenFlow` — script sẽ tự ghép
+   URI theo tên (kém chắc chắn hơn).
 3. Mở **PowerShell với quyền Administrator** (chuột phải → *Run as Administrator*), rồi:
    ```powershell
    cd C:\PAD
@@ -49,11 +57,13 @@ ms-powerautomate:/console/flow/run?workflowName=<ten-flow-da-url-encode>
 ```
 
 Tên `run job` có dấu cách nên phải encode thành `run%20job`, nếu không PAD chỉ
-nhận được `run`. Launcher xử lý việc này bằng `[uri]::EscapeDataString()`.
+nhận được `run`. Launcher xử lý việc này bằng `[uri]::EscapeDataString()` — nhưng
+tốt nhất là dùng thẳng `$UriFlow` lấy từ PAD (dạng `workflowid`), khỏi cần ghép tay.
 
 Muốn truyền tham số vào flow:
 ```powershell
-.\chay-flow-pad.ps1 -TenFlow "run job" -InputArguments '{"NgayChay":"2026-08-11"}'
+.\chay-flow-pad.ps1 -UriFlow "ms-powerautomate:/console/flow/run?..." `
+                    -InputArguments '{"NgayChay":"2026-08-11"}'
 ```
 
 ### 2. `LogonType S4U` làm flow không chạy được
