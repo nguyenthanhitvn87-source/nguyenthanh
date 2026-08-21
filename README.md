@@ -36,6 +36,7 @@ npx http-server .
 
 ```
 index.html               # toàn bộ game: giao diện, style và logic
+quan-ly-tre-con.html     # ứng dụng quản lý trẻ con cho iPhone (xem bên dưới)
 cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
@@ -379,3 +380,72 @@ bản mở bằng đường dẫn khác hay trình duyệt khác. Mang sang nơi
 Mỗi lần ghi đè lớn (nhận bảng từ link, nhập JSON, nối vào kho) đều cất bản cũ lại;
 link **Khôi phục bản trước đó** ở chân trang đổi qua đổi lại giữa hai bản, nên bấm
 nhầm vẫn lấy lại được.
+
+---
+
+# 👶 Quản lý bé — ứng dụng cho iPhone
+
+Mở `quan-ly-tre-con.html`. Vẫn là **một file HTML duy nhất**, không cần cài, không cần
+build, không tài khoản, không máy chủ. Cài lên Màn hình chính iPhone là chạy như một
+app thật: toàn màn hình, không thanh địa chỉ, mất mạng vẫn dùng được.
+
+## Cài lên iPhone
+
+1. Mở trang này bằng **Safari** (Chrome trên iPhone không cài được).
+2. Bấm nút **Chia sẻ** ⬆︎ ở thanh dưới.
+3. Kéo xuống chọn **Thêm vào MH chính** → **Thêm**.
+4. Từ đó mở bằng icon ngoài màn hình.
+
+## Năm tab
+
+**☀️ Hôm nay** — ba con số mở đầu: sao kiếm được hôm nay, việc đã xong trên tổng số,
+số phút dùng máy còn lại. Dưới đó là nề nếp trong ngày dạng timeline (mốc đang tới giờ
+được tô sáng, mốc đã qua thì mờ đi), việc nhà của đúng thứ hôm nay, mục **Sắp tới** gom
+lịch khám — mũi tiêm — hạn bài tập trong 14 ngày, và một dòng nhật ký kèm tâm trạng.
+
+**⭐️ Việc & Sao** — ví sao của bé, biểu đồ bảy ngày gần đây, danh sách việc được giao
+(mỗi việc đặt riêng số sao và những thứ nào trong tuần phải làm), quầy đổi thưởng
+(đủ sao thì nút **Đổi** sáng lên) và sổ sao ghi từng lần cộng trừ. Bấm ✓ vào một việc
+là tự cộng sao; bỏ tick thì sao cũng được thu lại, không bị cộng dồn.
+
+**🩺 Sức khoẻ** — chiều cao, cân nặng, BMI kèm mức chênh so với lần đo trước, biểu đồ
+hai đường theo thời gian; danh sách tiêm chủng đánh dấu đã tiêm; thuốc và dị ứng;
+lịch khám.
+
+**📚 Học tập** — hạn mức giờ dùng máy mỗi ngày với thanh tiến độ đỏ lên khi vượt,
+nút ＋15/＋30 phút và **đồng hồ bấm giờ** cho lúc bé bắt đầu xem; biểu đồ bảy ngày
+dùng máy; bài tập kèm hạn nộp (quá hạn hiện nhãn đỏ); thời khoá biểu từng thứ.
+
+**👶 Hồ sơ** — sửa tên, ảnh đại diện, màu, ngày sinh (tuổi tự tính ra năm và tháng);
+sửa các mốc nề nếp; bật nhắc giờ; và khu dữ liệu.
+
+## Nhiều bé
+
+Dải chip ngay dưới tiêu đề chuyển qua lại giữa các bé, mỗi bé một màu và một bộ dữ liệu
+riêng hoàn toàn. Thêm bé mới thì được hỏi có **chép nề nếp, việc nhà và phần thưởng**
+của bé đang xem sang không, khỏi phải nhập lại từ đầu.
+
+## Dữ liệu để ở đâu
+
+Tất cả nằm trong `localStorage` của máy đang dùng — không gửi lên mạng, không có tài
+khoản. Ba cách mang đi:
+
+- **📤 Gửi qua link** — gói cả hồ sơ vào phần sau dấu `#` của địa chỉ rồi gửi qua Zalo.
+  Phần sau dấu `#` không bao giờ được gửi lên máy chủ nào. Người nhận được hỏi có lưu
+  vào máy không, dữ liệu cũ của họ chỉ bị thay khi họ đồng ý và vẫn được cất lại.
+- **⬇︎ Xuất file** JSON để sao lưu.
+- **⬆︎ Nhập file** ở máy mới.
+
+Xoá Safari khỏi máy hay xoá dữ liệu web thì mất, nên thỉnh thoảng nên bấm **Xuất file**.
+
+## Nhắc giờ
+
+Bật ở tab Hồ sơ. Mỗi khi tới một mốc nề nếp, máy báo kèm tên bé và người lo việc đó.
+Chỉ nhắc trong vòng 5 phút kể từ mốc nên mở app muộn không bị dội thông báo cũ, và mỗi
+mốc chỉ nhắc một lần trong ngày. Trên iPhone phải mở sẵn app (đã cài lên Màn hình chính)
+thì mới nhắc được.
+
+## Lưu ý
+
+BMI hiện ở tab Sức khoẻ chỉ để tham khảo. Ở trẻ con phải so với biểu đồ tăng trưởng
+theo tuổi của bác sĩ, đừng tự kết luận từ một con số.
