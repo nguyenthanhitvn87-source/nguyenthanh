@@ -39,9 +39,13 @@ def set_lines(tf, lines, size=None):
     for p in body.findall(qn("a:p")):
         body.remove(p)
     run_tmpl = deepcopy(tmpl.findall(qn("a:r"))[0])
+    end = tmpl.find(qn("a:endParaRPr"))
+    end_tmpl = deepcopy(end) if end is not None else None
+    # keep only <a:pPr>; runs and endParaRPr are re-added in schema order below
     for child in list(tmpl):
-        if child.tag in (qn("a:r"), qn("a:br"), qn("a:fld")):
+        if child.tag != qn("a:pPr"):
             tmpl.remove(child)
+
     for line in lines:
         para = deepcopy(tmpl)
         if line:
@@ -57,6 +61,10 @@ def set_lines(tf, lines, size=None):
                         r.insert(0, rPr)
                     rPr.set("sz", str(int(size * 100)))
                 para.append(r)
+        # <a:endParaRPr> must be the LAST child, or PowerPoint reads the
+        # paragraph as empty and shows the placeholder prompt instead
+        if end_tmpl is not None:
+            para.append(deepcopy(end_tmpl))
         body.append(para)
 
 
