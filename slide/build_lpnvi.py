@@ -207,75 +207,75 @@ r.font.color.rgb = WHITE
 
 # --------------------------------------------------------------- slide 2
 s = named(S[1])
-set_lines(s["Title 1"].text_frame, ["Tổng quan giải pháp"])
+set_lines(s["Title 1"].text_frame, ["Solution Overview"])
 for tn, cn, bn, title, cap, badge in [
     ("TextBox 7",  "TextBox 8",  "Rounded Rectangle 9",
      "Master Data\nSetup", "CMIR · MG0156 · INSP", "MASTER DATA"),
     ("TextBox 15", "TextBox 16", "Rounded Rectangle 17",
-     "Billing\nOutput", "Ghép Mat. Desc + INSP", "SAP"),
+     "Billing\nOutput", "Concatenate Mat. Desc + INSP", "SAP"),
     ("TextBox 23", "TextBox 24", "Rounded Rectangle 25",
-     "Chứng từ\nkho / giao nhận", "PGN · PXKDL · PXKNB", "PP#"),
+     "Warehouse &\nDelivery Notes", "PGN · PXKDL · PXKNB", "PP#"),
     ("TextBox 31", "TextBox 32", "Rounded Rectangle 33",
-     "Hóa đơn\nđiện tử", "Tách separator \"| \"", "VNPT"),
+     "E-Invoice\nDisplay", "Split on separator \"| \"", "VNPT"),
 ]:
     set_lines(s[tn].text_frame, [title])
     set_lines(s[cn].text_frame, [cap])
     set_lines(s[bn].text_frame, [badge])
 set_lines(s["TextBox 34"].text_frame,
-          ["Phạm vi: all BU nationwide  —  thứ tự ưu tiên CMIR › MG0156 › INSP."])
+          ["Scope: all BU nationwide  —  logic priority CMIR › MG0156 › INSP."])
 
 # --------------------------------------------------------------- slide 3
 sl = S[2]
 strip(sl)
 n = named(sl)
-set_lines(n["Title 1"].text_frame, ["Hiện trạng"])
+set_lines(n["Title 1"].text_frame, ["Current Situation"])
 set_lines(n["Text Placeholder 2"].text_frame, ["1"])
 
-bullet(sl, 0.85, 2.15, 5.5, 1, "Mat. Desc giới hạn 40 ký tự",
-       "Tên sản phẩm dài hơn 40 ký tự bị cắt cụt khi in ra chứng từ.")
-bullet(sl, 0.85, 3.40, 5.5, 2, "Đã enhance được một phần",
-       "CMIR cho khách Tender, Basis Text cho nhóm hàng MG0156.")
-bullet(sl, 0.85, 4.65, 5.5, 3, "Phần còn lại vẫn chưa xử lý",
-       "Các BU khác chưa in được tên tiếng Việt có dấu, đầy đủ.")
+bullet(sl, 0.85, 2.15, 5.5, 1, "Mat. Desc is capped at 40 characters",
+       "Names longer than 40 characters are truncated on printed documents.")
+bullet(sl, 0.85, 3.40, 5.5, 2, "Partly enhanced already",
+       "CMIR for Tender customers, Basis Text for material group MG0156.")
+bullet(sl, 0.85, 4.65, 5.5, 3, "The remaining scope is still open",
+       "Other BUs cannot print the full Vietnamese name with diacritics.")
 
-panel(sl, 7.05, 1.95, 5.6, 4.55, "AS-IS  ·  Tên bị cắt")
+panel(sl, 7.05, 1.95, 5.6, 4.55, "AS-IS  ·  Name truncated")
 card(sl, 7.30, 2.72, 5.10, 1.05)
-txt(sl, 7.50, 2.88, 4.70, 0.22, "Tên đầy đủ cần in", size=10, color=GREY)
+txt(sl, 7.50, 2.88, 4.70, 0.22, "Full name to be printed", size=10, color=GREY)
 txt(sl, 7.50, 3.14, 4.70, 0.70, VN_NAME, size=13, bold=True, color=DARK)
-label(sl, 11.05, 2.84, 1.20, 0.26, "47 KÝ TỰ", fill=RED2, size=9)
+label(sl, 11.05, 2.84, 1.20, 0.26, "47 CHARS", fill=RED2, size=9)
 
 card(sl, 7.30, 4.05, 5.10, 1.28)
-txt(sl, 7.50, 4.21, 4.70, 0.22, "Mat. Desc chứa được", size=10, color=GREY)
+txt(sl, 7.50, 4.21, 4.70, 0.22, "What Mat. Desc can hold", size=10, color=GREY)
 txt(sl, 7.50, 4.47, 4.70, 0.30,
     [("ABC SUNSCREEN GEL SPF50+ 50ML", {}), (" …", {"color": RED2})],
     size=13, bold=True, color=DARK)
-txt(sl, 7.50, 4.83, 4.70, 0.24, "không dấu  ·  phần sau bị cắt",
+txt(sl, 7.50, 4.83, 4.70, 0.24, "no diacritics  ·  rest is cut off",
     size=10, color=RED2)
-label(sl, 11.05, 4.17, 1.20, 0.26, "40 KÝ TỰ", fill=GREY, size=9)
+label(sl, 11.05, 4.17, 1.20, 0.26, "40 CHARS", fill=GREY, size=9)
 
 txt(sl, 7.30, 5.62, 5.10, 0.30,
-    "→ Hóa đơn / phiếu kho chỉ in được tên tiếng Anh, chưa đủ nghĩa.",
+    "→ Invoices and warehouse notes show the English name only.",
     size=11, bold=True, color=RED)
 
 # --------------------------------------------------------------- slide 4
 sl = S[3]
 strip(sl)
 n = named(sl)
-set_lines(n["Title 1"].text_frame, ["Yêu cầu"])
+set_lines(n["Title 1"].text_frame, ["Requirement"])
 set_lines(n["Text Placeholder 2"].text_frame, ["2"])
 
-bullet(sl, 0.85, 2.05, 5.5, 1, "Tên dài, có dấu tiếng Việt",
-       "Vượt giới hạn 40 ký tự của Mat. Desc.")
-bullet(sl, 0.85, 3.15, 5.5, 2, "Trình bày 2 dòng trên hóa đơn",
-       "Dòng 1 tiếng Việt, dòng 2 tiếng Anh chữ nhỏ hơn trên EIV.")
-bullet(sl, 0.85, 4.25, 5.5, 3, "Mở rộng sang chứng từ kho",
-       "Phiếu Giao Nhận, Phiếu Xuất Kho Đại Lý, Phiếu Xuất Kho Nội Bộ.")
-bullet(sl, 0.85, 5.35, 5.5, 4, "Phạm vi áp dụng",
+bullet(sl, 0.85, 2.05, 5.5, 1, "Long name with Vietnamese diacritics",
+       "Beyond the 40-character limit of Mat. Desc.")
+bullet(sl, 0.85, 3.15, 5.5, 2, "Two lines on the invoice",
+       "Line 1 Vietnamese, line 2 English in a smaller font on EIV.")
+bullet(sl, 0.85, 4.25, 5.5, 3, "Extend to warehouse documents",
+       "Delivery Note, Agent and Internal Goods Issue Notes.")
+bullet(sl, 0.85, 5.35, 5.5, 4, "Scope",
        "All BU nationwide.")
 
-panel(sl, 7.05, 1.95, 5.6, 4.55, "TO-BE  ·  Hóa đơn điện tử")
+panel(sl, 7.05, 1.95, 5.6, 4.55, "TO-BE  ·  Electronic invoice")
 card(sl, 7.30, 2.72, 5.10, 2.05)
-txt(sl, 7.50, 2.90, 4.70, 0.22, "Tên hàng hóa, dịch vụ", size=10, color=GREY)
+txt(sl, 7.50, 2.90, 4.70, 0.22, "Product / service description", size=10, color=GREY)
 rule(sl, 7.50, 3.18, 4.70)
 txt(sl, 7.50, 3.32, 4.30, 0.62, VN_NAME, size=13, bold=True, color=DARK)
 txt(sl, 7.50, 4.06, 4.30, 0.26, EN_NAME, size=9.5, color=GREY)
@@ -284,25 +284,25 @@ label(sl, 11.90, 4.05, 0.30, 0.30, "2", fill=GREY, size=10, radius=0.5)
 
 txt(sl, 7.30, 5.00, 5.10, 0.26,
     [("1", {"color": RED, "bold": True}),
-     ("  Tiếng Việt có dấu — chữ lớn, dòng đầu", {})], size=11, color=DARK)
+     ("  Vietnamese with diacritics — larger, first line", {})], size=11, color=DARK)
 txt(sl, 7.30, 5.32, 5.10, 0.26,
     [("2", {"color": GREY, "bold": True}),
-     ("  Tiếng Anh — chữ nhỏ hơn, dòng dưới", {})], size=11, color=DARK)
+     ("  English — smaller font, second line", {})], size=11, color=DARK)
 txt(sl, 7.30, 5.78, 5.10, 0.30,
-    "→ Áp dụng cho EIV và cả PGN / PXKDL / PXKNB.",
+    "→ Applies to EIV and to PGN / PXKDL / PXKNB.",
     size=11, bold=True, color=RED)
 
 # --------------------------------------------------------------- slide 5
 sl = S[4]
 strip(sl)
 n = named(sl)
-set_lines(n["Title 1"].text_frame, ["Giải pháp"])
+set_lines(n["Title 1"].text_frame, ["Solution"])
 set_lines(n["Text Placeholder 2"].text_frame, ["3"])
 
 # two source fields
 for x, name, cap, detail, fill in [
-    (1.30, "Mat. Desc", "max 40 ký tự", "Tên tiếng Anh (default)", GREY),
-    (5.55, "INSP", "max 220 ký tự", "Tên tiếng Việt có dấu", RED),
+    (1.30, "Mat. Desc", "max 40 chars", "English name (default)", GREY),
+    (5.55, "INSP", "max 220 chars", "Vietnamese name, with diacritics", RED),
 ]:
     card(sl, x, 1.95, 3.35, 1.20)
     label(sl, x + 0.22, 2.14, 1.55, 0.30, name, fill=fill, size=11.5)
@@ -315,11 +315,11 @@ txt(sl, 4.65, 2.38, 0.90, 0.50, "+", size=26, bold=True, color=RED,
 
 # concatenation result
 shape(sl, MSO_SHAPE.DOWN_ARROW, 4.90, 3.30, 0.40, 0.44, fill=RED)
-txt(sl, 5.45, 3.40, 3.40, 0.34, "nối bằng separator  \"| \"",
+txt(sl, 5.45, 3.40, 3.40, 0.34, "joined by separator  \"| \"",
     size=12, bold=True, color=RED)
 
 card(sl, 1.30, 3.92, 7.60, 0.95)
-txt(sl, 1.52, 4.08, 7.16, 0.24, "Chuỗi gửi sang EIV VNPT", size=10, color=GREY)
+txt(sl, 1.52, 4.08, 7.16, 0.24, "String sent to EIV VNPT", size=10, color=GREY)
 txt(sl, 1.52, 4.36, 7.16, 0.44,
     [("Mat. Desc", {"color": GREY}),
      ("  |  ", {"color": RED2, "bold": True}),
@@ -327,9 +327,10 @@ txt(sl, 1.52, 4.36, 7.16, 0.44,
     size=15, bold=True)
 
 # priority chain
-txt(sl, 1.30, 5.25, 3.20, 0.28, "Thứ tự ưu tiên logic", size=11.5, bold=True,
+txt(sl, 1.30, 5.25, 3.20, 0.28, "Logic priority", size=11.5, bold=True,
     color=DARK)
-chain = [("CMIR", "khách Tender"), ("MG0156", "Basis Text"), ("INSP", "phần còn lại")]
+chain = [("CMIR", "Tender customers"), ("MG0156", "Basis Text"),
+         ("INSP", "everything else")]
 cx = 1.30
 for i, (nm, why) in enumerate(chain):
     card(sl, cx, 5.55, 2.20, 0.80)
@@ -342,26 +343,26 @@ for i, (nm, why) in enumerate(chain):
 
 panel(sl, 9.45, 1.95, 3.25, 4.40, "KEY POINT")
 txt(sl, 9.70, 2.68, 2.75, 0.85,
-    "INSP chứa được 220 ký tự và giữ nguyên dấu tiếng Việt.",
+    "INSP holds 220 characters and keeps Vietnamese diacritics.",
     size=13, bold=True, color=DARK)
 rule(sl, 9.70, 3.62, 2.75)
 txt(sl, 9.70, 3.78, 2.75, 0.80,
-    "Mat. Desc giữ nguyên như hiện tại — không phải sửa master data cũ.",
+    "Mat. Desc stays as it is — no rework on existing master data.",
     size=11, color=GREY)
 rule(sl, 9.70, 4.70, 2.75)
 txt(sl, 9.70, 4.86, 2.75, 0.85,
-    "VNPT tách chuỗi theo \"| \" để xếp thành 2 dòng trên hóa đơn.",
+    "VNPT splits the string on \"| \" and lays it out on two lines.",
     size=11, color=GREY)
 
 # --------------------------------------------------------------- slide 6
 sl = S[5]
 strip(sl)
 n = named(sl)
-set_lines(n["Title 1"].text_frame, ["Ví dụ thực tế"])
+set_lines(n["Title 1"].text_frame, ["Worked Example"])
 set_lines(n["Text Placeholder 2"].text_frame, ["4"])
 
 # input fields
-txt(sl, 0.85, 1.95, 11.85, 0.28, "Master data nhập vào", size=11.5, bold=True,
+txt(sl, 0.85, 1.95, 11.85, 0.28, "Master data entered", size=11.5, bold=True,
     color=DARK)
 card(sl, 0.85, 2.30, 5.75, 0.95)
 txt(sl, 1.05, 2.44, 5.35, 0.22, "Mat. Desc", size=10, bold=True, color=GREY)
@@ -371,7 +372,7 @@ txt(sl, 7.15, 2.44, 5.35, 0.22, "INSP", size=10, bold=True, color=RED)
 txt(sl, 7.15, 2.72, 5.35, 0.30, VN_NAME, size=12, color=DARK)
 
 # concatenated string
-txt(sl, 0.85, 3.55, 11.85, 0.28, "Chuỗi SAP ghép và gửi sang EIV",
+txt(sl, 0.85, 3.55, 11.85, 0.28, "String SAP builds and sends to EIV",
     size=11.5, bold=True, color=DARK)
 card(sl, 0.85, 3.90, 11.85, 0.72)
 txt(sl, 1.05, 4.08, 11.45, 0.36,
@@ -381,17 +382,17 @@ txt(sl, 1.05, 4.08, 11.45, 0.36,
     size=12.5, bold=True)
 
 txt(sl, 1.05, 4.68, 11.45, 0.24,
-    [("\u25cf Mat. Desc — tiếng Anh", {"color": GREY}),
+    [("\u25cf Mat. Desc — English", {"color": GREY}),
      ("      \u25cf separator \"| \"", {"color": RED2}),
-     ("      \u25cf INSP — tiếng Việt có dấu", {"color": RED})],
+     ("      \u25cf INSP — Vietnamese with diacritics", {"color": RED})],
     size=9.5, bold=True)
 
 # rendered invoice
-txt(sl, 0.85, 5.02, 11.85, 0.28, "Kết quả trình bày trên hóa đơn / phiếu kho",
+txt(sl, 0.85, 5.02, 11.85, 0.28, "How it prints on the invoice / warehouse note",
     size=11.5, bold=True, color=DARK)
 panel(sl, 0.85, 5.36, 11.85, 1.66, "")
 card(sl, 1.10, 5.56, 11.35, 1.24)
-txt(sl, 1.35, 5.70, 10.85, 0.22, "Tên hàng hóa, dịch vụ", size=9.5, color=GREY)
+txt(sl, 1.35, 5.70, 10.85, 0.22, "Product / service description", size=9.5, color=GREY)
 rule(sl, 1.35, 5.96, 10.85)
 txt(sl, 1.35, 6.08, 10.85, 0.32, VN_NAME, size=14, bold=True, color=DARK)
 txt(sl, 1.35, 6.46, 10.85, 0.26, EN_NAME, size=10, color=GREY)
@@ -400,19 +401,19 @@ txt(sl, 1.35, 6.46, 10.85, 0.26, EN_NAME, size=10, color=GREY)
 sl = S[6]
 strip(sl)
 n = named(sl)
-set_lines(n["Title 1"].text_frame, ["Lập trình"])
+set_lines(n["Title 1"].text_frame, ["Development"])
 set_lines(n["Text Placeholder 2"].text_frame, ["5"])
 
 streams = [
     ("SAP", "Billing Output",
-     ["Ghép Mat. Desc + INSP text", "Chèn separator \"| \"",
-      "Áp thứ tự CMIR › MG0156 › INSP"], RED),
-    ("PP#", "Form chứng từ kho",
-     ["Phiếu Giao Nhận (PGN)", "Phiếu Xuất Kho Đại Lý (PXKDL)",
-      "Phiếu Xuất Kho Nội Bộ (PXKNB)"], RED),
-    ("VNPT", "Hóa đơn điện tử EIV",
-     ["Nhận biết separator \"| \"", "Tách thành 2 dòng",
-      "Tiếng Anh cỡ chữ nhỏ hơn"], GREY),
+     ["Concatenate Mat. Desc + INSP text", "Insert separator \"| \"",
+      "Apply priority CMIR › MG0156 › INSP"], RED),
+    ("PP#", "Warehouse & delivery forms",
+     ["Delivery Note (PGN)", "Agent Goods Issue Note (PXKDL)",
+      "Internal Goods Issue Note (PXKNB)"], RED),
+    ("VNPT", "E-invoice (EIV)",
+     ["Detect the separator \"| \"", "Split into two lines",
+      "English in a smaller font"], GREY),
 ]
 x = 0.85
 for owner, title, items, tone in streams:
@@ -429,20 +430,20 @@ for owner, title, items, tone in streams:
     x += 4.16
 
 txt(sl, 0.85, 6.60, 11.85, 0.30,
-    "Ba nhánh chạy song song — master data setup xong trước khi go-live.",
+    "Three parallel workstreams — master data setup must be done before go-live.",
     size=11.5, color=GREY)
 
 # --------------------------------------------------------------- slide 8
 s = named(S[7])
-set_lines(s["Title 1"].text_frame, ["Tóm lại"])
+set_lines(s["Title 1"].text_frame, ["Summary"])
 set_lines(s["TextBox 2"].text_frame, ["CMIR › MG0156 › INSP"])
 table = next(sh for sh in S[7].shapes if sh.has_table).table
 for r, values in enumerate([
-    ["#", "Nội dung", "Ai làm", "Trạng thái"],
-    ["1", "Phạm vi: all BU nationwide", "Business", "Đã chốt"],
+    ["#", "Item", "Owner", "Status"],
+    ["1", "Scope: all BU nationwide", "Business", "Confirmed"],
     ["2", "Master data: CMIR, MG0156, INSP", "Master Data", "Setup"],
-    ["3", "Ưu tiên: CMIR › MG0156 › INSP", "SAP", "Lập trình"],
-    ["4", "Dentsply: xóa hết record CMIR trước", "CIT", "Lưu ý"],
+    ["3", "Priority: CMIR › MG0156 › INSP", "SAP", "Develop"],
+    ["4", "Dentsply: remove all CMIR records first", "CIT", "Action"],
 ]):
     for c, value in enumerate(values):
         set_lines(table.cell(r, c).text_frame, [value])
