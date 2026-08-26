@@ -38,6 +38,7 @@ npx http-server .
 index.html               # toàn bộ game: giao diện, style và logic
 cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
+quan-ly-tre-em.html      # Bé Ngoan — quản lý trẻ em trên iPhone (xem bên dưới)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
@@ -379,3 +380,78 @@ bản mở bằng đường dẫn khác hay trình duyệt khác. Mang sang nơi
 Mỗi lần ghi đè lớn (nhận bảng từ link, nhập JSON, nối vào kho) đều cất bản cũ lại;
 link **Khôi phục bản trước đó** ở chân trang đổi qua đổi lại giữa hai bản, nên bấm
 nhầm vẫn lấy lại được.
+---
+
+# 🧸 Bé Ngoan — quản lý trẻ em trên iPhone
+
+Mở `quan-ly-tre-em.html` bằng Safari trên iPhone. Vẫn là **một file HTML duy nhất**:
+không cài đặt, không đăng nhập, không gọi ra mạng lần nào. Mọi thứ nằm trong máy.
+
+## Đưa lên iPhone như một ứng dụng
+
+1. Mở trang bằng **Safari** (đường dẫn kho, hoặc mở file đã tải về từ app Tệp).
+2. Bấm nút **Chia sẻ** ở thanh dưới → **Thêm vào MH chính** → **Thêm**.
+3. Từ đó mở bằng biểu tượng con gấu ngoài màn hình: chạy toàn màn hình, không thanh
+   địa chỉ, có vùng an toàn cho tai thỏ và thanh vuốt dưới đáy — nhìn như app thật.
+
+Không cần App Store, không cần máy Mac hay tài khoản nhà phát triển Apple. Trang cũng
+chạy đúng như vậy trên Android, máy tính bảng và máy tính bàn.
+
+## Năm khu vực
+
+| Thẻ | Làm gì |
+| --- | --- |
+| **Hôm nay** | Việc trong ngày, vòng tiến độ, nhật ký, biểu đồ bảy ngày |
+| **Việc** | Danh sách việc của bé: giờ, số sao, lặp lại thế nào |
+| **Thưởng** | Sao đang có, kho quà đổi sao, lịch sử đã đổi |
+| **Sức khoẻ** | Chiều cao cân nặng theo biểu đồ, tiêm chủng, thuốc, khám |
+| **Khác** | Hồ sơ các bé, nhắc giờ, giao diện, xuất/nhập, gửi link |
+
+## Tính năng
+
+- **Nhiều bé**: mỗi bé một tên, một hình, một màu riêng và ngày sinh. Dải chọn bé nằm
+  ngay dưới tiêu đề, đổi bé là mọi thẻ đổi theo. Có ngày sinh thì ứng dụng tự tính tuổi
+  (dưới hai tuổi đếm theo tháng) và nhắc trước sinh nhật 14 ngày.
+- **Việc hằng ngày**: đặt giờ, số sao, và cách lặp — *hằng ngày*, *chọn thứ trong tuần*,
+  hay *một lần vào một ngày*. Chạm cả dòng là đánh dấu xong, việc quá giờ mà chưa làm
+  thì giờ hiện màu đỏ. Có mười mẫu bấm một cái là thêm: đánh răng, học bài, dọn đồ chơi…
+- **Sao và quà**: mỗi việc xong cộng số sao đã đặt. Thẻ Thưởng cho biết sao đã kiếm,
+  đã đổi, còn lại và riêng tuần này. Quà chưa đủ sao thì hiện *còn thiếu bao nhiêu*;
+  đổi nhầm thì bấm **Hoàn** để trả sao lại.
+- **Vòng tiến độ và chuỗi ngày**: phần trăm việc đã xong trong ngày, cộng huy hiệu
+  🔥 khi bé làm trọn vẹn nhiều ngày liền.
+- **Nhật ký**: bấm một nút là ghi nhanh chuyện ăn, ngủ, thuốc, nhiệt độ, học, tâm trạng,
+  ghi chú — kèm giờ, sửa lại được.
+- **Sổ sức khoẻ**: mỗi lần đo chiều cao cân nặng vẽ thành hai đường trên cùng một biểu đồ
+  (chiều cao trục trái, cân nặng trục phải), kèm chênh lệch so với lần đo trước và BMI.
+  Mũi tiêm, đợt thuốc, lần khám ghi kèm **ngày hẹn lần sau** và đếm ngược còn bao nhiêu ngày.
+- **Biểu đồ bảy ngày**: mỗi ngày một cột theo tỉ lệ việc hoàn thành — xanh lá là trọn vẹn,
+  tím là quá nửa, cam là còn ít. Chạm giữ vào cột hiện số cụ thể.
+- **Nhắc giờ**: bật trong thẻ Khác. Máy báo trong vòng 5 phút kể từ mốc giờ nên mở muộn
+  không bị dội thông báo cũ, và mỗi việc chỉ nhắc một lần trong ngày. Trên iPhone hãy
+  thêm trang vào Màn hình chính rồi bật từ đó.
+- **Giao diện sáng/tối** theo máy, hoặc chọn cứng một kiểu.
+
+## Gửi cho người nhà
+
+Thẻ **Khác** → **Gửi cho người nhà**: cả kho dữ liệu được nén rồi nhét vào phần sau dấu
+`#` của địa chỉ. Phần đó không bao giờ đi lên máy chủ nào, nên cách này chạy mà không cần
+dịch vụ lưu trữ. Bấm **Sao chép** (trên iPhone hiện luôn bảng Chia sẻ của hệ thống) rồi
+gửi qua Zalo hay tin nhắn.
+
+Người nhận mở link sẽ thấy băng báo *đây là dữ liệu người khác gửi*, xem thử được ngay,
+rồi tự chọn **Lưu vào máy này** hay **Bỏ, giữ dữ liệu cũ** — dữ liệu sẵn có của họ không
+bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xuống máy đều bị chặn.
+
+## Sao lưu
+
+- **Xuất tệp JSON** ra tệp `be-ngoan-<ngày>.json`, cất trong app Tệp hay iCloud Drive.
+- **Nhập tệp JSON** đọc lại bản đã cất.
+- Mỗi lần ghi đè lớn (nhập tệp, nhận link, xoá sạch) đều cất bản cũ lại; dòng
+  **Khôi phục bản trước đó** đổi qua đổi lại giữa hai bản nên bấm nhầm vẫn lấy lại được.
+
+## Lưu ý
+
+Dữ liệu nằm trong `localStorage` của trình duyệt, và **mỗi địa chỉ web giữ một kho riêng** —
+mở bằng đường dẫn khác hay trình duyệt khác là một kho khác. Xoá dữ liệu duyệt web của
+Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để giữ một bản.
