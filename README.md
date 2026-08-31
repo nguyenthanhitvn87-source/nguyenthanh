@@ -15,6 +15,9 @@ npx http-server .
 # rồi mở http://localhost:8080
 ```
 
+Hoặc bấm đúp `chay-admin.bat` (Windows) / chạy `./chay-admin.sh` (Linux, macOS) để chạy
+bằng quyền quản trị — xem mục **Chạy bằng quyền quản trị** ở cuối trang.
+
 ## Điều khiển
 
 | Thao tác | Phím / cử chỉ |
@@ -43,6 +46,8 @@ huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng 
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 nhac-qua-mail.gs         # mã Apps Script tự gửi báo cáo công việc qua mail
+chay-admin.bat           # chạy chương trình bằng quyền Administrator (Windows)
+chay-admin.sh            # chạy chương trình bằng quyền quản trị (Linux / macOS)
 README.md
 ```
 
@@ -455,3 +460,53 @@ bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xu
 Dữ liệu nằm trong `localStorage` của trình duyệt, và **mỗi địa chỉ web giữ một kho riêng** —
 mở bằng đường dẫn khác hay trình duyệt khác là một kho khác. Xoá dữ liệu duyệt web của
 Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để giữ một bản.
+
+---
+
+# 🛡️ Chạy bằng quyền quản trị
+
+Hai script khởi chạy nằm sẵn trong thư mục: bấm đúp là chương trình chạy với quyền
+quản trị, mở máy chủ cục bộ rồi tự mở trình duyệt.
+
+| Máy | File | Cách chạy |
+| --- | --- | --- |
+| Windows | `chay-admin.bat` | Bấm đúp (Windows sẽ hiện hộp thoại UAC, chọn **Yes**), hoặc chuột phải → **Run as administrator** |
+| Linux / macOS | `chay-admin.sh` | `./chay-admin.sh` (script tự gọi `sudo`, gõ mật khẩu là xong) |
+
+## Script làm những gì
+
+1. **Tự xin quyền quản trị.** Chưa có quyền thì Windows bật hộp thoại UAC rồi chạy lại
+   chính nó; trên Linux/macOS thì gọi lại qua `sudo`. Không phải chuột phải mỗi lần.
+2. **Mở cổng trên tường lửa** cho mạng nội bộ (Windows Firewall hồ sơ *Private*, hoặc
+   `ufw` / `firewalld`) để điện thoại và máy khác trong nhà vào được. Đây chính là phần
+   cần quyền quản trị; luật đã có sẵn thì không thêm lại.
+3. **Tìm máy chủ tĩnh có sẵn** theo thứ tự Python → Node (`python -m http.server`, rồi
+   `npx http-server`). Máy không có cái nào thì mở thẳng file HTML bằng trình duyệt.
+4. **In địa chỉ** cho máy này (`http://localhost:8080/…`) và cho điện thoại
+   (`http://192.168.x.x:8080/…`).
+5. **Mở trình duyệt** sau 2 giây rồi chạy máy chủ ở cửa sổ đang mở. Bấm `Ctrl` + `C` để dừng.
+
+## Chọn cổng và trang
+
+Cả hai script nhận hai tham số: **cổng** (mặc định `8080`) và **trang** (mặc định `index.html`).
+
+```bash
+# Windows
+chay-admin.bat 8080 lich-bieu.html
+chay-admin.bat 80              # cổng 80 thì bắt buộc quyền quản trị
+
+# Linux / macOS
+./chay-admin.sh 8080 lich-bieu.html
+```
+
+Trên Linux/macOS lần đầu cần cấp quyền chạy cho file:
+
+```bash
+chmod +x chay-admin.sh
+```
+
+## Khi nào thật sự cần quyền quản trị
+
+Chỉ khi **mở cổng tường lửa** cho máy khác vào, hoặc chạy ở **cổng dưới 1024** (như cổng
+`80`). Nếu chỉ xem một mình trên máy của mình thì không cần script này — `npx http-server .`
+hay bấm đúp file HTML là đủ, và chạy ít quyền hơn thì an toàn hơn.
