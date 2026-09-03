@@ -530,11 +530,11 @@ Kết quả:
 HoaDon\
 ├── Mau01-GGM\
 │   ├── TELMA\
-│   │   ├── 001_K25TAA_618585.pdf
-│   │   ├── 002_K25TAA_565923.pdf
+│   │   ├── 001_1001K25TAA0618585.pdf
+│   │   ├── 002_1001K25TAA0565923.pdf
 │   │   └── ...
 │   ├── KLENZIT\
-│   │   ├── 006_K25TDA_2228.pdf
+│   │   ├── 006_1001K25TDA0002228.pdf
 │   │   └── ...
 │   ├── KLENZIT-C\
 │   └── COMBIWAVE\
@@ -544,8 +544,9 @@ HoaDon\
 └── bao-cao-doi-chieu.csv
 ```
 
-Số ở đầu tên file (`001_`, `002_`...) chạy liên tục trong một sheet **theo đúng thứ tự
-dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
+**Tên file gốc được giữ nguyên**, chỉ thêm số thứ tự vào đầu (bỏ tick *Thêm số thứ tự
+vào đầu tên file* thì giữ y hệt tên gốc). Số này chạy liên tục trong một sheet **theo
+đúng thứ tự dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
 
 ### Chạy cho nhanh
 
@@ -656,5 +657,6 @@ dòng nào đã xóa file thì tự bỏ qua và báo trong nhật ký.
   máy in chậm thì tăng số giây lên.
 - Nếu quét cả thư mục đích có nhiều sheet cùng lúc, số thứ tự của các sheet sẽ đan vào
   nhau. In từng thư mục sheet một, hoặc nạp `thu-tu-in.txt`.
-- Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file; muốn lấy chỗ
+- Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file
+  (`001_1001K25TDA0002850.pdf` → `0002850`); muốn lấy chỗ
   khác thì điền regex có nhóm bắt, ví dụ `K\d{2}[A-Z]+.?(\d+)`.

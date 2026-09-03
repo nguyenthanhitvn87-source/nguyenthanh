@@ -1163,7 +1163,7 @@ $chkPerProduct.Checked  = $true
 $grpDest.Controls.Add($chkPerProduct)
 
 $chkPrefix          = New-Object System.Windows.Forms.CheckBox
-$chkPrefix.Text     = 'Đánh số thứ tự vào đầu tên file (001_, 002_...)'
+$chkPrefix.Text     = 'Thêm số thứ tự vào đầu tên file, giữ nguyên tên gốc'
 $chkPrefix.Location = New-Object System.Drawing.Point(520, 58)
 $chkPrefix.Size     = New-Object System.Drawing.Size(300, 22)
 $chkPrefix.Checked  = $true
@@ -1578,11 +1578,13 @@ function Invoke-Organize {
                 }
                 if (-not (Test-Path -LiteralPath $dir)) { [void](New-Item -ItemType Directory -Path $dir -Force) }
 
+                # giữ nguyên tên file gốc, chỉ thêm số thứ tự vào đầu nếu có tick
                 $ext  = [System.IO.Path]::GetExtension($inv.SourcePath)
+                $base = [System.IO.Path]::GetFileNameWithoutExtension($inv.SourcePath)
                 $w = $widths[$inv.Sheet]
                 if (-not $w) { $w = 3 }
-                $name = '{0}_{1}' -f $inv.Symbol, $inv.Number
-                if ($chkPrefix.Checked) { $name = '{0}_{1}_{2}' -f ([string]$inv.Seq).PadLeft($w, '0'), $inv.Symbol, $inv.Number }
+                $name = $base
+                if ($chkPrefix.Checked) { $name = '{0}_{1}' -f ([string]$inv.Seq).PadLeft($w, '0'), $base }
                 $target = Join-Path $dir ((Get-SafeName $name) + $ext)
 
                 if (Test-Path -LiteralPath $target) {
