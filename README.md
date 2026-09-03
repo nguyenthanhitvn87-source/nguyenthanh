@@ -609,6 +609,11 @@ Mặc định là **chép** file, giữ nguyên kho gốc; muốn dọn hẳn th
 Khi di chuyển, công cụ chép sang thư mục đích và so lại dung lượng rồi mới bỏ bản gốc,
 chép hụt thì file gốc vẫn còn nguyên.
 
+Một hóa đơn có thể được liệt kê ở nhiều sản phẩm (ví dụ số `2545` có ở cả `KLENZIT MS`
+lẫn `KLENZIT-C`). Khi đó file được chép vào **từng thư mục sản phẩm**, và ở chế độ di
+chuyển thì bản gốc chỉ bị bỏ sau khi dòng cuối cùng dùng nó đã chép xong — không có
+thư mục nào bị thiếu file.
+
 ### Kho hóa đơn nằm trong OneDrive
 
 Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ trên máy, ví dụ

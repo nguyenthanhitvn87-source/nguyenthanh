@@ -1370,6 +1370,19 @@ function Invoke-Organize {
             $widths[$g.Name] = [math]::Max(3, ([string]$max).Length)
         }
 
+        # một file nguồn có thể phục vụ nhiều dòng (cùng số hóa đơn ở hai sản phẩm):
+        # chép cho từng dòng, chỉ bỏ bản gốc sau khi dòng cuối cùng dùng xong
+        $useCount = @{}
+        foreach ($inv in $withFile) {
+            if ($useCount.ContainsKey($inv.SourcePath)) { $useCount[$inv.SourcePath]++ }
+            else { $useCount[$inv.SourcePath] = 1 }
+        }
+        $shared = @($useCount.Keys | Where-Object { $useCount[$_] -gt 1 })
+        if ($shared.Count -gt 0) {
+            Write-Log ('{0} file được dùng cho nhiều dòng (cùng hóa đơn ở nhiều sản phẩm) — sẽ chép cho từng thư mục.' -f $shared.Count)
+        }
+        $usedSoFar = @{}
+
         $done = 0; $ok = 0; $skip = 0; $fail = 0
         foreach ($inv in $withFile) {
             $done++
@@ -1397,6 +1410,11 @@ function Invoke-Organize {
                     if ($src.Length -eq $dst.Length) {
                         $inv.DestPath = $target
                         $inv.Status   = 'Đã có sẵn'
+                        if ($usedSoFar.ContainsKey($inv.SourcePath)) { $usedSoFar[$inv.SourcePath]++ }
+                        else { $usedSoFar[$inv.SourcePath] = 1 }
+                        if ($move -and $usedSoFar[$inv.SourcePath] -ge $useCount[$inv.SourcePath]) {
+                            Remove-Item -LiteralPath $inv.SourcePath -Force
+                        }
                         $skip++
                         continue
                     }
@@ -1406,20 +1424,24 @@ function Invoke-Organize {
                     }
                 }
 
-                if ($move) {
-                    # chép trước, so lại dung lượng rồi mới bỏ bản gốc — an toàn với OneDrive
-                    $srcLen = (Get-Item -LiteralPath $inv.SourcePath).Length
-                    Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force
-                    if ((Get-Item -LiteralPath $target).Length -ne $srcLen) {
-                        throw 'Chép chưa đủ dung lượng nên giữ nguyên file gốc.'
-                    }
+                # luôn chép trước, so lại dung lượng; chế độ di chuyển thì bỏ bản gốc
+                # sau khi dòng cuối cùng dùng file đó đã chép xong — an toàn với OneDrive
+                $srcLen = (Get-Item -LiteralPath $inv.SourcePath).Length
+                Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force
+                if ((Get-Item -LiteralPath $target).Length -ne $srcLen) {
+                    throw 'Chép chưa đủ dung lượng nên giữ nguyên file gốc.'
+                }
+
+                if ($usedSoFar.ContainsKey($inv.SourcePath)) { $usedSoFar[$inv.SourcePath]++ }
+                else { $usedSoFar[$inv.SourcePath] = 1 }
+
+                if ($move -and $usedSoFar[$inv.SourcePath] -ge $useCount[$inv.SourcePath]) {
                     Remove-Item -LiteralPath $inv.SourcePath -Force
-                } else {
-                    Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force
                 }
 
                 $inv.DestPath = $target
-                $inv.Status   = if ($move) { 'Đã chuyển' } else { 'Đã chép' }
+                $inv.Status   = if ($useCount[$inv.SourcePath] -gt 1) { 'Đã chép (dùng chung file)' }
+                                elseif ($move) { 'Đã chuyển' } else { 'Đã chép' }
                 $ok++
             } catch {
                 $inv.Status = 'Lỗi: ' + $_.Exception.Message
