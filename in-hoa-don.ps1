@@ -472,9 +472,11 @@ $chkQueue.Checked  = $true
 $grpPrinter.Controls.Add($chkQueue)
 
 $chkDryRun          = New-Object System.Windows.Forms.CheckBox
-$chkDryRun.Text     = 'In thử (không gửi máy in)'
+$chkDryRun.Text     = 'In thử (KHÔNG gửi máy in)'
 $chkDryRun.Location = New-Object System.Drawing.Point(606, 64)
 $chkDryRun.Size     = New-Object System.Drawing.Size(180, 22)
+$chkDryRun.ForeColor = [System.Drawing.Color]::Firebrick
+$chkDryRun.Font      = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $grpPrinter.Controls.Add($chkDryRun)
 
 $btnPrint          = New-Object System.Windows.Forms.Button
@@ -665,7 +667,7 @@ function Invoke-PrintJobs {
     $dry     = $chkDryRun.Checked
 
     $msg = "In {0} hóa đơn × {1} bản ra máy in:`n{2}`n`nTiếp tục?" -f $Jobs.Count, $copies, $printer
-    if ($dry) { $msg = "CHẾ ĐỘ IN THỬ — không gửi gì ra máy in.`n`n" + $msg }
+    if ($dry) { $msg = "CHẾ ĐỘ IN THỬ — chỉ ghi nhật ký, KHÔNG gửi gì ra máy in.`nMuốn in thật thì bấm Không, bỏ tick ""In thử"" rồi bấm IN lại.`n`n" + $msg }
     if ([System.Windows.Forms.MessageBox]::Show($msg, 'Xác nhận in',
             [System.Windows.Forms.MessageBoxButtons]::YesNo,
             [System.Windows.Forms.MessageBoxIcon]::Question) -ne [System.Windows.Forms.DialogResult]::Yes) { return }
@@ -691,6 +693,9 @@ function Invoke-PrintJobs {
         }
 
         Write-Log ('=== Bắt đầu in {0} hóa đơn, {1} bản mỗi hóa đơn ===' -f $Jobs.Count, $copies)
+        if (-not $dry -and ($printer -match 'PDF' -or $printer -match 'XPS' -or $printer -match 'OneNote' -or $printer -match 'Fax')) {
+            Write-Log ('"{0}" là máy in ảo — Windows sẽ hỏi chỗ lưu cho từng file chứ không ra giấy. Chọn máy in thật nếu muốn in giấy.' -f $printer) 'WARN'
+        }
         $index = 0
         foreach ($job in $Jobs) {
             if ($script:Cancel) { Write-Log 'Đã dừng theo yêu cầu.' 'STOP'; break }
@@ -723,6 +728,9 @@ function Invoke-PrintJobs {
             [System.Windows.Forms.Application]::DoEvents()
         }
         Write-Log ('=== Xong: {0} hóa đơn đã gửi, {1} lỗi ===' -f $ok, $fail)
+        if ($dry) {
+            Write-Log 'VỪA CHẠY IN THỬ — chưa có tờ nào được in. Bỏ tick "In thử (KHÔNG gửi máy in)" rồi bấm IN để in thật.' 'WARN'
+        }
     } finally {
         if ($prevDefault) {
             if (Set-DefaultPrinterName $prevDefault) { Write-Log ('Đã trả máy in mặc định về "{0}".' -f $prevDefault) }
