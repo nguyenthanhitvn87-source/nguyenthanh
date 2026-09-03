@@ -43,6 +43,8 @@ huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng 
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 nhac-qua-mail.gs         # mã Apps Script tự gửi báo cáo công việc qua mail
+sap-xep-in-hoa-don.ps1   # sắp xếp hóa đơn theo danh sách Excel rồi in (xem bên dưới)
+sap-xep-in-hoa-don.bat   # bấm đúp để chạy công cụ hóa đơn trên Windows
 README.md
 ```
 
@@ -455,3 +457,111 @@ bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xu
 Dữ liệu nằm trong `localStorage` của trình duyệt, và **mỗi địa chỉ web giữ một kho riêng** —
 mở bằng đường dẫn khác hay trình duyệt khác là một kho khác. Xoá dữ liệu duyệt web của
 Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để giữ một bản.
+
+---
+
+# 🧾 Sắp xếp & in hóa đơn — công cụ PowerShell cho Windows
+
+**Tác giả: Nguyễn Thanh**
+
+Một cửa sổ, hai việc: gom hóa đơn lộn xộn nhiều năm vào đúng thư mục theo danh sách
+Excel, rồi in ra máy in **đúng thứ tự trong file Excel**.
+
+- `sap-xep-in-hoa-don.ps1` — toàn bộ công cụ (giao diện Windows Forms).
+- `sap-xep-in-hoa-don.bat` — bấm đúp là chạy, không cần gõ lệnh.
+
+Không cần cài thêm gì: dùng Windows PowerShell 5.1 có sẵn trong Windows. File Excel
+`.xlsx` / `.xlsm` được đọc thẳng (không cần mở Excel); file `.xls` cũ thì máy cần có Excel.
+
+## Chạy thế nào
+
+Bấm đúp `sap-xep-in-hoa-don.bat`. Nếu Windows chặn script, mở PowerShell rồi gõ:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\sap-xep-in-hoa-don.ps1
+```
+
+## Tab 1 — Sắp xếp hóa đơn theo danh sách Excel
+
+File Excel được hiểu đúng theo cách bảng đang làm: **mỗi sheet là một thư mục**, trong
+sheet có nhiều bảng, **mỗi bảng là một sản phẩm** và thành một thư mục con; một sản phẩm
+có thể gồm nhiều ký hiệu hóa đơn khác nhau.
+
+| Trong Excel | Thành cái gì |
+| --- | --- |
+| Tên sheet (`Mau 01 - GGM`, `Mẫu 02B - GGM`...) | Thư mục cấp 1 |
+| Tiêu đề phía trên bảng (`TELMA 80 H PLUS (TABLET B/100)`) | Thư mục cấp 2 (sản phẩm) |
+| Cột `Ký hiệu` + `Số hóa đơn` + `Ngày hóa đơn` | Từng file hóa đơn được tìm và chép vào |
+
+Công cụ tự dò các bảng nằm cạnh nhau trong cùng một sheet (như bảng ở cột G, cột M,
+cột S), tự nhận tiêu đề cột dù có dấu hay không dấu.
+
+Các bước:
+
+1. **Chọn file Excel** → bấm *Đọc danh sách*. Mỗi sheet hiện kèm số hóa đơn và số sản phẩm.
+2. Tick những sheet cần làm.
+3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn (thêm được nhiều thư mục,
+   có tùy chọn *Gồm thư mục con*). Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*,
+   ví dụ `2023,2024,2025`; để trống là lấy hết.
+4. **Chọn thư mục đích** → bấm *Đối chiếu danh sách* để xem trước từng dòng.
+5. Bấm *Tạo folder & chép file*.
+
+Kết quả:
+
+```
+Thư mục đích\
+├── Mau 01 - GGM\
+│   ├── TELMA 80 H PLUS (TABLET B-100)\
+│   │   ├── 001_K25TAA_618585.pdf
+│   │   ├── 002_K25TAA_565923.pdf
+│   │   └── ...
+│   ├── KLENZIT MS (GEL 15G)\
+│   │   ├── 006_K25TDA_2228.pdf
+│   │   └── ...
+│   └── KLENZIT-C (GEL 15G)\
+├── Mẫu 02B - GGM\
+└── bao-cao-doi-chieu.csv
+```
+
+Số ở đầu tên file (`001_`, `002_`...) chạy liên tục trong một sheet **theo đúng thứ tự
+dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
+
+### Cách dò tìm file
+
+| Trạng thái | Nghĩa là |
+| --- | --- |
+| `Khớp ký hiệu + số` | Tên file có cả ký hiệu (`K25TAA`) lẫn số hóa đơn — chắc chắn nhất |
+| `Khớp số (thiếu ký hiệu)` | Chỉ khớp số hóa đơn, nên kiểm tra lại cho chắc |
+| `Khớp nhiều file` | Có nhiều file cùng khớp, công cụ lấy file đầu tiên (dòng màu cam) |
+| `Không tìm thấy` | Chưa có file cho hóa đơn này (dòng màu đỏ) |
+
+Dấu gạch ngang, khoảng trắng, số 0 ở đầu, chữ có dấu đều được bỏ qua khi so khớp, nên
+`HD K25TAA 618585.pdf`, `K25TAA-618585.pdf`, `00618585_K25TAA.pdf` đều tìm ra. Nhấp đúp
+vào một dòng để mở file kiểm tra. Mọi thứ đều được ghi vào `bao-cao-doi-chieu.csv`
+(có cả danh sách hóa đơn còn thiếu).
+
+Mặc định là **chép** file, giữ nguyên kho gốc; muốn dọn hẳn thì chọn *Di chuyển file*.
+
+## Tab 2 — In hóa đơn
+
+- Quét một thư mục (kể cả thư mục con), tách số hóa đơn trong tên file.
+- Sắp xếp theo số hóa đơn, theo tên file (`Tên file A → Z` = đúng thứ tự đã đánh số),
+  hoặc theo ngày sửa.
+- Tick chọn từng hóa đơn, tìm nhanh theo tên, hoặc *Chọn theo khoảng* từ số ... đến số ...
+- Chọn máy in, số bản, rồi bấm **IN**. Có nút *Dừng*, có ô *In thử* để chạy nháp
+  trước mà không tốn giấy.
+
+Muốn in đúng danh sách Excel mà khỏi phải chọn lại: sau khi đối chiếu, bấm thẳng
+**In ngay theo thứ tự Excel** ở tab 1 (dùng máy in và số bản đang đặt ở tab 2).
+
+## Lưu ý
+
+- Máy phải có ứng dụng mở được loại file đó (PDF thì cần Adobe Reader hoặc phần mềm
+  đọc PDF hỗ trợ lệnh in của Windows). Công cụ dùng lệnh `PrintTo` của Windows, nếu ứng
+  dụng không hỗ trợ thì tự tạm đổi máy in mặc định rồi trả lại sau khi in xong.
+- *Chờ mỗi file (giây)* và *Chờ hàng đợi máy in trống* giúp các hóa đơn ra đúng thứ tự;
+  máy in chậm thì tăng số giây lên.
+- Nếu quét cả thư mục đích có nhiều sheet cùng lúc, số thứ tự của các sheet sẽ đan vào
+  nhau. In từng thư mục sheet một, hoặc dùng nút *In ngay theo thứ tự Excel*.
+- Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file; muốn lấy chỗ
+  khác thì điền regex có nhóm bắt, ví dụ `K\d{2}[A-Z]+.?(\d+)`.
