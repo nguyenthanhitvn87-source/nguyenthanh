@@ -500,9 +500,11 @@ Các bước:
 
 1. **Chọn file Excel** → bấm *Đọc danh sách*. Mỗi sheet hiện kèm số hóa đơn và số sản phẩm.
 2. Tick những sheet cần làm.
-3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn (thêm được nhiều thư mục,
-   có tùy chọn *Gồm thư mục con*). Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*,
-   ví dụ `2023,2024,2025`; để trống là lấy hết.
+3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn. Chỉ cần thêm thư mục cha
+   (ví dụ `GGM`) và bật *Gồm thư mục con* là quét hết `HCM - 2023`, `HCM - 2024`,
+   `HCM - 2025`, `Ha Noi`... trong đó; hoặc thêm từng thư mục riêng cũng được.
+   Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*, ví dụ `2023,2024,2025`;
+   để trống là lấy hết.
 4. **Chọn thư mục đích** → bấm *Đối chiếu danh sách* để xem trước từng dòng.
 5. Bấm *Tạo folder & chép file*.
 
@@ -536,7 +538,10 @@ dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ t
 | `Không tìm thấy` | Chưa có file cho hóa đơn này (dòng màu đỏ) |
 
 Dấu gạch ngang, khoảng trắng, số 0 ở đầu, chữ có dấu đều được bỏ qua khi so khớp, nên
-`HD K25TAA 618585.pdf`, `K25TAA-618585.pdf`, `00618585_K25TAA.pdf` đều tìm ra. Nhấp đúp
+`HD K25TAA 618585.pdf`, `K25TAA-618585.pdf`, `00618585_K25TAA.pdf` đều tìm ra.
+Khi một hóa đơn khớp nhiều file (bản sao nằm rải ở các thư mục năm khác nhau), công cụ
+ưu tiên file nằm trong thư mục có đúng năm của hóa đơn — hóa đơn năm 2023 lấy bản trong
+`HCM - 2023` chứ không lấy bản sao lạc trong `HCM - 2025` — rồi mới tới đường dẫn ngắn hơn. Nhấp đúp
 vào một dòng để mở file kiểm tra. Mọi thứ đều được ghi vào `bao-cao-doi-chieu.csv`
 (có cả danh sách hóa đơn còn thiếu).
 

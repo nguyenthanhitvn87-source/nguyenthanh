@@ -456,6 +456,22 @@ function Build-FileIndex {
     return $index
 }
 
+function Select-BestMatches {
+    <# Nhiều file cùng khớp thì ưu tiên file nằm trong thư mục/tên có đúng năm hóa đơn
+       (kho chia theo "HCM - 2023", "HCM - 2024", "HCM - 2025", "Ha Noi"...),
+       sau đó ưu tiên đường dẫn ngắn hơn (bản gốc thay vì bản sao chép lồng nhau). #>
+    param($Files, $Year)
+
+    $list = @($Files)
+    if ($list.Count -le 1) { return $list }
+
+    if ($Year) {
+        $inYear = @($list | Where-Object { $_.File.FullName -match ([string]$Year) })
+        if ($inYear.Count -gt 0) { $list = $inYear }
+    }
+    return @($list | Sort-Object { $_.File.FullName.Length })
+}
+
 function Find-InvoiceFile {
     <# Tìm file cho một hóa đơn: ưu tiên khớp cả KÝ HIỆU lẫn SỐ HÓA ĐƠN. #>
     param($Index, [string]$Symbol, [string]$Number, $Year)
@@ -465,16 +481,22 @@ function Find-InvoiceFile {
     if (-not $numKey) { $numKey = '0' }
 
     $strong = @($Index | Where-Object { $_.Digits -contains $numKey -and $symNorm -and $_.Norm.Contains($symNorm) })
-    if ($strong.Count -eq 1) { return @{ Files = $strong; Status = 'Khớp ký hiệu + số' } }
-    if ($strong.Count -gt 1) { return @{ Files = $strong; Status = 'Khớp nhiều file' } }
+    if ($strong.Count -gt 0) {
+        $best = Select-BestMatches -Files $strong -Year $Year
+        $status = if ($best.Count -eq 1) { 'Khớp ký hiệu + số' } else { 'Khớp nhiều file' }
+        return @{ Files = $best; Status = $status }
+    }
 
     $weak = @($Index | Where-Object { $_.Digits -contains $numKey })
-    if ($Year -and $weak.Count -gt 1) {
-        $byYear = @($weak | Where-Object { $_.Norm -match [string]$Year -or $_.File.FullName -match [string]$Year -or $_.Year -eq $Year })
-        if ($byYear.Count -gt 0) { $weak = $byYear }
+    if ($weak.Count -gt 0) {
+        $best = Select-BestMatches -Files $weak -Year $Year
+        if ($best.Count -gt 1 -and $Year) {
+            $byTime = @($best | Where-Object { $_.Year -eq $Year })
+            if ($byTime.Count -gt 0) { $best = $byTime }
+        }
+        $status = if ($best.Count -eq 1) { 'Khớp số (thiếu ký hiệu)' } else { 'Khớp nhiều file' }
+        return @{ Files = $best; Status = $status }
     }
-    if ($weak.Count -eq 1) { return @{ Files = $weak; Status = 'Khớp số (thiếu ký hiệu)' } }
-    if ($weak.Count -gt 1) { return @{ Files = $weak; Status = 'Khớp nhiều file' } }
 
     return @{ Files = @(); Status = 'Không tìm thấy' }
 }
