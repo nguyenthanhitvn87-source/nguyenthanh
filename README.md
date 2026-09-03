@@ -644,17 +644,34 @@ thẳng công cụ in.
 - Chọn máy in, số bản, rồi bấm **IN**. Có nút *Dừng*, có ô *In thử* để chạy nháp
   trước mà không tốn giấy.
 
+### In số lượng lớn cho nhanh
+
+- Tick **"In hàng loạt: không hỏi xác nhận, in thẳng"** để bỏ hộp thoại hỏi trước mỗi
+  lần bấm IN.
+- Công cụ tự tìm **Adobe Reader** hoặc **SumatraPDF** trên máy và in PDF thẳng qua đó
+  (`/N /T` với Adobe, `-print-to -silent` với SumatraPDF): không mở cửa sổ, không hỏi gì.
+  Dòng *Cách in PDF* dưới ô máy in cho biết đang dùng cách nào. Không có phần mềm nào
+  thì quay về lệnh in mặc định của Windows — vẫn chạy nhưng chậm hơn.
+- Ô **Chờ tối đa (giây)** là *giới hạn trên*, không phải thời gian chờ cố định: gửi xong
+  một hóa đơn, thấy bản in đã vào hàng đợi (hoặc chương trình in đã thoát) là đi tiếp
+  ngay, thường chỉ mất dưới một giây mỗi file.
+- **Chờ hàng đợi máy in trống rồi mới in file tiếp**: bỏ tick sẽ nhanh hơn nhiều; chỉ
+  bật khi máy in hay đảo thứ tự.
+
 Muốn in đúng thứ tự trong Excel: bấm **Nạp danh sách thứ tự in...** rồi chọn
 `thu-tu-in.txt` trong thư mục đích. Danh sách hiện đúng thứ tự Excel, tick sẵn tất cả,
 dòng nào đã xóa file thì tự bỏ qua và báo trong nhật ký.
 
 ## Lưu ý
 
-- Máy phải có ứng dụng mở được loại file đó (PDF thì cần Adobe Reader hoặc phần mềm
-  đọc PDF hỗ trợ lệnh in của Windows). Công cụ dùng lệnh `PrintTo` của Windows, nếu ứng
-  dụng không hỗ trợ thì tự tạm đổi máy in mặc định rồi trả lại sau khi in xong.
-- *Chờ mỗi file (giây)* và *Chờ hàng đợi máy in trống* giúp các hóa đơn ra đúng thứ tự;
-  máy in chậm thì tăng số giây lên.
+- Máy phải có ứng dụng mở được loại file đó. Với PDF, tốt nhất là cài **Adobe Reader**
+  hoặc **SumatraPDF** để in thẳng, im lặng. Không có thì công cụ dùng lệnh `PrintTo`
+  của Windows; ứng dụng nào không hỗ trợ `PrintTo` thì tự tạm đổi máy in mặc định rồi
+  trả lại sau khi in xong.
+- Chọn nhầm máy in ảo (Print to PDF, XPS, OneNote, Fax) thì Windows hỏi chỗ lưu cho
+  từng file chứ không ra giấy — công cụ có cảnh báo trước trong nhật ký.
+- *Chờ tối đa (giây)* chỉ dùng khi máy in phản hồi chậm bất thường; máy in chậm thì
+  tăng lên, còn bình thường không ảnh hưởng tốc độ.
 - Nếu quét cả thư mục đích có nhiều sheet cùng lúc, số thứ tự của các sheet sẽ đan vào
   nhau. In từng thư mục sheet một, hoặc nạp `thu-tu-in.txt`.
 - Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file

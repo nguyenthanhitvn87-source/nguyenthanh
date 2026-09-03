@@ -105,6 +105,7 @@ $script:CheckedPaths = New-Object 'System.Collections.Generic.HashSet[string]'
 $script:Populating   = $false
 $script:Cancel       = $false
 $script:Busy         = $false
+$script:PdfEngine    = $null   # chương trình in PDF im lặng, dò khi khởi động
 
 $script:FileGroups = [ordered]@{
     'PDF'                = @('.pdf')
@@ -179,27 +180,112 @@ function Wait-PrintQueue {
     }
 }
 
-function Invoke-PrintOneFile {
-    <# Gửi một file ra máy in: ưu tiên lệnh PrintTo (chỉ định đúng máy in),
-       nếu ứng dụng không hỗ trợ thì dùng lệnh Print với máy in mặc định. #>
-    param([string]$Path, [string]$PrinterName, [int]$WaitSeconds = 6, [bool]$CloseApp = $true)
+function Get-PdfPrintEngine {
+    <# Tìm chương trình in PDF thẳng ra máy in, không mở cửa sổ, không hỏi gì —
+       nhanh hơn nhiều khi in số lượng lớn.
+         • Adobe Reader / Acrobat:  /N /T "file" "máy in"
+         • SumatraPDF:              -print-to "máy in" -silent -exit-when-done "file"
+       Không có cái nào thì quay về lệnh in mặc định của Windows. #>
 
-    $proc = $null
-    $verb = 'PrintTo'
+    $candidates = @()
+    foreach ($key in @('AcroRd32.exe', 'Acrobat.exe', 'SumatraPDF.exe')) {
+        foreach ($hive in @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\',
+                            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\')) {
+            try {
+                $item = Get-ItemProperty -Path ($hive + $key) -ErrorAction SilentlyContinue
+                if ($item -and $item.'(default)') { $candidates += $item.'(default)' }
+            } catch { }
+        }
+    }
+    $candidates += @(
+        "${env:ProgramFiles}\Adobe\Acrobat DC\Acrobat\Acrobat.exe",
+        "${env:ProgramFiles}\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe",
+        "${env:ProgramFiles(x86)}\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe",
+        "${env:ProgramFiles(x86)}\Adobe\Reader 11.0\Reader\AcroRd32.exe",
+        "${env:ProgramFiles}\SumatraPDF\SumatraPDF.exe",
+        "${env:ProgramFiles(x86)}\SumatraPDF\SumatraPDF.exe",
+        "${env:LOCALAPPDATA}\SumatraPDF\SumatraPDF.exe"
+    )
+
+    foreach ($exe in $candidates) {
+        if (-not $exe) { continue }
+        $exe = $exe.Trim('"')
+        if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { continue }
+        $name = [System.IO.Path]::GetFileName($exe).ToLower()
+        if ($name -like 'sumatra*') {
+            return [pscustomobject]@{ Name = 'SumatraPDF'; Exe = $exe; Kind = 'sumatra' }
+        }
+        return [pscustomobject]@{ Name = 'Adobe Reader'; Exe = $exe; Kind = 'adobe' }
+    }
+    return $null
+}
+
+function Get-PrintJobCount {
+    param([string]$PrinterName)
     try {
-        $proc = Start-Process -FilePath $Path -Verb PrintTo -ArgumentList ('"{0}"' -f $PrinterName) `
-                              -PassThru -WindowStyle Hidden -ErrorAction Stop
-    } catch {
-        $verb = 'Print'
-        $proc = Start-Process -FilePath $Path -Verb Print -PassThru -WindowStyle Hidden -ErrorAction Stop
+        return @(Get-CimInstance -ClassName Win32_PrintJob -ErrorAction Stop |
+                 Where-Object { $_.Name -like ('{0},*' -f $PrinterName) }).Count
+    } catch { return -1 }
+}
+
+function Invoke-PrintOneFile {
+    <# Gửi một file ra máy in rồi đi tiếp NGAY khi bản in đã vào hàng đợi (hoặc chương
+       trình in đã thoát) — không chờ cứng đủ số giây như trước, nên in hàng loạt nhanh
+       hơn nhiều mà thứ tự vẫn đúng. #>
+    param(
+        [string]$Path,
+        [string]$PrinterName,
+        [int]$MaxWaitSeconds = 20,
+        [bool]$CloseApp = $true,
+        $Engine = $null
+    )
+
+    $ext  = [System.IO.Path]::GetExtension($Path).ToLower()
+    $before = Get-PrintJobCount -PrinterName $PrinterName
+    $proc = $null
+    $verb = ''
+
+    if ($Engine -and $ext -eq '.pdf') {
+        $verb = $Engine.Name
+        if ($Engine.Kind -eq 'sumatra') {
+            $argList = @('-print-to', ('"{0}"' -f $PrinterName), '-silent', '-exit-when-done', ('"{0}"' -f $Path))
+        } else {
+            $argList = @('/N', '/T', ('"{0}"' -f $Path), ('"{0}"' -f $PrinterName))
+        }
+        $proc = Start-Process -FilePath $Engine.Exe -ArgumentList $argList -PassThru -WindowStyle Hidden -ErrorAction Stop
+    } else {
+        $verb = 'PrintTo'
+        try {
+            $proc = Start-Process -FilePath $Path -Verb PrintTo -ArgumentList ('"{0}"' -f $PrinterName) `
+                                  -PassThru -WindowStyle Hidden -ErrorAction Stop
+        } catch {
+            $verb = 'Print'
+            $proc = Start-Process -FilePath $Path -Verb Print -PassThru -WindowStyle Hidden -ErrorAction Stop
+        }
     }
 
-    Start-UiSleep -Milliseconds ($WaitSeconds * 1000)
+    # chờ tới khi bản in vào hàng đợi hoặc chương trình in đã xong, tối đa $MaxWaitSeconds
+    $deadline = (Get-Date).AddSeconds([math]::Max(2, $MaxWaitSeconds))
+    $queued   = $false
+    while ((Get-Date) -lt $deadline) {
+        if ($script:Cancel) { break }
+        Start-Sleep -Milliseconds 200
+        [System.Windows.Forms.Application]::DoEvents()
+
+        $now = Get-PrintJobCount -PrinterName $PrinterName
+        if ($now -ge 0 -and $before -ge 0 -and $now -ne $before) { $queued = $true; break }
+        if ($proc -and $proc.HasExited) {
+            Start-Sleep -Milliseconds 300
+            $now = Get-PrintJobCount -PrinterName $PrinterName
+            if ($now -ge 0 -and $before -ge 0 -and $now -ne $before) { $queued = $true }
+            break
+        }
+    }
 
     if ($CloseApp -and $proc -and -not $proc.HasExited) {
         try {
             [void]$proc.CloseMainWindow()
-            Start-UiSleep -Milliseconds 1200
+            Start-Sleep -Milliseconds 400
             if (-not $proc.HasExited) { $proc.Kill() }
         } catch { }
     }
@@ -213,8 +299,8 @@ Write-Trace 'Bắt đầu dựng cửa sổ'
 # ============================================================================
 $form               = New-Object System.Windows.Forms.Form
 $form.Text          = 'In hóa đơn hàng loạt — Nguyễn Thanh'
-$form.Size          = New-Object System.Drawing.Size(1024, 800)
-$form.MinimumSize   = New-Object System.Drawing.Size(1024, 740)
+$form.Size          = New-Object System.Drawing.Size(1024, 830)
+$form.MinimumSize   = New-Object System.Drawing.Size(1024, 780)
 $form.StartPosition = 'CenterScreen'
 $form.Font          = New-Object System.Drawing.Font('Segoe UI', 9)
 
@@ -408,7 +494,7 @@ $grpPick.Controls.Add($btnExport)
 $grpPrinter          = New-Object System.Windows.Forms.GroupBox
 $grpPrinter.Text     = '3. Máy in'
 $grpPrinter.Location = New-Object System.Drawing.Point(8, 468)
-$grpPrinter.Size     = New-Object System.Drawing.Size(984, 110)
+$grpPrinter.Size     = New-Object System.Drawing.Size(984, 140)
 $form.Controls.Add($grpPrinter)
 
 $lblPrinter          = New-Object System.Windows.Forms.Label
@@ -444,7 +530,7 @@ $numCopies.Value    = 1
 $grpPrinter.Controls.Add($numCopies)
 
 $lblDelay          = New-Object System.Windows.Forms.Label
-$lblDelay.Text     = 'Chờ mỗi file (giây)'
+$lblDelay.Text     = 'Chờ tối đa (giây)'
 $lblDelay.Location = New-Object System.Drawing.Point(700, 28)
 $lblDelay.Size     = New-Object System.Drawing.Size(120, 20)
 $grpPrinter.Controls.Add($lblDelay)
@@ -454,7 +540,7 @@ $numDelay.Location = New-Object System.Drawing.Point(826, 25)
 $numDelay.Size     = New-Object System.Drawing.Size(55, 24)
 $numDelay.Minimum  = 1
 $numDelay.Maximum  = 120
-$numDelay.Value    = 6
+$numDelay.Value    = 20
 $grpPrinter.Controls.Add($numDelay)
 
 $chkClose          = New-Object System.Windows.Forms.CheckBox
@@ -479,6 +565,19 @@ $chkDryRun.ForeColor = [System.Drawing.Color]::Firebrick
 $chkDryRun.Font      = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
 $grpPrinter.Controls.Add($chkDryRun)
 
+$chkNoConfirm          = New-Object System.Windows.Forms.CheckBox
+$chkNoConfirm.Text     = 'In hàng loạt: không hỏi xác nhận, in thẳng'
+$chkNoConfirm.Location = New-Object System.Drawing.Point(14, 92)
+$chkNoConfirm.Size     = New-Object System.Drawing.Size(290, 22)
+$grpPrinter.Controls.Add($chkNoConfirm)
+
+$lblEngine           = New-Object System.Windows.Forms.Label
+$lblEngine.Text      = 'Cách in: đang kiểm tra...'
+$lblEngine.Location  = New-Object System.Drawing.Point(310, 94)
+$lblEngine.Size      = New-Object System.Drawing.Size(660, 20)
+$lblEngine.ForeColor = [System.Drawing.Color]::DimGray
+$grpPrinter.Controls.Add($lblEngine)
+
 $btnPrint          = New-Object System.Windows.Forms.Button
 $btnPrint.Text     = 'IN'
 $btnPrint.Location = New-Object System.Drawing.Point(790, 60)
@@ -494,13 +593,13 @@ $btnStop.Enabled  = $false
 $grpPrinter.Controls.Add($btnStop)
 
 $bar          = New-Object System.Windows.Forms.ProgressBar
-$bar.Location = New-Object System.Drawing.Point(8, 590)
+$bar.Location = New-Object System.Drawing.Point(8, 618)
 $bar.Size     = New-Object System.Drawing.Size(996, 18)
 $form.Controls.Add($bar)
 
 $txtLog            = New-Object System.Windows.Forms.TextBox
-$txtLog.Location   = New-Object System.Drawing.Point(8, 614)
-$txtLog.Size       = New-Object System.Drawing.Size(996, 132)
+$txtLog.Location   = New-Object System.Drawing.Point(8, 642)
+$txtLog.Size       = New-Object System.Drawing.Size(996, 120)
 $txtLog.Multiline  = $true
 $txtLog.ScrollBars = 'Vertical'
 $txtLog.ReadOnly   = $true
@@ -666,11 +765,13 @@ function Invoke-PrintJobs {
     $delay   = [int]$numDelay.Value
     $dry     = $chkDryRun.Checked
 
-    $msg = "In {0} hóa đơn × {1} bản ra máy in:`n{2}`n`nTiếp tục?" -f $Jobs.Count, $copies, $printer
-    if ($dry) { $msg = "CHẾ ĐỘ IN THỬ — chỉ ghi nhật ký, KHÔNG gửi gì ra máy in.`nMuốn in thật thì bấm Không, bỏ tick ""In thử"" rồi bấm IN lại.`n`n" + $msg }
-    if ([System.Windows.Forms.MessageBox]::Show($msg, 'Xác nhận in',
-            [System.Windows.Forms.MessageBoxButtons]::YesNo,
-            [System.Windows.Forms.MessageBoxIcon]::Question) -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+    if (-not $chkNoConfirm.Checked) {
+        $msg = "In {0} hóa đơn × {1} bản ra máy in:`n{2}`n`nTiếp tục?" -f $Jobs.Count, $copies, $printer
+        if ($dry) { $msg = "CHẾ ĐỘ IN THỬ — chỉ ghi nhật ký, KHÔNG gửi gì ra máy in.`nMuốn in thật thì bấm Không, bỏ tick ""In thử"" rồi bấm IN lại.`n`n" + $msg }
+        if ([System.Windows.Forms.MessageBox]::Show($msg, 'Xác nhận in',
+                [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                [System.Windows.Forms.MessageBoxIcon]::Question) -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+    }
 
     $script:Cancel = $false
     $script:Busy   = $true
@@ -693,6 +794,11 @@ function Invoke-PrintJobs {
         }
 
         Write-Log ('=== Bắt đầu in {0} hóa đơn, {1} bản mỗi hóa đơn ===' -f $Jobs.Count, $copies)
+        if ($script:PdfEngine) {
+            Write-Log ('In PDF thẳng bằng {0} — không mở cửa sổ, không hỏi gì.' -f $script:PdfEngine.Name)
+        } else {
+            Write-Log 'Chưa thấy Adobe Reader hay SumatraPDF: dùng lệnh in mặc định của Windows (chậm hơn, có ứng dụng còn mở cửa sổ).' 'WARN'
+        }
         if (-not $dry -and ($printer -match 'PDF' -or $printer -match 'XPS' -or $printer -match 'OneNote' -or $printer -match 'Fax')) {
             Write-Log ('"{0}" là máy in ảo — Windows sẽ hỏi chỗ lưu cho từng file chứ không ra giấy. Chọn máy in thật nếu muốn in giấy.' -f $printer) 'WARN'
         }
@@ -713,7 +819,8 @@ function Invoke-PrintJobs {
                 try {
                     for ($c = 1; $c -le $copies; $c++) {
                         if ($script:Cancel) { break }
-                        $verb = Invoke-PrintOneFile -Path $job.Path -PrinterName $printer -WaitSeconds $delay -CloseApp $chkClose.Checked
+                        $verb = Invoke-PrintOneFile -Path $job.Path -PrinterName $printer -MaxWaitSeconds $delay `
+                                                    -CloseApp $chkClose.Checked -Engine $script:PdfEngine
                         Write-Log ('Đã gửi ({0}) bản {1}/{2} — {3}' -f $verb, $c, $copies, $label)
                         if ($chkQueue.Checked) { Wait-PrintQueue -PrinterName $printer -TimeoutSeconds ($delay * 10) }
                     }
@@ -917,6 +1024,13 @@ $form.Add_Shown({
     $form.Activate()
     $start = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
     $txtFolder.Text = $start
+    $script:PdfEngine = Get-PdfPrintEngine
+    if ($script:PdfEngine) {
+        $lblEngine.Text = 'Cách in PDF: {0} — in thẳng, không mở cửa sổ' -f $script:PdfEngine.Name
+    } else {
+        $lblEngine.Text = 'Cách in PDF: lệnh in mặc định của Windows (cài Adobe Reader hoặc SumatraPDF sẽ in nhanh hơn)'
+        $lblEngine.ForeColor = [System.Drawing.Color]::DarkOrange
+    }
     Write-Log 'Sẵn sàng. Chọn thư mục chứa hóa đơn rồi bấm "Quét folder".'
     Write-Log 'Đã sắp xếp bằng công cụ kia thì bấm "Nạp danh sách thứ tự in..." và chọn file thu-tu-in.txt để in đúng thứ tự trong Excel.'
     $btnRefreshPrinters.PerformClick()
