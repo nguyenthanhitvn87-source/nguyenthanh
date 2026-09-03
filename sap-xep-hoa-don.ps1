@@ -655,18 +655,27 @@ function Build-FileIndex {
 
         $t0 = Get-Date
         $raw = New-Object 'System.Collections.Generic.List[object]'
+        $readErrors = @()
         if ($Extensions -and $Extensions.Count -gt 0) {
             # lọc ngay khi liệt kê — nhanh hơn nhiều so với lấy hết rồi lọc sau
             foreach ($ext in $Extensions) {
-                foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -Filter ('*' + $ext) -ErrorAction SilentlyContinue)) {
+                foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -Filter ('*' + $ext) -ErrorAction SilentlyContinue -ErrorVariable +readErrors)) {
                     if ($Extensions -contains $f.Extension.ToLower()) { $raw.Add($f) }
                 }
                 [System.Windows.Forms.Application]::DoEvents()
             }
         } else {
-            foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -ErrorAction SilentlyContinue)) {
+            foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -ErrorAction SilentlyContinue -ErrorVariable +readErrors)) {
                 $raw.Add($f)
             }
+        }
+
+        if ($readErrors.Count -gt 0) {
+            Write-Log ('{0} thư mục con không đọc được (thiếu quyền hoặc đường dẫn quá dài). Ví dụ: {1}' -f $readErrors.Count, $readErrors[0].Exception.Message) 'WARN'
+        }
+        if ($raw.Count -eq 0) {
+            $what = if ($Extensions -and $Extensions.Count -gt 0) { ($Extensions -join ', ') } else { 'bất kỳ loại nào' }
+            Write-Log ('Không thấy file {0} nào trong "{1}"{2}.' -f $what, $folder, $(if ($Recurse) { ' (đã tính cả thư mục con)' } else { ' — chưa bật "Gồm thư mục con"' })) 'WARN'
         }
 
         foreach ($f in $raw) {
@@ -693,6 +702,12 @@ function Build-FileIndex {
         Write-Log ('{0} file đang ở dạng đám mây (OneDrive chưa tải về máy). Windows sẽ tự tải khi chép/di chuyển — bước sắp xếp sẽ chậm hơn và cần có mạng.' -f $cloudOnly) 'WARN'
     }
     Write-Log ('Tổng cộng {0} file, lập chỉ mục xong sau {1:N1} giây.' -f $files.Count, ((Get-Date) - $started).TotalSeconds)
+    if ($files.Count -eq 0) {
+        Write-Log 'KHO NGUỒN KHÔNG CÓ FILE NÀO. Kiểm tra: đúng thư mục chưa, đã bật "Gồm thư mục con" chưa, và "Loại file" có đúng với file hóa đơn của bạn không.' 'WARN'
+    } else {
+        $samples = @($files | Select-Object -First 3 | ForEach-Object { $_.File.Name })
+        Write-Log ('Ví dụ tên file trong kho: {0}' -f ($samples -join '  |  '))
+    }
 
     return [pscustomobject]@{ Files = $files.ToArray(); ByNumber = $byNumber }
 }
@@ -1396,7 +1411,27 @@ function Invoke-Match {
         $many    = @($script:Invoices | Where-Object { $_.MatchCount -gt 1 }).Count
         $lblMatchInfo.Text = 'Đối chiếu: {0} hóa đơn — tìm thấy {1}, thiếu {2}, khớp nhiều file {3}.' -f $script:Invoices.Count, $ok, $missing, $many
         Write-Log $lblMatchInfo.Text
-        if ($missing -gt 0) { Write-Log ('{0} hóa đơn chưa tìm thấy file (dòng màu đỏ) — kiểm tra lại thư mục nguồn hoặc cách đặt tên file.' -f $missing) 'WARN' }
+        if ($missing -gt 0) {
+            Write-Log ('{0} hóa đơn chưa tìm thấy file (dòng màu đỏ). Vài ví dụ và lý do:' -f $missing) 'WARN'
+            foreach ($inv in (@($script:Invoices | Where-Object { -not $_.SourcePath }) | Select-Object -First 5)) {
+                $numKey = $inv.Number.TrimStart('0')
+                if (-not $numKey) { $numKey = '0' }
+                $symNorm = (Remove-Diacritics $inv.Symbol).ToUpper() -replace '[^A-Z0-9]', ''
+
+                if ($index.ByNumber.ContainsKey($numKey)) {
+                    $names = @($index.ByNumber[$numKey].ToArray() | Select-Object -First 2 | ForEach-Object { $_.File.Name })
+                    Write-Log ('   {0} {1}: trong kho CÓ file chứa số này ({2}) nhưng không khớp ký hiệu/mẫu "{3}".' -f $inv.Symbol, $inv.Number, ($names -join ' | '), $inv.Pattern) 'WARN'
+                } else {
+                    $sameSymbol = @($index.Files | Where-Object { $symNorm -and $_.Norm.Contains($symNorm) } | Select-Object -First 2 | ForEach-Object { $_.File.Name })
+                    if ($sameSymbol.Count -gt 0) {
+                        Write-Log ('   {0} {1}: kho có file cùng ký hiệu ({2}) nhưng KHÔNG có file nào chứa số {1}.' -f $inv.Symbol, $inv.Number, ($sameSymbol -join ' | ')) 'WARN'
+                    } else {
+                        Write-Log ('   {0} {1}: kho KHÔNG có file nào chứa ký hiệu này lẫn số này.' -f $inv.Symbol, $inv.Number) 'WARN'
+                    }
+                }
+            }
+            Write-Log '   → So tên file thật với mẫu ở trên để biết cần sửa mẫu hay tìm sai thư mục.' 'WARN'
+        }
 
         $btnOrganize.Enabled = ($ok -gt 0)
         $btnReport.Enabled   = ($script:Invoices.Count -gt 0)
