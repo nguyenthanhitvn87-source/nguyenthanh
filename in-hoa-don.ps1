@@ -22,9 +22,80 @@
 
 #Requires -Version 3.0
 
+# ----------------------------------------------------------------------------
+#  BẮT LỖI: có sự cố thì ghi ra "loi-chay.txt" cạnh script và hiện lên màn hình,
+#  thay vì để cửa sổ tắt mất không kịp đọc.
+# ----------------------------------------------------------------------------
+trap {
+    $err = $_
+
+    $apartment = 'không rõ'
+    try { $apartment = [System.Threading.Thread]::CurrentThread.GetApartmentState() } catch { }
+    $where = ''
+    try { $where = $err.InvocationInfo.PositionMessage } catch { }
+    $kind = ''
+    try { $kind = $err.Exception.GetType().FullName } catch { }
+
+    $info = @(
+        'LỖI KHI CHẠY CÔNG CỤ',
+        ('Lúc: ' + (Get-Date -Format 'dd/MM/yyyy HH:mm:ss')),
+        ('PowerShell: ' + $PSVersionTable.PSVersion),
+        ('Chế độ luồng: ' + $apartment),
+        '',
+        ('Nội dung lỗi: ' + $err.Exception.Message),
+        '',
+        ('Chỗ lỗi: ' + $where),
+        '',
+        ('Loại lỗi: ' + $kind)
+    ) -join [Environment]::NewLine
+
+    try {
+        $root = (Get-Location).Path
+        if ($PSScriptRoot) { $root = $PSScriptRoot }
+        [System.IO.File]::WriteAllText((Join-Path $root 'loi-chay.txt'), $info, (New-Object System.Text.UTF8Encoding($true)))
+    } catch { }
+
+    try {
+        Write-Host ''
+        Write-Host $info -ForegroundColor Red
+        Write-Host ''
+        Write-Host 'Nội dung trên đã được ghi vào file loi-chay.txt cạnh script — gửi file đó là biết lỗi gì.' -ForegroundColor Yellow
+    } catch { }
+
+    try { [void][System.Windows.Forms.MessageBox]::Show($info, 'Lỗi khi chạy công cụ', 'OK', 'Error') } catch { }
+    try { [void](Read-Host 'Nhấn Enter để đóng') } catch { }
+    exit 1
+}
+
+# ----------------------------------------------------------------------------
+#  NHẬT KÝ KHỞI ĐỘNG: ghi từng bước ra "khoi-dong.txt" cạnh script, để khi cửa sổ
+#  tắt mất vẫn biết công cụ chạy tới đâu thì hỏng.
+# ----------------------------------------------------------------------------
+$script:TraceFile = $null
+try {
+    $traceRoot = (Get-Location).Path
+    if ($PSScriptRoot) { $traceRoot = $PSScriptRoot }
+    $script:TraceFile = Join-Path $traceRoot 'khoi-dong.txt'
+    [System.IO.File]::WriteAllText($script:TraceFile, '', (New-Object System.Text.UTF8Encoding($true)))
+} catch { $script:TraceFile = $null }
+
+function Write-Trace {
+    param([string]$Step)
+    if (-not $script:TraceFile) { return }
+    try {
+        $line = '{0}  {1}{2}' -f (Get-Date -Format 'HH:mm:ss'), $Step, [Environment]::NewLine
+        [System.IO.File]::AppendAllText($script:TraceFile, $line, (New-Object System.Text.UTF8Encoding($true)))
+    } catch { }
+}
+
+Write-Trace ('Bắt đầu — PowerShell ' + $PSVersionTable.PSVersion)
+
+
+Write-Trace 'Nạp thư viện giao diện Windows'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
+Write-Trace 'Đã nạp xong thư viện giao diện'
 
 # ============================================================================
 #  BIẾN DÙNG CHUNG
@@ -134,6 +205,8 @@ function Invoke-PrintOneFile {
     }
     return $verb
 }
+
+Write-Trace 'Bắt đầu dựng cửa sổ'
 
 # ============================================================================
 #  GIAO DIỆN
@@ -841,5 +914,7 @@ $form.Add_Shown({
     $btnRefreshPrinters.PerformClick()
 })
 
+Write-Trace 'Dựng xong, mở cửa sổ'
 [void]$form.ShowDialog()
+Write-Trace 'Người dùng đóng cửa sổ — kết thúc bình thường'
 $form.Dispose()
