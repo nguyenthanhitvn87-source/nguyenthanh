@@ -43,8 +43,10 @@ huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng 
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 nhac-qua-mail.gs         # mã Apps Script tự gửi báo cáo công việc qua mail
-sap-xep-in-hoa-don.ps1   # sắp xếp hóa đơn theo danh sách Excel rồi in (xem bên dưới)
-sap-xep-in-hoa-don.bat   # bấm đúp để chạy công cụ hóa đơn trên Windows
+sap-xep-hoa-don.ps1      # sắp xếp hóa đơn vào thư mục theo danh sách Excel (xem bên dưới)
+sap-xep-hoa-don.bat      # bấm đúp để chạy công cụ sắp xếp
+in-hoa-don.ps1           # in hóa đơn hàng loạt ra máy in (xem bên dưới)
+in-hoa-don.bat           # bấm đúp để chạy công cụ in
 README.md
 ```
 
@@ -460,28 +462,36 @@ Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để gi�
 
 ---
 
-# 🧾 Sắp xếp & in hóa đơn — công cụ PowerShell cho Windows
+# 🧾 Sắp xếp & in hóa đơn — hai công cụ PowerShell cho Windows
 
 **Tác giả: Nguyễn Thanh**
 
-Một cửa sổ, hai việc: gom hóa đơn lộn xộn nhiều năm vào đúng thư mục theo danh sách
-Excel, rồi in ra máy in **đúng thứ tự trong file Excel**.
+Hai công cụ tách riêng, chạy độc lập, dùng chung một mạch việc: gom hóa đơn lộn xộn
+nhiều năm vào đúng thư mục theo danh sách Excel, rồi in ra máy in **đúng thứ tự trong
+file Excel**.
 
-- `sap-xep-in-hoa-don.ps1` — toàn bộ công cụ (giao diện Windows Forms).
-- `sap-xep-in-hoa-don.bat` — bấm đúp là chạy, không cần gõ lệnh.
+| File | Việc |
+| --- | --- |
+| `sap-xep-hoa-don.ps1` + `.bat` | Sắp hóa đơn vào thư mục theo danh sách Excel |
+| `in-hoa-don.ps1` + `.bat` | In hóa đơn hàng loạt ra máy in |
+
+Bước sắp xếp ghi ra `thu-tu-in.txt` trong thư mục đích; công cụ in nạp file đó là in
+đúng thứ tự trong Excel. Cần công cụ nào thì chạy công cụ đó, không cần cái kia.
 
 Không cần cài thêm gì: dùng Windows PowerShell 5.1 có sẵn trong Windows. File Excel
 `.xlsx` / `.xlsm` được đọc thẳng (không cần mở Excel); file `.xls` cũ thì máy cần có Excel.
 
 ## Chạy thế nào
 
-Bấm đúp `sap-xep-in-hoa-don.bat`. Nếu Windows chặn script, mở PowerShell rồi gõ:
+Để cả bốn file trong cùng một thư mục rồi bấm đúp `sap-xep-hoa-don.bat` hoặc
+`in-hoa-don.bat`. Nếu Windows chặn script, mở PowerShell rồi gõ:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\sap-xep-in-hoa-don.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\sap-xep-hoa-don.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\in-hoa-don.ps1
 ```
 
-## Tab 1 — Sắp xếp hóa đơn theo danh sách Excel
+## Công cụ 1 — sắp xếp hóa đơn theo danh sách Excel
 
 File Excel được hiểu đúng theo cách bảng đang làm: **mỗi sheet là một thư mục**, trong
 sheet có nhiều bảng, **mỗi bảng là một sản phẩm** và thành một thư mục con; một sản phẩm
@@ -593,7 +603,11 @@ Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ tr�
   OneDrive khác). Nếu đích nằm trong nguồn, công cụ sẽ hỏi lại trước khi chạy, vì lần
   đối chiếu sau sẽ quét trúng cả những file vừa sắp xếp.
 
-## Tab 2 — In hóa đơn
+Xong xuôi, thư mục đích có thêm `bao-cao-doi-chieu.csv` (đối chiếu từng dòng) và
+`thu-tu-in.txt` (danh sách đường dẫn theo đúng thứ tự Excel). Nút *Mở công cụ in →* mở
+thẳng công cụ in.
+
+## Công cụ 2 — in hóa đơn
 
 - Quét một thư mục (kể cả thư mục con), tách số hóa đơn trong tên file.
 - Sắp xếp theo số hóa đơn, theo tên file (`Tên file A → Z` = đúng thứ tự đã đánh số),
@@ -602,8 +616,9 @@ Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ tr�
 - Chọn máy in, số bản, rồi bấm **IN**. Có nút *Dừng*, có ô *In thử* để chạy nháp
   trước mà không tốn giấy.
 
-Muốn in đúng danh sách Excel mà khỏi phải chọn lại: sau khi đối chiếu, bấm thẳng
-**In ngay theo thứ tự Excel** ở tab 1 (dùng máy in và số bản đang đặt ở tab 2).
+Muốn in đúng thứ tự trong Excel: bấm **Nạp danh sách thứ tự in...** rồi chọn
+`thu-tu-in.txt` trong thư mục đích. Danh sách hiện đúng thứ tự Excel, tick sẵn tất cả,
+dòng nào đã xóa file thì tự bỏ qua và báo trong nhật ký.
 
 ## Lưu ý
 
@@ -613,6 +628,6 @@ Muốn in đúng danh sách Excel mà khỏi phải chọn lại: sau khi đối
 - *Chờ mỗi file (giây)* và *Chờ hàng đợi máy in trống* giúp các hóa đơn ra đúng thứ tự;
   máy in chậm thì tăng số giây lên.
 - Nếu quét cả thư mục đích có nhiều sheet cùng lúc, số thứ tự của các sheet sẽ đan vào
-  nhau. In từng thư mục sheet một, hoặc dùng nút *In ngay theo thứ tự Excel*.
+  nhau. In từng thư mục sheet một, hoặc nạp `thu-tu-in.txt`.
 - Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file; muốn lấy chỗ
   khác thì điền regex có nhóm bắt, ví dụ `K\d{2}[A-Z]+.?(\d+)`.
