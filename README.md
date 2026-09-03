@@ -511,9 +511,12 @@ Các bước:
 
 1. **Chọn file Excel** → bấm *Đọc danh sách*. Mỗi sheet hiện kèm số hóa đơn và số sản phẩm.
 2. Tick những sheet cần làm.
-3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn. Chỉ cần thêm thư mục cha
-   (ví dụ `GGM`) và bật *Gồm thư mục con* là quét hết `HCM - 2023`, `HCM - 2024`,
-   `HCM - 2025`, `Ha Noi`... trong đó; hoặc thêm từng thư mục riêng cũng được.
+3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn. Gõ hoặc dán đường dẫn
+   vào ô *Gõ / dán đường dẫn* rồi bấm Enter (nhanh nhất: copy đường dẫn trên thanh
+   địa chỉ của File Explorer), hoặc bấm *Chọn thư mục nguồn...* để duyệt.
+   Thêm được nhiều thư mục. Thêm thư mục cha (ví dụ `GGM`) và bật *Gồm thư mục con*
+   là quét hết `HCM - 2023`, `HCM - 2024`, `HCM - 2025`, `Ha Noi`... nhưng **trỏ thẳng
+   vào đúng thư mục cần sắp thì nhanh hơn nhiều**.
    Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*, ví dụ `2023,2024,2025`;
    để trống là lấy hết.
 4. **Chọn thư mục đích**. Nếu thư mục này đã có sẵn các thư mục con, bấm
@@ -543,6 +546,22 @@ HoaDon\
 
 Số ở đầu tên file (`001_`, `002_`...) chạy liên tục trong một sheet **theo đúng thứ tự
 dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
+
+### Chạy cho nhanh
+
+Kho hóa đơn trên OneDrive vài chục nghìn file thì bước quét là chỗ tốn thời gian nhất,
+nên công cụ làm thế này:
+
+- **Quét một lần rồi dùng lại.** Lần *Đối chiếu danh sách* đầu tiên sẽ quét kho nguồn,
+  các lần sau dùng lại kết quả cũ (nhật ký ghi rõ "Dùng lại kết quả quét trước").
+  Vừa thêm file mới vào kho thì bấm *Quét lại kho nguồn*. Đổi thư mục nguồn, loại file
+  hay tùy chọn *Gồm thư mục con* thì tự quét lại.
+- **Lọc ngay khi quét.** Chọn *Loại file* là `PDF` để chỉ liệt kê file PDF, thay vì lấy
+  hết rồi lọc sau.
+- **Dò theo chỉ mục số hóa đơn.** Mỗi hóa đơn chỉ so với những file có đúng số đó trong
+  tên, không duyệt lại cả kho — với 8.000 file và 1.000 hóa đơn, bước đối chiếu chạy
+  0,2 giây thay vì hơn một phút.
+- **Thu hẹp thư mục nguồn.** Chỉ sắp hóa đơn năm 2025 thì trỏ thẳng vào `GGM\HCM - 2025`.
 
 ### Khi thư mục đích đã có sẵn folder
 
@@ -595,7 +614,8 @@ chép hụt thì file gốc vẫn còn nguyên.
 Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ trên máy, ví dụ
 `C:\Users\<tên máy>\OneDrive - DKSH\Thanh - DKSH\GGM\HCM - 2023`, và bật *Gồm thư mục con*.
 
-- File có biểu tượng đám mây là **chưa tải về máy**. Công cụ đếm và báo số lượng này
+- File có biểu tượng đám mây là **chưa tải về máy**. Quét thì nhanh (chỉ đọc tên file),
+  nhưng chép hoặc di chuyển thì phải tải về. Công cụ đếm và báo số lượng này
   trong nhật ký; Windows sẽ tự tải khi chép hoặc di chuyển, nên bước sắp xếp cần có mạng
   và sẽ chậm hơn. Muốn chạy nhanh: chuột phải thư mục trong File Explorer →
   *Always keep on this device*, chờ tải xong rồi mới sắp xếp.

@@ -39,6 +39,9 @@ $script:Invoices         = @()    # danh sách hóa đơn đã dò (sau khi đ�
 $script:SheetFolderMap   = @{}    # tên sheet -> tên thư mục trong thư mục đích
 $script:ProductFolderMap = @{}    # "tên sheet|tên sản phẩm" -> tên thư mục con
 $script:Cancel           = $false
+$script:BlocksBySheet    = @{}    # tên sheet -> các bảng hóa đơn đã dò (khỏi dò lại)
+$script:FileIndex        = $null  # kết quả quét kho nguồn, dùng lại cho các lần đối chiếu sau
+$script:FileIndexKey     = ''     # dấu hiệu của lần quét (thư mục + loại file + thư mục con)
 
 $script:FileGroups = [ordered]@{
     'PDF'                = @('.pdf')
@@ -109,7 +112,7 @@ function Get-NameSimilarity {
 
     $pairsA = @()
     for ($i = 0; $i -lt $A.Length - 1; $i++) { $pairsA += $A.Substring($i, 2) }
-    $pairsB = New-Object System.Collections.Generic.List[string]
+    $pairsB = New-Object 'System.Collections.Generic.List[string]'
     for ($i = 0; $i -lt $B.Length - 1; $i++) { $pairsB.Add($B.Substring($i, 2)) }
 
     $countB = $pairsB.Count
@@ -281,7 +284,7 @@ function Read-XlsxWorkbook {
     $zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
     try {
         # --- chuỗi dùng chung ---
-        $shared = New-Object System.Collections.Generic.List[string]
+        $shared = New-Object 'System.Collections.Generic.List[string]'
         $ssXml = Read-ZipXml $zip 'xl/sharedStrings.xml'
         if ($ssXml) {
             foreach ($si in $ssXml.DocumentElement.ChildNodes) {
@@ -537,37 +540,63 @@ function Test-PathInside {
 }
 
 function Build-FileIndex {
-    <# Quét các thư mục nguồn, chuẩn hóa tên file để dò tìm nhanh. #>
+    <# Quét các thư mục nguồn một lần, chuẩn hóa tên file và lập chỉ mục theo số
+       trong tên để dò từng hóa đơn cho nhanh (không phải duyệt lại cả kho). #>
     param([string[]]$Folders, [bool]$Recurse, [string[]]$Extensions)
 
-    $index = @()
+    $files     = New-Object 'System.Collections.Generic.List[object]'
+    $byNumber  = @{}
     $cloudOnly = 0
+    $started   = Get-Date
+
     foreach ($folder in $Folders) {
         if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
             Write-Log ('Bỏ qua thư mục không tồn tại: {0}' -f $folder) 'WARN'
             continue
         }
-        $files = @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -ErrorAction SilentlyContinue)
+
+        $t0 = Get-Date
+        $raw = New-Object 'System.Collections.Generic.List[object]'
         if ($Extensions -and $Extensions.Count -gt 0) {
-            $files = @($files | Where-Object { $Extensions -contains $_.Extension.ToLower() })
-        }
-        foreach ($f in $files) {
-            if (Test-CloudOnlyFile $f) { $cloudOnly++ }
-            $norm = (Remove-Diacritics $f.BaseName).ToUpper() -replace '[^A-Z0-9]', ''
-            $digits = @([regex]::Matches($f.BaseName, '\d+') | ForEach-Object { $_.Value.TrimStart('0') })
-            $index += [pscustomobject]@{
-                File   = $f
-                Norm   = $norm
-                Digits = $digits
-                Year   = $f.LastWriteTime.Year
+            # lọc ngay khi liệt kê — nhanh hơn nhiều so với lấy hết rồi lọc sau
+            foreach ($ext in $Extensions) {
+                foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -Filter ('*' + $ext) -ErrorAction SilentlyContinue)) {
+                    if ($Extensions -contains $f.Extension.ToLower()) { $raw.Add($f) }
+                }
+                [System.Windows.Forms.Application]::DoEvents()
+            }
+        } else {
+            foreach ($f in @(Get-ChildItem -LiteralPath $folder -File -Recurse:$Recurse -ErrorAction SilentlyContinue)) {
+                $raw.Add($f)
             }
         }
-        Write-Log ('Đã quét {0} file trong "{1}".' -f $files.Count, $folder)
+
+        foreach ($f in $raw) {
+            if (Test-CloudOnlyFile $f) { $cloudOnly++ }
+            $entry = [pscustomobject]@{
+                File   = $f
+                Norm   = ((Remove-Diacritics $f.BaseName).ToUpper() -replace '[^A-Z0-9]', '')
+                Digits = @([regex]::Matches($f.BaseName, '\d+') | ForEach-Object { $_.Value.TrimStart('0') })
+                Year   = $f.LastWriteTime.Year
+            }
+            $files.Add($entry)
+            foreach ($d in $entry.Digits) {
+                $key = if ($d) { $d } else { '0' }
+                if (-not $byNumber.ContainsKey($key)) { $byNumber[$key] = New-Object 'System.Collections.Generic.List[object]' }
+                $byNumber[$key].Add($entry)
+            }
+        }
+
+        Write-Log ('Đã quét {0} file trong "{1}" ({2:N1} giây).' -f $raw.Count, $folder, ((Get-Date) - $t0).TotalSeconds)
+        [System.Windows.Forms.Application]::DoEvents()
     }
+
     if ($cloudOnly -gt 0) {
         Write-Log ('{0} file đang ở dạng đám mây (OneDrive chưa tải về máy). Windows sẽ tự tải khi chép/di chuyển — bước sắp xếp sẽ chậm hơn và cần có mạng.' -f $cloudOnly) 'WARN'
     }
-    return $index
+    Write-Log ('Tổng cộng {0} file, lập chỉ mục xong sau {1:N1} giây.' -f $files.Count, ((Get-Date) - $started).TotalSeconds)
+
+    return [pscustomobject]@{ Files = $files.ToArray(); ByNumber = $byNumber }
 }
 
 function Select-BestMatches {
@@ -587,15 +616,26 @@ function Select-BestMatches {
 }
 
 function Find-InvoiceFile {
-    <# Tìm file cho một hóa đơn. Ưu tiên cột "tên file" trong Excel (mẫu tìm kiểu
-       *K25TAA*618585), không có hoặc không ra file nào thì mới dò theo KÝ HIỆU + SỐ. #>
+    <# Tìm file cho một hóa đơn. Chỉ xét những file có chứa đúng số hóa đơn trong tên
+       (lấy từ chỉ mục), ưu tiên cột "tên file" trong Excel rồi mới tới ký hiệu + số. #>
     param($Index, [string]$Symbol, [string]$Number, $Year, [string]$Pattern)
+
+    $numKey = $Number.TrimStart('0')
+    if (-not $numKey) { $numKey = '0' }
+
+    $candidates = @()
+    if ($Index.ByNumber.ContainsKey($numKey)) { $candidates = $Index.ByNumber[$numKey].ToArray() }
 
     if ($Pattern) {
         $pat = $Pattern.Trim()
         if (-not $pat.StartsWith('*')) { $pat = '*' + $pat }
         if (-not $pat.EndsWith('*'))   { $pat = $pat + '*' }
-        $byPattern = @($Index | Where-Object { $_.File.Name -like $pat })
+
+        $byPattern = @($candidates | Where-Object { $_.File.Name -like $pat })
+        if ($byPattern.Count -eq 0 -and $candidates.Count -eq 0) {
+            # mẫu không kèm số hóa đơn thì mới phải duyệt cả kho
+            $byPattern = @($Index.Files | Where-Object { $_.File.Name -like $pat })
+        }
         if ($byPattern.Count -gt 0) {
             $best = Select-BestMatches -Files $byPattern -Year $Year
             $status = if ($best.Count -eq 1) { 'Khớp theo cột tên file' } else { 'Khớp nhiều file' }
@@ -603,29 +643,23 @@ function Find-InvoiceFile {
         }
     }
 
-    $symNorm = (Remove-Diacritics $Symbol).ToUpper() -replace '[^A-Z0-9]', ''
-    $numKey  = $Number.TrimStart('0')
-    if (-not $numKey) { $numKey = '0' }
+    if ($candidates.Count -eq 0) { return @{ Files = @(); Status = 'Không tìm thấy' } }
 
-    $strong = @($Index | Where-Object { $_.Digits -contains $numKey -and $symNorm -and $_.Norm.Contains($symNorm) })
+    $symNorm = (Remove-Diacritics $Symbol).ToUpper() -replace '[^A-Z0-9]', ''
+    $strong = @($candidates | Where-Object { $symNorm -and $_.Norm.Contains($symNorm) })
     if ($strong.Count -gt 0) {
         $best = Select-BestMatches -Files $strong -Year $Year
         $status = if ($best.Count -eq 1) { 'Khớp ký hiệu + số' } else { 'Khớp nhiều file' }
         return @{ Files = $best; Status = $status }
     }
 
-    $weak = @($Index | Where-Object { $_.Digits -contains $numKey })
-    if ($weak.Count -gt 0) {
-        $best = Select-BestMatches -Files $weak -Year $Year
-        if ($best.Count -gt 1 -and $Year) {
-            $byTime = @($best | Where-Object { $_.Year -eq $Year })
-            if ($byTime.Count -gt 0) { $best = $byTime }
-        }
-        $status = if ($best.Count -eq 1) { 'Khớp số (thiếu ký hiệu)' } else { 'Khớp nhiều file' }
-        return @{ Files = $best; Status = $status }
+    $best = Select-BestMatches -Files $candidates -Year $Year
+    if ($best.Count -gt 1 -and $Year) {
+        $byTime = @($best | Where-Object { $_.Year -eq $Year })
+        if ($byTime.Count -gt 0) { $best = $byTime }
     }
-
-    return @{ Files = @(); Status = 'Không tìm thấy' }
+    $status = if ($best.Count -eq 1) { 'Khớp số (thiếu ký hiệu)' } else { 'Khớp nhiều file' }
+    return @{ Files = $best; Status = $status }
 }
 
 # ============================================================================
@@ -865,20 +899,37 @@ $form.Controls.Add($grpSource)
 
 $lstSources          = New-Object System.Windows.Forms.ListBox
 $lstSources.Location = New-Object System.Drawing.Point(12, 26)
-$lstSources.Size     = New-Object System.Drawing.Size(730, 80)
+$lstSources.Size     = New-Object System.Drawing.Size(730, 52)
 $grpSource.Controls.Add($lstSources)
 
+$lblSourcePath          = New-Object System.Windows.Forms.Label
+$lblSourcePath.Text     = 'Gõ / dán đường dẫn'
+$lblSourcePath.Location = New-Object System.Drawing.Point(12, 86)
+$lblSourcePath.Size     = New-Object System.Drawing.Size(120, 20)
+$grpSource.Controls.Add($lblSourcePath)
+
+$txtSourcePath          = New-Object System.Windows.Forms.TextBox
+$txtSourcePath.Location = New-Object System.Drawing.Point(136, 83)
+$txtSourcePath.Size     = New-Object System.Drawing.Size(606, 24)
+$grpSource.Controls.Add($txtSourcePath)
+
 $btnAddSrc          = New-Object System.Windows.Forms.Button
-$btnAddSrc.Text     = 'Thêm thư mục nguồn...'
-$btnAddSrc.Location = New-Object System.Drawing.Point(752, 26)
-$btnAddSrc.Size     = New-Object System.Drawing.Size(220, 30)
+$btnAddSrc.Text     = 'Chọn thư mục nguồn...'
+$btnAddSrc.Location = New-Object System.Drawing.Point(752, 24)
+$btnAddSrc.Size     = New-Object System.Drawing.Size(220, 26)
 $grpSource.Controls.Add($btnAddSrc)
 
 $btnRemoveSrc          = New-Object System.Windows.Forms.Button
 $btnRemoveSrc.Text     = 'Bỏ thư mục đang chọn'
-$btnRemoveSrc.Location = New-Object System.Drawing.Point(752, 62)
-$btnRemoveSrc.Size     = New-Object System.Drawing.Size(220, 30)
+$btnRemoveSrc.Location = New-Object System.Drawing.Point(752, 54)
+$btnRemoveSrc.Size     = New-Object System.Drawing.Size(220, 26)
 $grpSource.Controls.Add($btnRemoveSrc)
+
+$btnAddPath          = New-Object System.Windows.Forms.Button
+$btnAddPath.Text     = 'Thêm đường dẫn đã gõ'
+$btnAddPath.Location = New-Object System.Drawing.Point(752, 83)
+$btnAddPath.Size     = New-Object System.Drawing.Size(220, 26)
+$grpSource.Controls.Add($btnAddPath)
 
 $chkSubSrc          = New-Object System.Windows.Forms.CheckBox
 $chkSubSrc.Text     = 'Gồm thư mục con'
@@ -913,7 +964,7 @@ $txtYears.Size     = New-Object System.Drawing.Size(140, 24)
 $grpSource.Controls.Add($txtYears)
 
 $lblYearsHint           = New-Object System.Windows.Forms.Label
-$lblYearsHint.Text      = 'VD: 2023,2024,2025 — để trống là lấy tất cả các năm trong danh sách'
+$lblYearsHint.Text      = 'Để trống là lấy tất cả các năm. Trỏ thẳng vào thư mục cần sắp cho nhanh.'
 $lblYearsHint.Location  = New-Object System.Drawing.Point(632, 116)
 $lblYearsHint.Size      = New-Object System.Drawing.Size(340, 20)
 $lblYearsHint.ForeColor = [System.Drawing.Color]::DimGray
@@ -1019,6 +1070,12 @@ $btnOpenPrint.Location = New-Object System.Drawing.Point(612, 414)
 $btnOpenPrint.Size     = New-Object System.Drawing.Size(180, 32)
 $form.Controls.Add($btnOpenPrint)
 
+$btnScanSource          = New-Object System.Windows.Forms.Button
+$btnScanSource.Text     = 'Quét lại kho nguồn'
+$btnScanSource.Location = New-Object System.Drawing.Point(800, 414)
+$btnScanSource.Size     = New-Object System.Drawing.Size(196, 32)
+$form.Controls.Add($btnScanSource)
+
 $lblMatchInfo          = New-Object System.Windows.Forms.Label
 $lblMatchInfo.Text     = 'Chưa đối chiếu.'
 $lblMatchInfo.Location = New-Object System.Drawing.Point(8, 606)
@@ -1062,10 +1119,12 @@ function Invoke-LoadExcel {
         $path = (Resolve-Path -LiteralPath $path).Path
         Write-Log ('Đang đọc file Excel: {0}' -f $path)
         $script:Sheets = @(Read-Workbook -Path $path)
+        $script:BlocksBySheet = @{}
         $clbSheets.Items.Clear()
 
         foreach ($sheet in $script:Sheets) {
             $blocks = Find-InvoiceBlocks $sheet
+            $script:BlocksBySheet[$sheet.Name] = $blocks
             $count  = ($blocks | ForEach-Object { $_.Rows.Count } | Measure-Object -Sum).Sum
             if (-not $count) { $count = 0 }
             $label = '{0}  ({1} hóa đơn / {2} sản phẩm)' -f $sheet.Name, $count, $blocks.Count
@@ -1083,6 +1142,35 @@ function Invoke-LoadExcel {
     } finally {
         $form.Cursor = [System.Windows.Forms.Cursors]::Default
     }
+}
+
+function Get-SheetBlocks {
+    <# Các bảng hóa đơn của một sheet — dò một lần lúc đọc Excel rồi dùng lại. #>
+    param([string]$Name)
+    if ($script:BlocksBySheet.ContainsKey($Name)) { return $script:BlocksBySheet[$Name] }
+    $sheet = $script:Sheets | Where-Object { $_.Name -eq $Name } | Select-Object -First 1
+    if (-not $sheet) { return @() }
+    $script:BlocksBySheet[$Name] = Find-InvoiceBlocks $sheet
+    return $script:BlocksBySheet[$Name]
+}
+
+function Get-FileIndex {
+    <# Quét kho nguồn. Cùng thư mục + cùng loại file thì dùng lại kết quả lần trước,
+       khỏi phải quét lại (kho OneDrive nhiều file quét rất lâu). #>
+    param([switch]$Force)
+
+    $sources = @($lstSources.Items | ForEach-Object { [string]$_ })
+    $exts    = @($script:FileGroups[$cboSrcType.SelectedItem.ToString()])
+    $key     = '{0}|{1}|{2}' -f ($sources -join ';'), ($exts -join ','), $chkSubSrc.Checked
+
+    if (-not $Force -and $script:FileIndex -and $script:FileIndexKey -eq $key) {
+        Write-Log ('Dùng lại kết quả quét trước: {0} file (bấm "Quét lại kho nguồn" nếu vừa thêm file mới).' -f $script:FileIndex.Files.Count)
+        return $script:FileIndex
+    }
+
+    $script:FileIndex    = Build-FileIndex -Folders $sources -Recurse $chkSubSrc.Checked -Extensions $exts
+    $script:FileIndexKey = $key
+    return $script:FileIndex
 }
 
 function Get-CheckedSheets {
@@ -1140,19 +1228,17 @@ function Invoke-Match {
     $btnMatch.Enabled = $false
     $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
     try {
-        $exts  = @($script:FileGroups[$cboSrcType.SelectedItem.ToString()])
         $years = Get-YearFilter
         if ($years.Count -gt 0) { Write-Log ('Chỉ lấy hóa đơn năm: {0}' -f ($years -join ', ')) }
 
-        $index = Build-FileIndex -Folders $sources -Recurse $chkSubSrc.Checked -Extensions $exts
-        Write-Log ('Tổng cộng {0} file trong kho nguồn.' -f $index.Count)
+        $index = Get-FileIndex
 
         # gom trước để biết tổng số dòng (chạy thanh tiến trình)
         $plan = @()
         foreach ($name in $sheetNames) {
             $sheet = $script:Sheets | Where-Object { $_.Name -eq $name } | Select-Object -First 1
             if (-not $sheet) { continue }
-            $plan += [pscustomobject]@{ Sheet = $name; Blocks = (Find-InvoiceBlocks $sheet) }
+            $plan += [pscustomobject]@{ Sheet = $name; Blocks = (Get-SheetBlocks $name) }
         }
         $total = ($plan | ForEach-Object { $_.Blocks | ForEach-Object { $_.Rows.Count } } | Measure-Object -Sum).Sum
         if (-not $total) { $total = 0 }
@@ -1385,7 +1471,7 @@ function Export-PrintOrder {
     <# Ghi danh sách đường dẫn file theo đúng thứ tự trong Excel để công cụ in đọc lại. #>
     param([string]$Path)
 
-    $lines = New-Object System.Collections.Generic.List[string]
+    $lines = New-Object 'System.Collections.Generic.List[string]'
     $lines.Add('# Danh sách thứ tự in — tạo bởi sap-xep-hoa-don.ps1 lúc ' + (Get-Date -Format 'dd/MM/yyyy HH:mm'))
     foreach ($inv in $script:Invoices) {
         if ($inv.DestPath -and (Test-Path -LiteralPath $inv.DestPath)) { $lines.Add($inv.DestPath) }
@@ -1408,20 +1494,75 @@ $btnBrowseExcel.Add_Click({
 
 $btnLoadExcel.Add_Click({ Invoke-LoadExcel })
 
+function Add-SourceFolder {
+    <# Thêm một thư mục nguồn vào danh sách (nhận cả đường dẫn gõ tay hoặc dán vào). #>
+    param([string]$Path)
+
+    $folder = $Path.Trim().Trim('"')
+    if (-not $folder) { return }
+    if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
+        [void][System.Windows.Forms.MessageBox]::Show(
+            ("Không thấy thư mục:`n{0}" -f $folder), 'Đường dẫn không đúng',
+            [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
+        return
+    }
+    $folder = (Resolve-Path -LiteralPath $folder).Path
+    if ($lstSources.Items -contains $folder) {
+        Write-Log ('Thư mục này đã có trong danh sách: {0}' -f $folder) 'WARN'
+        return
+    }
+    [void]$lstSources.Items.Add($folder)
+    $script:FileIndexKey = ''      # danh sách nguồn đổi thì phải quét lại
+    Write-Log ('Thêm thư mục nguồn: {0}' -f $folder)
+}
+
 $btnAddSrc.Add_Click({
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
     $dlg.Description = 'Chọn thư mục chứa file hóa đơn'
-    if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-        if ($lstSources.Items -notcontains $dlg.SelectedPath) {
-            [void]$lstSources.Items.Add($dlg.SelectedPath)
-            Write-Log ('Thêm thư mục nguồn: {0}' -f $dlg.SelectedPath)
-        }
+    if ($txtSourcePath.Text -and (Test-Path -LiteralPath $txtSourcePath.Text.Trim('"'))) {
+        $dlg.SelectedPath = $txtSourcePath.Text.Trim('"')
+    }
+    if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Add-SourceFolder $dlg.SelectedPath }
+})
+
+$btnAddPath.Add_Click({
+    Add-SourceFolder $txtSourcePath.Text
+    $txtSourcePath.Clear()
+})
+
+$txtSourcePath.Add_KeyDown({
+    param($sender, $e)
+    if ($e.KeyCode -eq [System.Windows.Forms.Keys]::Enter) {
+        $e.SuppressKeyPress = $true
+        Add-SourceFolder $txtSourcePath.Text
+        $txtSourcePath.Clear()
+    }
+})
+
+$btnScanSource.Add_Click({
+    if ($lstSources.Items.Count -eq 0) {
+        [void][System.Windows.Forms.MessageBox]::Show('Chưa có thư mục nguồn nào.', 'Thiếu thư mục nguồn',
+            [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        return
+    }
+    $btnScanSource.Enabled = $false
+    $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
+    try { [void](Get-FileIndex -Force) }
+    finally {
+        $btnScanSource.Enabled = $true
+        $form.Cursor = [System.Windows.Forms.Cursors]::Default
     }
 })
 
 $btnRemoveSrc.Add_Click({
-    if ($lstSources.SelectedIndex -ge 0) { $lstSources.Items.RemoveAt($lstSources.SelectedIndex) }
+    if ($lstSources.SelectedIndex -ge 0) {
+        $lstSources.Items.RemoveAt($lstSources.SelectedIndex)
+        $script:FileIndexKey = ''
+    }
 })
+
+$chkSubSrc.Add_CheckedChanged({ $script:FileIndexKey = '' })
+$cboSrcType.Add_SelectedIndexChanged({ $script:FileIndexKey = '' })
 
 $btnBrowseDest.Add_Click({
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -1444,10 +1585,7 @@ $btnMapFolders.Add_Click({
     # danh sách sản phẩm của từng sheet, lấy thẳng từ Excel
     $productsBySheet = @{}
     foreach ($name in $names) {
-        $sheet = $script:Sheets | Where-Object { $_.Name -eq $name } | Select-Object -First 1
-        $productsBySheet[$name] = if ($sheet) {
-            @((Find-InvoiceBlocks $sheet) | ForEach-Object { $_.Title } | Select-Object -Unique)
-        } else { @() }
+        $productsBySheet[$name] = @((Get-SheetBlocks $name) | ForEach-Object { $_.Title } | Select-Object -Unique)
     }
 
     $sheetMap = Resolve-SheetFolders -SheetNames $names -Dest $dest
