@@ -715,17 +715,40 @@ function Build-FileIndex {
 function Select-BestMatches {
     <# Nhiều file cùng khớp thì ưu tiên file nằm trong thư mục/tên có đúng năm hóa đơn
        (kho chia theo "HCM - 2023", "HCM - 2024", "HCM - 2025", "Ha Noi"...),
-       sau đó ưu tiên đường dẫn ngắn hơn (bản gốc thay vì bản sao chép lồng nhau). #>
+       sau đó ưu tiên đường dẫn ngắn hơn (bản gốc thay vì bản sao chép lồng nhau).
+       Viết bằng vòng lặp thường để chạy chắc trên mọi bản PowerShell. #>
     param($Files, $Year)
 
-    $list = @($Files)
+    $list = @()
+    foreach ($f in $Files) { if ($f) { $list += $f } }
     if ($list.Count -le 1) { return $list }
 
     if ($Year) {
-        $inYear = @($list | Where-Object { $_.File.FullName -match ([string]$Year) })
+        $yearText = [string]$Year
+        $inYear = @()
+        foreach ($f in $list) {
+            if ($f.File.FullName.Contains($yearText)) { $inYear += $f }
+        }
         if ($inYear.Count -gt 0) { $list = $inYear }
     }
-    return @($list | Sort-Object { $_.File.FullName.Length })
+    if ($list.Count -le 1) { return $list }
+
+    # sắp theo độ dài đường dẫn, bằng vòng lặp chèn — không dùng Sort-Object
+    $sorted = @()
+    foreach ($f in $list) {
+        $placed = $false
+        $out = @()
+        foreach ($x in $sorted) {
+            if (-not $placed -and $f.File.FullName.Length -lt $x.File.FullName.Length) {
+                $out += $f
+                $placed = $true
+            }
+            $out += $x
+        }
+        if (-not $placed) { $out += $f }
+        $sorted = $out
+    }
+    return $sorted
 }
 
 function Find-InvoiceFile {
@@ -744,14 +767,17 @@ function Find-InvoiceFile {
         if (-not $pat.StartsWith('*')) { $pat = '*' + $pat }
         if (-not $pat.EndsWith('*'))   { $pat = $pat + '*' }
 
-        $byPattern = @($candidates | Where-Object { $_.File.Name -like $pat })
+        $byPattern = @()
+        foreach ($f in $candidates) { if ($f.File.Name -like $pat) { $byPattern += $f } }
         if ($byPattern.Count -eq 0 -and $candidates.Count -eq 0) {
             # mẫu không kèm số hóa đơn thì mới phải duyệt cả kho
-            $byPattern = @($Index.Files | Where-Object { $_.File.Name -like $pat })
+            foreach ($f in $Index.Files) { if ($f.File.Name -like $pat) { $byPattern += $f } }
         }
         if ($byPattern.Count -gt 0) {
-            $best = Select-BestMatches -Files $byPattern -Year $Year
-            $status = if ($best.Count -eq 1) { 'Khớp theo cột tên file' } else { 'Khớp nhiều file' }
+            $best = @(Select-BestMatches -Files $byPattern -Year $Year)
+            if ($best.Count -eq 0) { $best = $byPattern }      # không bao giờ trả về rỗng khi đã có file khớp
+            $status = 'Khớp nhiều file'
+            if ($best.Count -eq 1) { $status = 'Khớp theo cột tên file' }
             return @{ Files = $best; Status = $status }
         }
     }
@@ -759,19 +785,27 @@ function Find-InvoiceFile {
     if ($candidates.Count -eq 0) { return @{ Files = @(); Status = 'Không tìm thấy' } }
 
     $symNorm = (Remove-Diacritics $Symbol).ToUpper() -replace '[^A-Z0-9]', ''
-    $strong = @($candidates | Where-Object { $symNorm -and $_.Norm.Contains($symNorm) })
+    $strong = @()
+    if ($symNorm) {
+        foreach ($f in $candidates) { if ($f.Norm.Contains($symNorm)) { $strong += $f } }
+    }
     if ($strong.Count -gt 0) {
-        $best = Select-BestMatches -Files $strong -Year $Year
-        $status = if ($best.Count -eq 1) { 'Khớp ký hiệu + số' } else { 'Khớp nhiều file' }
+        $best = @(Select-BestMatches -Files $strong -Year $Year)
+        if ($best.Count -eq 0) { $best = $strong }
+        $status = 'Khớp nhiều file'
+        if ($best.Count -eq 1) { $status = 'Khớp ký hiệu + số' }
         return @{ Files = $best; Status = $status }
     }
 
-    $best = Select-BestMatches -Files $candidates -Year $Year
+    $best = @(Select-BestMatches -Files $candidates -Year $Year)
+    if ($best.Count -eq 0) { $best = $candidates }
     if ($best.Count -gt 1 -and $Year) {
-        $byTime = @($best | Where-Object { $_.Year -eq $Year })
+        $byTime = @()
+        foreach ($f in $best) { if ($f.Year -eq $Year) { $byTime += $f } }
         if ($byTime.Count -gt 0) { $best = $byTime }
     }
-    $status = if ($best.Count -eq 1) { 'Khớp số (thiếu ký hiệu)' } else { 'Khớp nhiều file' }
+    $status = 'Khớp nhiều file'
+    if ($best.Count -eq 1) { $status = 'Khớp số (thiếu ký hiệu)' }
     return @{ Files = $best; Status = $status }
 }
 
@@ -1378,10 +1412,16 @@ function Invoke-Match {
                     if ($years.Count -gt 0 -and $r.Year -and ($years -notcontains $r.Year)) { continue }
                     $seq++
                     $found = Find-InvoiceFile -Index $index -Symbol $r.Symbol -Number $r.Number -Year $r.Year -Pattern $r.Pattern
-                    $file  = if ($found.Files.Count -gt 0) { $found.Files[0].File } else { $null }
+                    $hits  = @($found.Files)
+                    $file  = $null
+                    if ($hits.Count -gt 0) { $file = $hits[0].File }
                     $status = $found.Status
-                    if ($found.Files.Count -gt 1) {
-                        $status = '{0} ({1} file)' -f $found.Status, $found.Files.Count
+                    if ($hits.Count -gt 1)  { $status = '{0} ({1} file)' -f $found.Status, $hits.Count }
+                    if ($hits.Count -eq 0)  { $status = 'Không tìm thấy' }
+
+                    if ($done -le 3) {
+                        Write-Log ('   [dò thử] {0} {1} — mẫu "{2}" → {3} file khớp{4}' -f $r.Symbol, $r.Number, $r.Pattern, $hits.Count,
+                                   $(if ($file) { ': ' + $file.Name } else { '' }))
                     }
                     $script:Invoices += [pscustomobject]@{
                         Seq        = $seq
