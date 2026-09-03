@@ -43,6 +43,10 @@ huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng 
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
 nhac-qua-mail.gs         # mã Apps Script tự gửi báo cáo công việc qua mail
+sap-xep-hoa-don.ps1      # sắp xếp hóa đơn vào thư mục theo danh sách Excel (xem bên dưới)
+sap-xep-hoa-don.bat      # bấm đúp để chạy công cụ sắp xếp
+in-hoa-don.ps1           # in hóa đơn hàng loạt ra máy in (xem bên dưới)
+in-hoa-don.bat           # bấm đúp để chạy công cụ in
 README.md
 ```
 
@@ -455,3 +459,221 @@ bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xu
 Dữ liệu nằm trong `localStorage` của trình duyệt, và **mỗi địa chỉ web giữ một kho riêng** —
 mở bằng đường dẫn khác hay trình duyệt khác là một kho khác. Xoá dữ liệu duyệt web của
 Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để giữ một bản.
+
+---
+
+# 🧾 Sắp xếp & in hóa đơn — hai công cụ PowerShell cho Windows
+
+**Tác giả: Nguyễn Thanh**
+
+Hai công cụ tách riêng, chạy độc lập, dùng chung một mạch việc: gom hóa đơn lộn xộn
+nhiều năm vào đúng thư mục theo danh sách Excel, rồi in ra máy in **đúng thứ tự trong
+file Excel**.
+
+| File | Việc |
+| --- | --- |
+| `sap-xep-hoa-don.ps1` + `.bat` | Sắp hóa đơn vào thư mục theo danh sách Excel |
+| `in-hoa-don.ps1` + `.bat` | In hóa đơn hàng loạt ra máy in |
+
+Bước sắp xếp ghi ra `thu-tu-in.txt` trong thư mục đích; công cụ in nạp file đó là in
+đúng thứ tự trong Excel. Cần công cụ nào thì chạy công cụ đó, không cần cái kia.
+
+Không cần cài thêm gì: dùng Windows PowerShell 5.1 có sẵn trong Windows. File Excel
+`.xlsx` / `.xlsm` được đọc thẳng (không cần mở Excel); file `.xls` cũ thì máy cần có Excel.
+
+## Chạy thế nào
+
+Để cả bốn file trong cùng một thư mục rồi bấm đúp `sap-xep-hoa-don.bat` hoặc
+`in-hoa-don.bat`. Nếu Windows chặn script, mở PowerShell rồi gõ:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\sap-xep-hoa-don.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -STA -File .\in-hoa-don.ps1
+```
+
+## Công cụ 1 — sắp xếp hóa đơn theo danh sách Excel
+
+File Excel được hiểu đúng theo cách bảng đang làm: **mỗi sheet là một thư mục**, trong
+sheet có nhiều bảng, **mỗi bảng là một sản phẩm** và thành một thư mục con; một sản phẩm
+có thể gồm nhiều ký hiệu hóa đơn khác nhau.
+
+| Trong Excel | Thành cái gì |
+| --- | --- |
+| Tên sheet (`Mau 01 - GGM`, `Mẫu 02B - GGM`...) | Thư mục cấp 1 |
+| Tiêu đề phía trên bảng (`TELMA 80 H PLUS (TABLET B/100)`) | Thư mục cấp 2 (sản phẩm) |
+| Cột `Ký hiệu` + `Số hóa đơn` + `Ngày hóa đơn` | Từng file hóa đơn được tìm và chép vào |
+| Cột `tên file` (nếu có), VD `*K25TAA*618585` | Mẫu dùng để tìm đúng file PDF |
+
+Công cụ tự dò các bảng nằm cạnh nhau trong cùng một sheet (như bảng ở cột G, cột M,
+cột S), tự nhận tiêu đề cột dù có dấu hay không dấu.
+
+Các bước:
+
+1. **Chọn file Excel** → bấm *Đọc danh sách*. Mỗi sheet hiện kèm số hóa đơn và số sản phẩm.
+2. Tick những sheet cần làm.
+3. **Thêm thư mục nguồn** — thư mục đang chứa hóa đơn lộn xộn. Gõ hoặc dán đường dẫn
+   vào ô *Gõ / dán đường dẫn* rồi bấm Enter (nhanh nhất: copy đường dẫn trên thanh
+   địa chỉ của File Explorer), hoặc bấm *Chọn thư mục nguồn...* để duyệt.
+   Thêm được nhiều thư mục. Thêm thư mục cha (ví dụ `GGM`) và bật *Gồm thư mục con*
+   là quét hết `HCM - 2023`, `HCM - 2024`, `HCM - 2025`, `Ha Noi`... nhưng **trỏ thẳng
+   vào đúng thư mục cần sắp thì nhanh hơn nhiều**.
+   Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*, ví dụ `2023,2024,2025`;
+   để trống là lấy hết.
+4. **Chọn thư mục đích**. Nếu thư mục này đã có sẵn các thư mục con, bấm
+   *Thư mục cho từng sheet...* để xem và sửa bảng ghép tên (xem mục dưới).
+5. Bấm *Đối chiếu danh sách* để xem trước từng dòng.
+6. Bấm *Tạo folder & chép file*.
+
+Kết quả:
+
+```
+HoaDon\
+├── Mau01-GGM\
+│   ├── TELMA\
+│   │   ├── 001_1001K25TAA0618585.pdf
+│   │   ├── 002_1001K25TAA0565923.pdf
+│   │   └── ...
+│   ├── KLENZIT\
+│   │   ├── 006_1001K25TDA0002228.pdf
+│   │   └── ...
+│   ├── KLENZIT-C\
+│   └── COMBIWAVE\
+├── Mau02A-GGM\
+├── Mau02A-GGM30day\
+├── Mau02B-GGM\
+└── bao-cao-doi-chieu.csv
+```
+
+**Tên file gốc được giữ nguyên**, chỉ thêm số thứ tự vào đầu (bỏ tick *Thêm số thứ tự
+vào đầu tên file* thì giữ y hệt tên gốc). Số này chạy liên tục trong một sheet **theo
+đúng thứ tự dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
+
+### Chạy cho nhanh
+
+Kho hóa đơn trên OneDrive vài chục nghìn file thì bước quét là chỗ tốn thời gian nhất,
+nên công cụ làm thế này:
+
+- **Quét một lần rồi dùng lại.** Lần *Đối chiếu danh sách* đầu tiên sẽ quét kho nguồn,
+  các lần sau dùng lại kết quả cũ (nhật ký ghi rõ "Dùng lại kết quả quét trước").
+  Vừa thêm file mới vào kho thì bấm *Quét lại kho nguồn*. Đổi thư mục nguồn, loại file
+  hay tùy chọn *Gồm thư mục con* thì tự quét lại.
+- **Lọc ngay khi quét.** Chọn *Loại file* là `PDF` để chỉ liệt kê file PDF, thay vì lấy
+  hết rồi lọc sau.
+- **Dò theo chỉ mục số hóa đơn.** Mỗi hóa đơn chỉ so với những file có đúng số đó trong
+  tên, không duyệt lại cả kho — với 8.000 file và 1.000 hóa đơn, bước đối chiếu chạy
+  0,2 giây thay vì hơn một phút.
+- **Thu hẹp thư mục nguồn.** Chỉ sắp hóa đơn năm 2025 thì trỏ thẳng vào `GGM\HCM - 2025`.
+
+### Khi thư mục đích đã có sẵn folder
+
+Thư mục có sẵn thường đặt tên ngắn hơn tên trong Excel. Công cụ tự ghép theo tên gần
+giống, mỗi thư mục chỉ nhận một sheet/sản phẩm:
+
+| Trong Excel | Thư mục có sẵn |
+| --- | --- |
+| Sheet `Mau 01 - GGM` | `Mau01-GGM` |
+| Sheet `Mau 02A-GGM-Truoc sau 30 ngay` | `Mau02A-GGM30day` |
+| `TELMA 80 H PLUS (TABLET B/100)` | `TELMA` |
+| `KLENZIT MS (GEL 15G)` | `KLENZIT` |
+| `KLENZIT-C (GEL 15G)` | `KLENZIT-C` |
+
+Bấm *Thư mục cho từng sheet...* để mở bảng ghép: dòng in đậm là sheet, dòng thụt vào là
+sản phẩm, cột *Trạng thái* cho biết thư mục đã có sẵn hay sẽ được tạo mới. Muốn sửa thì
+chọn dòng, chọn thư mục ở ô *Thư mục có sẵn* rồi bấm *Gán cho dòng đang chọn*; hoặc bấm
+*Tạo thư mục mới theo tên trong Excel*. Tên nào không hợp thư mục nào thì tạo thư mục mới
+theo đúng tên trong Excel.
+
+### Cách dò tìm file
+
+Nếu bảng có cột **mẫu tên file** (kiểu `*K25TAA*618585`), công cụ dùng thẳng mẫu đó để
+tìm file — dấu `*` hiểu như khi tìm kiếm trong Windows. Cột này không cần tiêu đề: chỉ
+cần dữ liệu có dấu `*` là tự nhận ra. Tiêu đề các cột cũng khớp theo phần đầu, nên
+`Số hóa đơn2` hay `Ký hiệu HĐ` vẫn nhận đúng. Mẫu không ra file nào thì mới quay
+sang dò theo ký hiệu và số hóa đơn, nên tên file đặt ngược kiểu `00002850_K25TDA.pdf` vẫn
+tìm ra. Không có cột này thì chỉ dò theo ký hiệu và số.
+
+| Trạng thái | Nghĩa là |
+| --- | --- |
+| `Khớp theo cột tên file` | Đúng mẫu ghi trong cột `tên file` — chắc chắn nhất |
+| `Khớp ký hiệu + số` | Tên file có cả ký hiệu (`K25TAA`) lẫn số hóa đơn |
+| `Khớp số (thiếu ký hiệu)` | Chỉ khớp số hóa đơn, nên kiểm tra lại cho chắc |
+| `Khớp nhiều file` | Có nhiều file cùng khớp, công cụ lấy file đầu tiên (dòng màu cam) |
+| `Không tìm thấy` | Chưa có file cho hóa đơn này (dòng màu đỏ) |
+
+Dấu gạch ngang, khoảng trắng, số 0 ở đầu, chữ có dấu đều được bỏ qua khi so khớp, nên
+`HD K25TAA 618585.pdf`, `K25TAA-618585.pdf`, `00618585_K25TAA.pdf` đều tìm ra.
+Khi một hóa đơn khớp nhiều file (bản sao nằm rải ở các thư mục năm khác nhau), công cụ
+ưu tiên file nằm trong thư mục có đúng năm của hóa đơn — hóa đơn năm 2023 lấy bản trong
+`HCM - 2023` chứ không lấy bản sao lạc trong `HCM - 2025` — rồi mới tới đường dẫn ngắn hơn. Nhấp đúp
+vào một dòng để mở file kiểm tra. Mọi thứ đều được ghi vào `bao-cao-doi-chieu.csv`
+(có cả danh sách hóa đơn còn thiếu).
+
+Mặc định là **chép** file, giữ nguyên kho gốc; muốn dọn hẳn thì chọn *Di chuyển file*.
+Khi di chuyển, công cụ chép sang thư mục đích và so lại dung lượng rồi mới bỏ bản gốc,
+chép hụt thì file gốc vẫn còn nguyên.
+
+Một hóa đơn có thể được liệt kê ở nhiều sản phẩm (ví dụ số `2545` có ở cả `KLENZIT MS`
+lẫn `KLENZIT-C`). Khi đó file được chép vào **từng thư mục sản phẩm**, và ở chế độ di
+chuyển thì bản gốc chỉ bị bỏ sau khi dòng cuối cùng dùng nó đã chép xong — không có
+thư mục nào bị thiếu file.
+
+### Kho hóa đơn nằm trong OneDrive
+
+Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ trên máy, ví dụ
+`C:\Users\<tên máy>\OneDrive - DKSH\Thanh - DKSH\GGM\HCM - 2023`, và bật *Gồm thư mục con*.
+
+- File có biểu tượng đám mây là **chưa tải về máy**. Quét thì nhanh (chỉ đọc tên file),
+  nhưng chép hoặc di chuyển thì phải tải về. Công cụ đếm và báo số lượng này
+  trong nhật ký; Windows sẽ tự tải khi chép hoặc di chuyển, nên bước sắp xếp cần có mạng
+  và sẽ chậm hơn. Muốn chạy nhanh: chuột phải thư mục trong File Explorer →
+  *Always keep on this device*, chờ tải xong rồi mới sắp xếp.
+- Nên đặt **thư mục đích nằm ngoài thư mục nguồn** (ví dụ ra Desktop hoặc một thư mục
+  OneDrive khác). Nếu đích nằm trong nguồn, công cụ sẽ hỏi lại trước khi chạy, vì lần
+  đối chiếu sau sẽ quét trúng cả những file vừa sắp xếp.
+
+Xong xuôi, thư mục đích có thêm `bao-cao-doi-chieu.csv` (đối chiếu từng dòng) và
+`thu-tu-in.txt` (danh sách đường dẫn theo đúng thứ tự Excel). Nút *Mở công cụ in →* mở
+thẳng công cụ in.
+
+## Công cụ 2 — in hóa đơn
+
+- Quét một thư mục (kể cả thư mục con), tách số hóa đơn trong tên file.
+- Sắp xếp theo số hóa đơn, theo tên file (`Tên file A → Z` = đúng thứ tự đã đánh số),
+  hoặc theo ngày sửa.
+- Tick chọn từng hóa đơn, tìm nhanh theo tên, hoặc *Chọn theo khoảng* từ số ... đến số ...
+- Chọn máy in, số bản, rồi bấm **IN**. Có nút *Dừng*, có ô *In thử* để chạy nháp
+  trước mà không tốn giấy.
+
+### In số lượng lớn cho nhanh
+
+- Tick **"In hàng loạt: không hỏi xác nhận, in thẳng"** để bỏ hộp thoại hỏi trước mỗi
+  lần bấm IN.
+- Công cụ tự tìm **Adobe Reader** hoặc **SumatraPDF** trên máy và in PDF thẳng qua đó
+  (`/N /T` với Adobe, `-print-to -silent` với SumatraPDF): không mở cửa sổ, không hỏi gì.
+  Dòng *Cách in PDF* dưới ô máy in cho biết đang dùng cách nào. Không có phần mềm nào
+  thì quay về lệnh in mặc định của Windows — vẫn chạy nhưng chậm hơn.
+- Ô **Chờ tối đa (giây)** là *giới hạn trên*, không phải thời gian chờ cố định: gửi xong
+  một hóa đơn, thấy bản in đã vào hàng đợi (hoặc chương trình in đã thoát) là đi tiếp
+  ngay, thường chỉ mất dưới một giây mỗi file.
+- **Chờ hàng đợi máy in trống rồi mới in file tiếp**: bỏ tick sẽ nhanh hơn nhiều; chỉ
+  bật khi máy in hay đảo thứ tự.
+
+Muốn in đúng thứ tự trong Excel: bấm **Nạp danh sách thứ tự in...** rồi chọn
+`thu-tu-in.txt` trong thư mục đích. Danh sách hiện đúng thứ tự Excel, tick sẵn tất cả,
+dòng nào đã xóa file thì tự bỏ qua và báo trong nhật ký.
+
+## Lưu ý
+
+- Máy phải có ứng dụng mở được loại file đó. Với PDF, tốt nhất là cài **Adobe Reader**
+  hoặc **SumatraPDF** để in thẳng, im lặng. Không có thì công cụ dùng lệnh `PrintTo`
+  của Windows; ứng dụng nào không hỗ trợ `PrintTo` thì tự tạm đổi máy in mặc định rồi
+  trả lại sau khi in xong.
+- Chọn nhầm máy in ảo (Print to PDF, XPS, OneNote, Fax) thì Windows hỏi chỗ lưu cho
+  từng file chứ không ra giấy — công cụ có cảnh báo trước trong nhật ký.
+- *Chờ tối đa (giây)* chỉ dùng khi máy in phản hồi chậm bất thường; máy in chậm thì
+  tăng lên, còn bình thường không ảnh hưởng tốc độ.
+- Nếu quét cả thư mục đích có nhiều sheet cùng lúc, số thứ tự của các sheet sẽ đan vào
+  nhau. In từng thư mục sheet một, hoặc nạp `thu-tu-in.txt`.
+- Ô *Mẫu số hóa đơn (regex)* để trống là lấy dãy số cuối trong tên file
+  (`001_1001K25TDA0002850.pdf` → `0002850`); muốn lấy chỗ
+  khác thì điền regex có nhóm bắt, ví dụ `K\d{2}[A-Z]+.?(\d+)`.
