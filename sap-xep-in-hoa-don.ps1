@@ -436,6 +436,7 @@ function Read-Workbook {
 $script:HeaderSymbol = @('ky hieu', 'ki hieu', 'ky hieu hoa don', 'serial', 'mau so ky hieu')
 $script:HeaderNumber = @('so hoa don', 'so hd', 'so hoa don gtgt', 'invoice no', 'so')
 $script:HeaderDate   = @('ngay hoa don', 'ngay hd', 'ngay', 'ngay lap hoa don')
+$script:HeaderFile   = @('ten file', 'ten file pdf', 'ten tap tin', 'file', 'ten file hoa don')
 
 function Get-Cell {
     param($Sheet, [int]$Row, [int]$Col)
@@ -478,8 +479,14 @@ function Find-InvoiceBlocks {
             if ($script:HeaderDate -contains (Get-HeaderKey (Get-Cell $Sheet $r ($c + $k)))) { $dateCol = $c + $k; break }
         }
 
+        # cột "tên file" (mẫu tìm file, VD *K25TAA*618585) cũng nằm bên phải
+        $fileCol = 0
+        for ($k = 1; $k -le 6; $k++) {
+            if ($script:HeaderFile -contains (Get-HeaderKey (Get-Cell $Sheet $r ($c + $k)))) { $fileCol = $c + $k; break }
+        }
+
         # tên sản phẩm/mẫu: ô có chữ gần nhất phía trên bảng
-        $skipWords = $script:HeaderSymbol + $script:HeaderNumber + $script:HeaderDate + @('stt')
+        $skipWords = $script:HeaderSymbol + $script:HeaderNumber + $script:HeaderDate + $script:HeaderFile + @('stt')
         $title = ''
         for ($up = 1; $up -le 4 -and -not $title; $up++) {
             if ($r - $up -lt 1) { break }
@@ -508,6 +515,7 @@ function Find-InvoiceBlocks {
                     Date      = $date
                     DateText  = if ($date) { $date.ToString('dd/MM/yyyy') } else { $dateText }
                     Year      = $year
+                    Pattern   = if ($fileCol -gt 0) { (Get-Cell $Sheet $rr $fileCol).Trim() } else { '' }
                 }
             }
             $rr++
@@ -593,8 +601,21 @@ function Select-BestMatches {
 }
 
 function Find-InvoiceFile {
-    <# Tìm file cho một hóa đơn: ưu tiên khớp cả KÝ HIỆU lẫn SỐ HÓA ĐƠN. #>
-    param($Index, [string]$Symbol, [string]$Number, $Year)
+    <# Tìm file cho một hóa đơn. Ưu tiên cột "tên file" trong Excel (mẫu tìm kiểu
+       *K25TAA*618585), không có hoặc không ra file nào thì mới dò theo KÝ HIỆU + SỐ. #>
+    param($Index, [string]$Symbol, [string]$Number, $Year, [string]$Pattern)
+
+    if ($Pattern) {
+        $pat = $Pattern.Trim()
+        if (-not $pat.StartsWith('*')) { $pat = '*' + $pat }
+        if (-not $pat.EndsWith('*'))   { $pat = $pat + '*' }
+        $byPattern = @($Index | Where-Object { $_.File.Name -like $pat })
+        if ($byPattern.Count -gt 0) {
+            $best = Select-BestMatches -Files $byPattern -Year $Year
+            $status = if ($best.Count -eq 1) { 'Khớp theo cột tên file' } else { 'Khớp nhiều file' }
+            return @{ Files = $best; Status = $status }
+        }
+    }
 
     $symNorm = (Remove-Diacritics $Symbol).ToUpper() -replace '[^A-Z0-9]', ''
     $numKey  = $Number.TrimStart('0')
@@ -1527,7 +1548,7 @@ function Invoke-Match {
                     $done++
                     if ($years.Count -gt 0 -and $r.Year -and ($years -notcontains $r.Year)) { continue }
                     $seq++
-                    $found = Find-InvoiceFile -Index $index -Symbol $r.Symbol -Number $r.Number -Year $r.Year
+                    $found = Find-InvoiceFile -Index $index -Symbol $r.Symbol -Number $r.Number -Year $r.Year -Pattern $r.Pattern
                     $file  = if ($found.Files.Count -gt 0) { $found.Files[0].File } else { $null }
                     $status = $found.Status
                     if ($found.Files.Count -gt 1) {
@@ -1541,6 +1562,7 @@ function Invoke-Match {
                         Number     = $r.Number
                         DateText   = $r.DateText
                         Year       = $r.Year
+                        Pattern    = $r.Pattern
                         Status     = $status
                         MatchCount = $found.Files.Count
                         SourcePath = if ($file) { $file.FullName } else { '' }
@@ -1730,6 +1752,7 @@ function Export-MatchReport {
             SoHoaDon   = $inv.Number
             NgayHoaDon = $inv.DateText
             Nam        = $inv.Year
+            MauTenFile = $inv.Pattern
             TrangThai  = $inv.Status
             FileNguon  = $inv.SourcePath
             FileDich   = $inv.DestPath

@@ -492,6 +492,7 @@ có thể gồm nhiều ký hiệu hóa đơn khác nhau.
 | Tên sheet (`Mau 01 - GGM`, `Mẫu 02B - GGM`...) | Thư mục cấp 1 |
 | Tiêu đề phía trên bảng (`TELMA 80 H PLUS (TABLET B/100)`) | Thư mục cấp 2 (sản phẩm) |
 | Cột `Ký hiệu` + `Số hóa đơn` + `Ngày hóa đơn` | Từng file hóa đơn được tìm và chép vào |
+| Cột `tên file` (nếu có), VD `*K25TAA*618585` | Mẫu dùng để tìm đúng file PDF |
 
 Công cụ tự dò các bảng nằm cạnh nhau trong cùng một sheet (như bảng ở cột G, cột M,
 cột S), tự nhận tiêu đề cột dù có dấu hay không dấu.
@@ -554,9 +555,15 @@ theo đúng tên trong Excel.
 
 ### Cách dò tìm file
 
+Nếu bảng có cột **`tên file`** (mẫu kiểu `*K25TAA*618585`), công cụ dùng thẳng mẫu đó để
+tìm file — dấu `*` hiểu như khi tìm kiếm trong Windows. Mẫu không ra file nào thì mới quay
+sang dò theo ký hiệu và số hóa đơn, nên tên file đặt ngược kiểu `00002850_K25TDA.pdf` vẫn
+tìm ra. Không có cột này thì chỉ dò theo ký hiệu và số.
+
 | Trạng thái | Nghĩa là |
 | --- | --- |
-| `Khớp ký hiệu + số` | Tên file có cả ký hiệu (`K25TAA`) lẫn số hóa đơn — chắc chắn nhất |
+| `Khớp theo cột tên file` | Đúng mẫu ghi trong cột `tên file` — chắc chắn nhất |
+| `Khớp ký hiệu + số` | Tên file có cả ký hiệu (`K25TAA`) lẫn số hóa đơn |
 | `Khớp số (thiếu ký hiệu)` | Chỉ khớp số hóa đơn, nên kiểm tra lại cho chắc |
 | `Khớp nhiều file` | Có nhiều file cùng khớp, công cụ lấy file đầu tiên (dòng màu cam) |
 | `Không tìm thấy` | Chưa có file cho hóa đơn này (dòng màu đỏ) |
