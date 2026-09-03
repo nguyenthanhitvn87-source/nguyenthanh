@@ -47,6 +47,8 @@ $script:CheckedPaths = New-Object 'System.Collections.Generic.HashSet[string]'
 $script:Populating   = $false
 $script:Cancel       = $false
 $script:Busy         = $false
+$script:SheetFolderMap = @{}     # tên sheet -> tên thư mục trong thư mục đích
+$script:ProductFolderMap = @{}   # "tên sheet|tên sản phẩm" -> tên thư mục con
 
 $script:FileGroups = [ordered]@{
     'PDF'                = @('.pdf')
@@ -100,6 +102,124 @@ function Get-SafeName {
     if (-not $t) { $t = 'Khong-ten' }
     if ($t.Length -gt $MaxLength) { $t = $t.Substring(0, $MaxLength).Trim() }
     return $t
+}
+
+function Get-MatchKey {
+    <# Chuẩn hóa tên để so khớp: bỏ dấu, bỏ khoảng trắng và ký tự lạ, viết thường. #>
+    param([string]$Text)
+    $t = Remove-Diacritics $Text
+    return ($t -replace '[^A-Za-z0-9]', '').ToLower()
+}
+
+function Get-NameSimilarity {
+    <# Độ giống nhau giữa hai tên (hệ số Dice trên các cặp ký tự liền nhau), 0..1. #>
+    param([string]$A, [string]$B)
+    if (-not $A -or -not $B) { return 0.0 }
+    if ($A -eq $B) { return 1.0 }
+    if ($A.Length -lt 2 -or $B.Length -lt 2) { return 0.0 }
+
+    $pairsA = @()
+    for ($i = 0; $i -lt $A.Length - 1; $i++) { $pairsA += $A.Substring($i, 2) }
+    $pairsB = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt $B.Length - 1; $i++) { $pairsB.Add($B.Substring($i, 2)) }
+
+    $countB = $pairsB.Count
+    $hit = 0
+    foreach ($pair in $pairsA) {
+        $idx = $pairsB.IndexOf($pair)
+        if ($idx -ge 0) { $hit++; $pairsB.RemoveAt($idx) }
+    }
+    return (2.0 * $hit) / ($pairsA.Count + $countB)
+}
+
+function Get-FolderMatchScore {
+    <# Chấm điểm mức hợp giữa một tên trong Excel và một thư mục có sẵn.
+       Thư mục hay đặt tên ngắn: "TELMA 80 H PLUS (TABLET B/100)" -> "TELMA",
+       nên tên thư mục là phần đầu hoặc nằm trong tên Excel được chấm điểm cao. #>
+    param([string]$NameKey, [string]$FolderKey)
+
+    if (-not $NameKey -or -not $FolderKey) { return 0.0 }
+    if ($NameKey -eq $FolderKey) { return 1.0 }
+
+    $ratio = [double]$FolderKey.Length / [double]$NameKey.Length
+    if ($ratio -gt 1) { $ratio = 1.0 / $ratio }
+
+    if ($NameKey.StartsWith($FolderKey))  { return 0.90 + 0.09 * $ratio }
+    if ($FolderKey.StartsWith($NameKey))  { return 0.85 + 0.09 * $ratio }
+    if ($NameKey.Contains($FolderKey))    { return 0.80 + 0.09 * $ratio }
+    if ($FolderKey.Contains($NameKey))    { return 0.75 + 0.09 * $ratio }
+
+    return (Get-NameSimilarity -A $NameKey -B $FolderKey)
+}
+
+function Resolve-FolderMap {
+    <# Ghép mỗi tên (sheet hoặc sản phẩm) với một thư mục có sẵn, mỗi thư mục chỉ
+       nhận một tên: chấm điểm mọi cặp rồi lấy cặp điểm cao trước. Tên nào không
+       hợp thư mục nào thì lấy chính nó làm thư mục mới. #>
+    param([string[]]$Names, [string[]]$Existing)
+
+    $map = @{}
+    $names    = @($Names    | Where-Object { $_ })
+    $existing = @($Existing | Where-Object { $_ })
+    if ($names.Count -eq 0) { return $map }
+
+    $pairs = @()
+    foreach ($name in $names) {
+        $nameKey = Get-MatchKey $name
+        foreach ($folder in $existing) {
+            $pairs += [pscustomobject]@{
+                Name   = $name
+                Folder = $folder
+                Score  = (Get-FolderMatchScore -NameKey $nameKey -FolderKey (Get-MatchKey $folder))
+            }
+        }
+    }
+    $pairs = @($pairs | Sort-Object Score -Descending)
+
+    $takenName   = @{}
+    $takenFolder = @{}
+    $assign = {
+        param([double]$MinScore)
+        foreach ($pair in $pairs) {
+            if ($pair.Score -lt $MinScore) { break }
+            if ($takenName.ContainsKey($pair.Name) -or $takenFolder.ContainsKey($pair.Folder)) { continue }
+            $map[$pair.Name]           = $pair.Folder
+            $takenName[$pair.Name]     = $true
+            $takenFolder[$pair.Folder] = $true
+        }
+    }
+
+    & $assign 0.6      # vòng chắc chắn: trùng tên, hoặc tên thư mục là phần đầu của tên Excel
+    & $assign 0.4      # vòng nới tay cho các tên viết tắt khác kiểu
+
+    # còn đúng một tên và một thư mục chưa ghép thì ghép nốt (vẫn sửa lại được ở hộp thoại)
+    $leftName   = @($names    | Where-Object { -not $takenName.ContainsKey($_) })
+    $leftFolder = @($existing | Where-Object { -not $takenFolder.ContainsKey($_) })
+    if ($leftName.Count -eq 1 -and $leftFolder.Count -eq 1) {
+        $score = Get-FolderMatchScore -NameKey (Get-MatchKey $leftName[0]) -FolderKey (Get-MatchKey $leftFolder[0])
+        if ($score -ge 0.25) {
+            $map[$leftName[0]]        = $leftFolder[0]
+            $takenName[$leftName[0]]  = $true
+        }
+    }
+
+    foreach ($name in $names) {
+        if (-not $map.ContainsKey($name)) { $map[$name] = Get-SafeName $name }
+    }
+    return $map
+}
+
+function Get-SubFolderNames {
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Container)) { return ,@() }
+    return ,@(Get-ChildItem -LiteralPath $Path -Directory -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty Name)
+}
+
+function Resolve-SheetFolders {
+    <# Ghép mỗi sheet với thư mục có sẵn trong thư mục đích. #>
+    param([string[]]$SheetNames, [string]$Dest)
+    return Resolve-FolderMap -Names $SheetNames -Existing (Get-SubFolderNames $Dest)
 }
 
 function Start-UiSleep {
@@ -765,9 +885,15 @@ $grpDest.Controls.Add($chkPerProduct)
 $chkPrefix          = New-Object System.Windows.Forms.CheckBox
 $chkPrefix.Text     = 'Đánh số thứ tự vào đầu tên file (001_, 002_...)'
 $chkPrefix.Location = New-Object System.Drawing.Point(520, 58)
-$chkPrefix.Size     = New-Object System.Drawing.Size(310, 22)
+$chkPrefix.Size     = New-Object System.Drawing.Size(300, 22)
 $chkPrefix.Checked  = $true
 $grpDest.Controls.Add($chkPrefix)
+
+$btnMapFolders          = New-Object System.Windows.Forms.Button
+$btnMapFolders.Text     = 'Thư mục cho từng sheet...'
+$btnMapFolders.Location = New-Object System.Drawing.Point(826, 55)
+$btnMapFolders.Size     = New-Object System.Drawing.Size(146, 28)
+$grpDest.Controls.Add($btnMapFolders)
 
 $btnMatch          = New-Object System.Windows.Forms.Button
 $btnMatch.Text     = 'Đối chiếu danh sách'
@@ -1095,6 +1221,182 @@ $btnStop.Enabled  = $false
 $grpPrinter.Controls.Add($btnStop)
 
 # ============================================================================
+#  HỘP THOẠI GÁN THƯ MỤC (SHEET VÀ SẢN PHẨM)
+# ============================================================================
+function Show-FolderMapDialog {
+    <# Chọn mỗi sheet vào thư mục nào, và mỗi sản phẩm vào thư mục con nào —
+       dùng khi thư mục đích đã có sẵn thư mục đặt tên ngắn hơn tên trong Excel
+       (TELMA 80 H PLUS (TABLET B/100) -> TELMA). #>
+    param([string[]]$SheetNames, [hashtable]$ProductsBySheet, [string]$Dest, $SheetMap, $ProductMap)
+
+    $dlg                 = New-Object System.Windows.Forms.Form
+    $dlg.Text            = 'Thư mục đích cho từng sheet và sản phẩm'
+    $dlg.Size            = New-Object System.Drawing.Size(820, 560)
+    $dlg.StartPosition   = 'CenterParent'
+    $dlg.Font            = New-Object System.Drawing.Font('Segoe UI', 9)
+    $dlg.FormBorderStyle = 'FixedDialog'
+    $dlg.MaximizeBox     = $false
+    $dlg.MinimizeBox     = $false
+
+    $lblTop          = New-Object System.Windows.Forms.Label
+    $lblTop.Text     = if ($Dest) { 'Thư mục đích: ' + $Dest } else { 'Chưa chọn thư mục đích — các thư mục dưới đây sẽ được tạo mới.' }
+    $lblTop.Location = New-Object System.Drawing.Point(12, 12)
+    $lblTop.Size     = New-Object System.Drawing.Size(780, 20)
+    $dlg.Controls.Add($lblTop)
+
+    $lv               = New-Object System.Windows.Forms.ListView
+    $lv.Location      = New-Object System.Drawing.Point(12, 38)
+    $lv.Size          = New-Object System.Drawing.Size(780, 320)
+    $lv.View          = 'Details'
+    $lv.FullRowSelect = $true
+    $lv.GridLines     = $true
+    $lv.HideSelection = $false
+    [void]$lv.Columns.Add('Sheet / sản phẩm trong Excel', 360)
+    [void]$lv.Columns.Add('Thư mục đích', 300)
+    [void]$lv.Columns.Add('Trạng thái', 100)
+    $dlg.Controls.Add($lv)
+
+    $boldFont = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Bold)
+
+    foreach ($sheet in $SheetNames) {
+        $folder = $SheetMap[$sheet]
+        if (-not $folder) { $folder = Get-SafeName $sheet }
+        $row = New-Object System.Windows.Forms.ListViewItem($sheet)
+        [void]$row.SubItems.Add($folder)
+        [void]$row.SubItems.Add('')
+        $row.Font = $boldFont
+        $row.Tag  = [pscustomobject]@{ Kind = 'Sheet'; Sheet = $sheet; Product = '' }
+        [void]$lv.Items.Add($row)
+
+        foreach ($product in @($ProductsBySheet[$sheet])) {
+            if (-not $product) { continue }
+            $key = '{0}|{1}' -f $sheet, $product
+            $pf  = $ProductMap[$key]
+            if (-not $pf) { $pf = Get-SafeName $product }
+            $prow = New-Object System.Windows.Forms.ListViewItem('        ' + $product)
+            [void]$prow.SubItems.Add($pf)
+            [void]$prow.SubItems.Add('')
+            $prow.Tag = [pscustomobject]@{ Kind = 'Product'; Sheet = $sheet; Product = $product }
+            [void]$lv.Items.Add($prow)
+        }
+    }
+
+    # thư mục cha của một dòng: sheet thì nằm trong thư mục đích, sản phẩm thì nằm trong thư mục của sheet
+    $getParent = {
+        param($Row)
+        if ($Row.Tag.Kind -eq 'Sheet') { return $Dest }
+        foreach ($item in $lv.Items) {
+            if ($item.Tag.Kind -eq 'Sheet' -and $item.Tag.Sheet -eq $Row.Tag.Sheet) {
+                if (-not $Dest) { return '' }
+                return (Join-Path $Dest $item.SubItems[1].Text)
+            }
+        }
+        return ''
+    }.GetNewClosure()
+
+    $updateStatus = {
+        param($Row)
+        $parent = & $getParent $Row
+        $has = $false
+        if ($parent) { $has = ((Get-SubFolderNames $parent) -contains $Row.SubItems[1].Text) }
+        $Row.SubItems[2].Text = if ($has) { 'Đã có sẵn' } else { 'Sẽ tạo mới' }
+        $Row.ForeColor = if ($has) { [System.Drawing.SystemColors]::WindowText } else { [System.Drawing.Color]::DarkOrange }
+    }.GetNewClosure()
+
+    foreach ($row in $lv.Items) { & $updateStatus $row }
+
+    $lblPick          = New-Object System.Windows.Forms.Label
+    $lblPick.Text     = 'Thư mục có sẵn'
+    $lblPick.Location = New-Object System.Drawing.Point(12, 374)
+    $lblPick.Size     = New-Object System.Drawing.Size(100, 20)
+    $dlg.Controls.Add($lblPick)
+
+    $cbo               = New-Object System.Windows.Forms.ComboBox
+    $cbo.Location      = New-Object System.Drawing.Point(114, 371)
+    $cbo.Size          = New-Object System.Drawing.Size(400, 24)
+    $cbo.DropDownStyle = 'DropDownList'
+    $dlg.Controls.Add($cbo)
+
+    $btnAssign          = New-Object System.Windows.Forms.Button
+    $btnAssign.Text     = 'Gán cho dòng đang chọn'
+    $btnAssign.Location = New-Object System.Drawing.Point(522, 369)
+    $btnAssign.Size     = New-Object System.Drawing.Size(190, 28)
+    $dlg.Controls.Add($btnAssign)
+
+    $btnNew          = New-Object System.Windows.Forms.Button
+    $btnNew.Text     = 'Tạo thư mục mới theo tên trong Excel'
+    $btnNew.Location = New-Object System.Drawing.Point(12, 406)
+    $btnNew.Size     = New-Object System.Drawing.Size(270, 28)
+    $dlg.Controls.Add($btnNew)
+
+    $lblHint           = New-Object System.Windows.Forms.Label
+    $lblHint.Text      = 'Công cụ đã tự đoán theo tên gần giống. Chọn một dòng, chọn thư mục ở ô bên trên rồi bấm "Gán" nếu cần sửa. Dòng in đậm là sheet, dòng thụt vào là sản phẩm.'
+    $lblHint.Location  = New-Object System.Drawing.Point(12, 440)
+    $lblHint.Size      = New-Object System.Drawing.Size(780, 36)
+    $lblHint.ForeColor = [System.Drawing.Color]::DimGray
+    $dlg.Controls.Add($lblHint)
+
+    $btnOk              = New-Object System.Windows.Forms.Button
+    $btnOk.Text         = 'Xong'
+    $btnOk.Location     = New-Object System.Drawing.Point(596, 480)
+    $btnOk.Size         = New-Object System.Drawing.Size(96, 30)
+    $btnOk.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $dlg.Controls.Add($btnOk)
+    $dlg.AcceptButton   = $btnOk
+
+    $btnCancel              = New-Object System.Windows.Forms.Button
+    $btnCancel.Text         = 'Hủy'
+    $btnCancel.Location     = New-Object System.Drawing.Point(696, 480)
+    $btnCancel.Size         = New-Object System.Drawing.Size(96, 30)
+    $btnCancel.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $dlg.Controls.Add($btnCancel)
+    $dlg.CancelButton       = $btnCancel
+
+    $setFolder = {
+        param([string]$Folder)
+        if ($lv.SelectedItems.Count -eq 0 -or -not $Folder) { return }
+        $row = $lv.SelectedItems[0]
+        $row.SubItems[1].Text = $Folder
+        & $updateStatus $row
+        if ($row.Tag.Kind -eq 'Sheet') {
+            foreach ($item in $lv.Items) {
+                if ($item.Tag.Kind -eq 'Product' -and $item.Tag.Sheet -eq $row.Tag.Sheet) { & $updateStatus $item }
+            }
+        }
+    }.GetNewClosure()
+
+    $lv.Add_SelectedIndexChanged({
+        $cbo.Items.Clear()
+        if ($lv.SelectedItems.Count -eq 0) { return }
+        foreach ($name in (Get-SubFolderNames (& $getParent $lv.SelectedItems[0]))) { [void]$cbo.Items.Add($name) }
+        if ($cbo.Items.Count -gt 0) { $cbo.SelectedIndex = 0 }
+    }.GetNewClosure())
+
+    $btnAssign.Add_Click({ if ($cbo.SelectedItem) { & $setFolder ([string]$cbo.SelectedItem) } }.GetNewClosure())
+    $lv.Add_DoubleClick({  if ($cbo.SelectedItem) { & $setFolder ([string]$cbo.SelectedItem) } }.GetNewClosure())
+
+    $btnNew.Add_Click({
+        if ($lv.SelectedItems.Count -eq 0) { return }
+        $row = $lv.SelectedItems[0]
+        $name = if ($row.Tag.Kind -eq 'Sheet') { $row.Tag.Sheet } else { $row.Tag.Product }
+        & $setFolder (Get-SafeName $name)
+    }.GetNewClosure())
+
+    if ($lv.Items.Count -gt 0) { $lv.Items[0].Selected = $true }
+
+    if ($dlg.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { $dlg.Dispose(); return $null }
+
+    $sheets   = @{}
+    $products = @{}
+    foreach ($row in $lv.Items) {
+        if ($row.Tag.Kind -eq 'Sheet') { $sheets[$row.Tag.Sheet] = $row.SubItems[1].Text }
+        else { $products['{0}|{1}' -f $row.Tag.Sheet, $row.Tag.Product] = $row.SubItems[1].Text }
+    }
+    $dlg.Dispose()
+    return @{ Sheets = $sheets; Products = $products }
+}
+
+# ============================================================================
 #  LOGIC TAB 1 — SẮP XẾP THEO EXCEL
 # ============================================================================
 
@@ -1312,6 +1614,26 @@ function Invoke-Organize {
         $bar.Maximum = $withFile.Count
         $bar.Value   = 0
 
+        # sheet nào vào thư mục nào (tự đoán cho sheet chưa được gán tay)
+        $sheetNames = @($withFile | ForEach-Object { $_.Sheet } | Sort-Object -Unique)
+        $auto = Resolve-SheetFolders -SheetNames $sheetNames -Dest $dest
+        foreach ($name in $sheetNames) {
+            if (-not $script:SheetFolderMap.ContainsKey($name)) { $script:SheetFolderMap[$name] = $auto[$name] }
+            Write-Log ('Sheet "{0}" → thư mục "{1}"' -f $name, $script:SheetFolderMap[$name])
+
+            if ($chkPerProduct.Checked) {
+                $sheetDir = Join-Path $dest $script:SheetFolderMap[$name]
+                $products = @($withFile | Where-Object { $_.Sheet -eq $name } |
+                              ForEach-Object { $_.Product } | Select-Object -Unique)
+                $autoProduct = Resolve-FolderMap -Names $products -Existing (Get-SubFolderNames $sheetDir)
+                foreach ($product in $products) {
+                    $key = '{0}|{1}' -f $name, $product
+                    if (-not $script:ProductFolderMap.ContainsKey($key)) { $script:ProductFolderMap[$key] = $autoProduct[$product] }
+                    Write-Log ('      {0} → {1}' -f $product, $script:ProductFolderMap[$key])
+                }
+            }
+        }
+
         # bề rộng số thứ tự: đủ chữ số cho sheet nhiều hóa đơn nhất (001..999, 0001..9999)
         $widths = @{}
         foreach ($g in ($script:Invoices | Group-Object Sheet)) {
@@ -1323,8 +1645,14 @@ function Invoke-Organize {
         foreach ($inv in $withFile) {
             $done++
             try {
-                $dir = Join-Path $dest (Get-SafeName $inv.Sheet)
-                if ($chkPerProduct.Checked) { $dir = Join-Path $dir (Get-SafeName $inv.Product) }
+                $sheetFolder = $script:SheetFolderMap[$inv.Sheet]
+                if (-not $sheetFolder) { $sheetFolder = Get-SafeName $inv.Sheet }
+                $dir = Join-Path $dest $sheetFolder
+                if ($chkPerProduct.Checked) {
+                    $productFolder = $script:ProductFolderMap['{0}|{1}' -f $inv.Sheet, $inv.Product]
+                    if (-not $productFolder) { $productFolder = Get-SafeName $inv.Product }
+                    $dir = Join-Path $dir $productFolder
+                }
                 if (-not (Test-Path -LiteralPath $dir)) { [void](New-Item -ItemType Directory -Path $dir -Force) }
 
                 $ext  = [System.IO.Path]::GetExtension($inv.SourcePath)
@@ -1671,6 +1999,51 @@ $btnBrowseDest.Add_Click({
     $dlg.Description = 'Chọn thư mục đích để sắp hóa đơn vào'
     $dlg.ShowNewFolderButton = $true
     if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtDest.Text = $dlg.SelectedPath }
+})
+
+$txtDest.Add_TextChanged({ $script:SheetFolderMap = @{}; $script:ProductFolderMap = @{} })
+
+$btnMapFolders.Add_Click({
+    $names = Get-CheckedSheets
+    if ($names.Count -eq 0) {
+        [void][System.Windows.Forms.MessageBox]::Show('Chưa tick chọn sheet nào ở mục 1.', 'Chưa chọn sheet',
+            [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        return
+    }
+    $dest = $txtDest.Text.Trim()
+
+    # danh sách sản phẩm của từng sheet, lấy thẳng từ Excel
+    $productsBySheet = @{}
+    foreach ($name in $names) {
+        $sheet = $script:Sheets | Where-Object { $_.Name -eq $name } | Select-Object -First 1
+        $productsBySheet[$name] = if ($sheet) {
+            @((Find-InvoiceBlocks $sheet) | ForEach-Object { $_.Title } | Select-Object -Unique)
+        } else { @() }
+    }
+
+    $sheetMap = Resolve-SheetFolders -SheetNames $names -Dest $dest
+    foreach ($name in $names) {
+        if ($script:SheetFolderMap.ContainsKey($name)) { $sheetMap[$name] = $script:SheetFolderMap[$name] }
+    }
+
+    $productMap = @{}
+    foreach ($name in $names) {
+        $sheetDir = if ($dest) { Join-Path $dest $sheetMap[$name] } else { '' }
+        $auto = Resolve-FolderMap -Names $productsBySheet[$name] -Existing (Get-SubFolderNames $sheetDir)
+        foreach ($product in $productsBySheet[$name]) {
+            $key = '{0}|{1}' -f $name, $product
+            $productMap[$key] = if ($script:ProductFolderMap.ContainsKey($key)) { $script:ProductFolderMap[$key] } else { $auto[$product] }
+        }
+    }
+
+    $result = Show-FolderMapDialog -SheetNames $names -ProductsBySheet $productsBySheet -Dest $dest `
+                                   -SheetMap $sheetMap -ProductMap $productMap
+    if ($result) {
+        $script:SheetFolderMap   = $result.Sheets
+        $script:ProductFolderMap = $result.Products
+        foreach ($name in $names) { Write-Log ('Sheet "{0}" → thư mục "{1}"' -f $name, $result.Sheets[$name]) }
+        Write-Log ('Đã gán thư mục cho {0} sản phẩm.' -f $result.Products.Count)
+    }
 })
 
 $btnMatch.Add_Click({ Invoke-Match })

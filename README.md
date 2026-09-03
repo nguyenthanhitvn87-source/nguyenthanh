@@ -505,28 +505,52 @@ Các bước:
    `HCM - 2025`, `Ha Noi`... trong đó; hoặc thêm từng thư mục riêng cũng được.
    Muốn lọc bớt thì điền năm vào ô *Chỉ lấy năm*, ví dụ `2023,2024,2025`;
    để trống là lấy hết.
-4. **Chọn thư mục đích** → bấm *Đối chiếu danh sách* để xem trước từng dòng.
-5. Bấm *Tạo folder & chép file*.
+4. **Chọn thư mục đích**. Nếu thư mục này đã có sẵn các thư mục con, bấm
+   *Thư mục cho từng sheet...* để xem và sửa bảng ghép tên (xem mục dưới).
+5. Bấm *Đối chiếu danh sách* để xem trước từng dòng.
+6. Bấm *Tạo folder & chép file*.
 
 Kết quả:
 
 ```
-Thư mục đích\
-├── Mau 01 - GGM\
-│   ├── TELMA 80 H PLUS (TABLET B-100)\
+HoaDon\
+├── Mau01-GGM\
+│   ├── TELMA\
 │   │   ├── 001_K25TAA_618585.pdf
 │   │   ├── 002_K25TAA_565923.pdf
 │   │   └── ...
-│   ├── KLENZIT MS (GEL 15G)\
+│   ├── KLENZIT\
 │   │   ├── 006_K25TDA_2228.pdf
 │   │   └── ...
-│   └── KLENZIT-C (GEL 15G)\
-├── Mẫu 02B - GGM\
+│   ├── KLENZIT-C\
+│   └── COMBIWAVE\
+├── Mau02A-GGM\
+├── Mau02A-GGM30day\
+├── Mau02B-GGM\
 └── bao-cao-doi-chieu.csv
 ```
 
 Số ở đầu tên file (`001_`, `002_`...) chạy liên tục trong một sheet **theo đúng thứ tự
 dòng trong Excel**, nên chỉ cần sắp theo tên file là ra đúng thứ tự in.
+
+### Khi thư mục đích đã có sẵn folder
+
+Thư mục có sẵn thường đặt tên ngắn hơn tên trong Excel. Công cụ tự ghép theo tên gần
+giống, mỗi thư mục chỉ nhận một sheet/sản phẩm:
+
+| Trong Excel | Thư mục có sẵn |
+| --- | --- |
+| Sheet `Mau 01 - GGM` | `Mau01-GGM` |
+| Sheet `Mau 02A-GGM-Truoc sau 30 ngay` | `Mau02A-GGM30day` |
+| `TELMA 80 H PLUS (TABLET B/100)` | `TELMA` |
+| `KLENZIT MS (GEL 15G)` | `KLENZIT` |
+| `KLENZIT-C (GEL 15G)` | `KLENZIT-C` |
+
+Bấm *Thư mục cho từng sheet...* để mở bảng ghép: dòng in đậm là sheet, dòng thụt vào là
+sản phẩm, cột *Trạng thái* cho biết thư mục đã có sẵn hay sẽ được tạo mới. Muốn sửa thì
+chọn dòng, chọn thư mục ở ô *Thư mục có sẵn* rồi bấm *Gán cho dòng đang chọn*; hoặc bấm
+*Tạo thư mục mới theo tên trong Excel*. Tên nào không hợp thư mục nào thì tạo thư mục mới
+theo đúng tên trong Excel.
 
 ### Cách dò tìm file
 
