@@ -541,6 +541,21 @@ vào một dòng để mở file kiểm tra. Mọi thứ đều được ghi và
 (có cả danh sách hóa đơn còn thiếu).
 
 Mặc định là **chép** file, giữ nguyên kho gốc; muốn dọn hẳn thì chọn *Di chuyển file*.
+Khi di chuyển, công cụ chép sang thư mục đích và so lại dung lượng rồi mới bỏ bản gốc,
+chép hụt thì file gốc vẫn còn nguyên.
+
+### Kho hóa đơn nằm trong OneDrive
+
+Trỏ *thư mục nguồn* vào đúng thư mục OneDrive đã đồng bộ trên máy, ví dụ
+`C:\Users\<tên máy>\OneDrive - DKSH\Thanh - DKSH\GGM\HCM - 2023`, và bật *Gồm thư mục con*.
+
+- File có biểu tượng đám mây là **chưa tải về máy**. Công cụ đếm và báo số lượng này
+  trong nhật ký; Windows sẽ tự tải khi chép hoặc di chuyển, nên bước sắp xếp cần có mạng
+  và sẽ chậm hơn. Muốn chạy nhanh: chuột phải thư mục trong File Explorer →
+  *Always keep on this device*, chờ tải xong rồi mới sắp xếp.
+- Nên đặt **thư mục đích nằm ngoài thư mục nguồn** (ví dụ ra Desktop hoặc một thư mục
+  OneDrive khác). Nếu đích nằm trong nguồn, công cụ sẽ hỏi lại trước khi chạy, vì lần
+  đối chiếu sau sẽ quét trúng cả những file vừa sắp xếp.
 
 ## Tab 2 — In hóa đơn
 

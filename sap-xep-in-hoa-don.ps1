@@ -404,11 +404,30 @@ function Find-InvoiceBlocks {
 #  DÒ TÌM FILE HÓA ĐƠN TRONG THƯ MỤC NGUỒN
 # ============================================================================
 
+function Test-CloudOnlyFile {
+    <# File OneDrive/SharePoint mới chỉ có trên mây, chưa tải về máy.
+       Offline = 0x1000, RecallOnOpen = 0x40000, RecallOnDataAccess = 0x400000 #>
+    param($File)
+    $attr = [int]$File.Attributes
+    return (($attr -band 0x1000) -ne 0) -or (($attr -band 0x40000) -ne 0) -or (($attr -band 0x400000) -ne 0)
+}
+
+function Test-PathInside {
+    <# $Child có nằm bên trong $Parent không (để cảnh báo thư mục đích nằm trong nguồn). #>
+    param([string]$Child, [string]$Parent)
+    try {
+        $c = [System.IO.Path]::GetFullPath($Child).TrimEnd('\') + '\'
+        $p = [System.IO.Path]::GetFullPath($Parent).TrimEnd('\') + '\'
+        return $c.StartsWith($p, [StringComparison]::OrdinalIgnoreCase)
+    } catch { return $false }
+}
+
 function Build-FileIndex {
     <# Quét các thư mục nguồn, chuẩn hóa tên file để dò tìm nhanh. #>
     param([string[]]$Folders, [bool]$Recurse, [string[]]$Extensions)
 
     $index = @()
+    $cloudOnly = 0
     foreach ($folder in $Folders) {
         if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
             Write-Log ('Bỏ qua thư mục không tồn tại: {0}' -f $folder) 'WARN'
@@ -419,6 +438,7 @@ function Build-FileIndex {
             $files = @($files | Where-Object { $Extensions -contains $_.Extension.ToLower() })
         }
         foreach ($f in $files) {
+            if (Test-CloudOnlyFile $f) { $cloudOnly++ }
             $norm = (Remove-Diacritics $f.BaseName).ToUpper() -replace '[^A-Z0-9]', ''
             $digits = @([regex]::Matches($f.BaseName, '\d+') | ForEach-Object { $_.Value.TrimStart('0') })
             $index += [pscustomobject]@{
@@ -429,6 +449,9 @@ function Build-FileIndex {
             }
         }
         Write-Log ('Đã quét {0} file trong "{1}".' -f $files.Count, $folder)
+    }
+    if ($cloudOnly -gt 0) {
+        Write-Log ('{0} file đang ở dạng đám mây (OneDrive chưa tải về máy). Windows sẽ tự tải khi chép/di chuyển — bước sắp xếp sẽ chậm hơn và cần có mạng.' -f $cloudOnly) 'WARN'
     }
     return $index
 }
@@ -1243,6 +1266,18 @@ function Invoke-Organize {
         [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
     if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) { return }
 
+    $sources = @($lstSources.Items | ForEach-Object { [string]$_ })
+    foreach ($src in $sources) {
+        if ((Test-PathInside -Child $dest -Parent $src) -and $chkSubSrc.Checked) {
+            $warn = [System.Windows.Forms.MessageBox]::Show(
+                ("Thư mục đích nằm bên trong thư mục nguồn:`n{0}`n`nLần đối chiếu sau sẽ quét trúng cả file vừa sắp xếp. Nên chọn thư mục đích nằm ngoài kho hóa đơn.`n`nVẫn tiếp tục?" -f $src),
+                'Thư mục đích nằm trong thư mục nguồn',
+                [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Warning)
+            if ($warn -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+            break
+        }
+    }
+
     $btnOrganize.Enabled = $false
     $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
     try {
@@ -1292,8 +1327,17 @@ function Invoke-Organize {
                     }
                 }
 
-                if ($move) { Move-Item -LiteralPath $inv.SourcePath -Destination $target -Force }
-                else       { Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force }
+                if ($move) {
+                    # chép trước, so lại dung lượng rồi mới bỏ bản gốc — an toàn với OneDrive
+                    $srcLen = (Get-Item -LiteralPath $inv.SourcePath).Length
+                    Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force
+                    if ((Get-Item -LiteralPath $target).Length -ne $srcLen) {
+                        throw 'Chép chưa đủ dung lượng nên giữ nguyên file gốc.'
+                    }
+                    Remove-Item -LiteralPath $inv.SourcePath -Force
+                } else {
+                    Copy-Item -LiteralPath $inv.SourcePath -Destination $target -Force
+                }
 
                 $inv.DestPath = $target
                 $inv.Status   = if ($move) { 'Đã chuyển' } else { 'Đã chép' }
