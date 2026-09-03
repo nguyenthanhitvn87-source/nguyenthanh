@@ -584,8 +584,10 @@ theo đúng tên trong Excel.
 
 ### Cách dò tìm file
 
-Nếu bảng có cột **`tên file`** (mẫu kiểu `*K25TAA*618585`), công cụ dùng thẳng mẫu đó để
-tìm file — dấu `*` hiểu như khi tìm kiếm trong Windows. Mẫu không ra file nào thì mới quay
+Nếu bảng có cột **mẫu tên file** (kiểu `*K25TAA*618585`), công cụ dùng thẳng mẫu đó để
+tìm file — dấu `*` hiểu như khi tìm kiếm trong Windows. Cột này không cần tiêu đề: chỉ
+cần dữ liệu có dấu `*` là tự nhận ra. Tiêu đề các cột cũng khớp theo phần đầu, nên
+`Số hóa đơn2` hay `Ký hiệu HĐ` vẫn nhận đúng. Mẫu không ra file nào thì mới quay
 sang dò theo ký hiệu và số hóa đơn, nên tên file đặt ngược kiểu `00002850_K25TDA.pdf` vẫn
 tìm ra. Không có cột này thì chỉ dò theo ký hiệu và số.
 

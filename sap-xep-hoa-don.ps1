@@ -423,10 +423,24 @@ function Read-Workbook {
 # ============================================================================
 #  DÒ CÁC BẢNG HÓA ĐƠN TRONG SHEET
 # ============================================================================
-$script:HeaderSymbol = @('ky hieu', 'ki hieu', 'ky hieu hoa don', 'serial', 'mau so ky hieu')
-$script:HeaderNumber = @('so hoa don', 'so hd', 'so hoa don gtgt', 'invoice no', 'so')
-$script:HeaderDate   = @('ngay hoa don', 'ngay hd', 'ngay', 'ngay lap hoa don')
-$script:HeaderFile   = @('ten file', 'ten file pdf', 'ten tap tin', 'file', 'ten file hoa don')
+$script:HeaderSymbol = @('ky hieu', 'ki hieu', 'serial')
+$script:HeaderNumber = @('so hoa don', 'so hd', 'invoice no')
+$script:HeaderDate   = @('ngay hoa don', 'ngay hd', 'ngay lap hoa don', 'ngay')
+$script:HeaderFile   = @('ten file', 'ten tap tin', 'file')
+
+function Test-HeaderMatch {
+    <# Tiêu đề cột trong thực tế hay có đuôi lạ ("Số hóa đơn2", "Ký hiệu HĐ") nên so
+       khớp theo phần đầu; các từ ngắn (dưới 5 ký tự) thì phải trùng khít. #>
+    param([string]$Text, [string[]]$Keys)
+
+    $key = Get-HeaderKey $Text
+    if (-not $key) { return $false }
+    foreach ($k in $Keys) {
+        if ($key -eq $k) { return $true }
+        if ($k.Length -ge 5 -and $key.StartsWith($k)) { return $true }
+    }
+    return $false
+}
 
 function Get-Cell {
     param($Sheet, [int]$Row, [int]$Col)
@@ -443,7 +457,7 @@ function Find-InvoiceBlocks {
     # chỉ duyệt các ô có nội dung để nhanh với sheet lớn
     $headers = @()
     foreach ($key in $Sheet.Cells.Keys) {
-        if ($script:HeaderNumber -contains (Get-HeaderKey $Sheet.Cells[$key])) {
+        if (Test-HeaderMatch $Sheet.Cells[$key] $script:HeaderNumber) {
             $parts = $key.Split('_')
             $headers += [pscustomobject]@{ Row = [int]$parts[0]; Col = [int]$parts[1] }
         }
@@ -459,20 +473,33 @@ function Find-InvoiceBlocks {
         $symbolCol = 0
         for ($k = 1; $k -le 8; $k++) {
             if ($c - $k -lt 1) { break }
-            if ($script:HeaderSymbol -contains (Get-HeaderKey (Get-Cell $Sheet $r ($c - $k)))) { $symbolCol = $c - $k; break }
+            if (Test-HeaderMatch (Get-Cell $Sheet $r ($c - $k)) $script:HeaderSymbol) { $symbolCol = $c - $k; break }
         }
         if ($symbolCol -eq 0) { continue }
 
         # cột "Ngày hóa đơn" nằm bên phải
         $dateCol = 0
         for ($k = 1; $k -le 5; $k++) {
-            if ($script:HeaderDate -contains (Get-HeaderKey (Get-Cell $Sheet $r ($c + $k)))) { $dateCol = $c + $k; break }
+            if (Test-HeaderMatch (Get-Cell $Sheet $r ($c + $k)) $script:HeaderDate) { $dateCol = $c + $k; break }
         }
 
         # cột "tên file" (mẫu tìm file, VD *K25TAA*618585) cũng nằm bên phải
         $fileCol = 0
         for ($k = 1; $k -le 6; $k++) {
-            if ($script:HeaderFile -contains (Get-HeaderKey (Get-Cell $Sheet $r ($c + $k)))) { $fileCol = $c + $k; break }
+            if (Test-HeaderMatch (Get-Cell $Sheet $r ($c + $k)) $script:HeaderFile) { $fileCol = $c + $k; break }
+        }
+
+        # cột mẫu tên file có thể không có tiêu đề — nhận ra bằng dấu * trong dữ liệu
+        if ($fileCol -eq 0) {
+            $lastRow = [math]::Min($r + 6, $Sheet.MaxRow)
+            for ($k = 1; $k -le 6 -and $fileCol -eq 0; $k++) {
+                $cc = $c + $k
+                if ($cc -eq $dateCol) { continue }
+                for ($rr2 = $r + 1; $rr2 -le $lastRow; $rr2++) {
+                    $v = Get-Cell $Sheet $rr2 $cc
+                    if ($v -and $v.Contains('*')) { $fileCol = $cc; break }
+                }
+            }
         }
 
         # tên sản phẩm/mẫu: ô có chữ gần nhất phía trên bảng
@@ -482,7 +509,7 @@ function Find-InvoiceBlocks {
             if ($r - $up -lt 1) { break }
             for ($cc = [math]::Max(1, $symbolCol - 2); $cc -le $c + 3; $cc++) {
                 $t = Get-Cell $Sheet ($r - $up) $cc
-                if ($t -and (Get-HeaderKey $t) -notin $skipWords) { $title = $t; break }
+                if ($t -and -not (Test-HeaderMatch $t $skipWords)) { $title = $t; break }
             }
         }
         if (-not $title) { $title = 'Không rõ sản phẩm' }
@@ -1130,7 +1157,13 @@ function Invoke-LoadExcel {
             $label = '{0}  ({1} hóa đơn / {2} sản phẩm)' -f $sheet.Name, $count, $blocks.Count
             $index = $clbSheets.Items.Add($label)
             if ($count -gt 0) { $clbSheets.SetItemChecked($index, $true) }
-            Write-Log ('  • Sheet "{0}": {1} sản phẩm, {2} hóa đơn.' -f $sheet.Name, $blocks.Count, $count)
+
+            $withPattern = 0
+            foreach ($b in $blocks) { $withPattern += @($b.Rows | Where-Object { $_.Pattern }).Count }
+            $note = if ($count -gt 0 -and $withPattern -eq 0) { ' — không có cột mẫu tên file, sẽ dò theo ký hiệu + số' }
+                    elseif ($withPattern -lt $count) { ' — {0} dòng có mẫu tên file' -f $withPattern }
+                    else { '' }
+            Write-Log ('  • Sheet "{0}": {1} sản phẩm, {2} hóa đơn{3}.' -f $sheet.Name, $blocks.Count, $count, $note)
         }
 
         if ($clbSheets.Items.Count -eq 0) { Write-Log 'File Excel không có sheet nào đọc được.' 'WARN' }
