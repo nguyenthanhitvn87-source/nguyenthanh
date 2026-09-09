@@ -205,6 +205,12 @@
     display:inline-block; justify-self:start; width:fit-content; border:1.5px dashed var(--son); border-radius:6px;
     padding:1px 9px; color:var(--son); font-size:13.5px; font-weight:600; background:var(--accent-soft);
   }
+  /* Số điện thoại: bấm được để gọi thẳng trên điện thoại */
+  .sodt{
+    font-family:var(--chu-hien); font-size:22px; font-weight:600; letter-spacing:.6px;
+    color:var(--son); text-decoration:none; font-variant-numeric:tabular-nums;
+  }
+  .sodt:hover{text-decoration:underline}
   .thongtin{list-style:none; margin:18px 0 0; padding:0; display:grid; gap:11px}
   .thongtin li{display:grid; grid-template-columns:150px 1fr; gap:12px; font-size:14.5px; align-items:baseline}
   @media (max-width:600px){ .thongtin li{grid-template-columns:1fr; gap:3px} }
@@ -596,7 +602,7 @@
     <div class="luoi ba">
       <div class="o">
         <h3>📞 Điện thoại</h3>
-        <p><span class="dienvao">điền số điện thoại</span></p>
+        <p><a class="sodt" href="tel:+84933456400">0933 456 400</a></p>
       </div>
       <div class="o">
         <h3>✉️ Thư điện tử</h3>
