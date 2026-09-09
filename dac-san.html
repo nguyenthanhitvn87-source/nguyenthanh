@@ -460,11 +460,71 @@
     letter-spacing:.6px; color:var(--accent);
   }
 
-  /* ---------- Phiếu giao shipper ---------- */
+  /* ---------- Hoá đơn ---------- */
+  .hoadon{
+    background:#fff; color:#1a1410; border:1px solid var(--vien-dam); border-radius:12px;
+    padding:20px; font-size:13px; line-height:1.5;
+  }
+  .hoadon .dinh{display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; align-items:flex-start}
+  .hoadon .bantoi{display:flex; gap:10px; align-items:center}
+  .hoadon .bantoi svg{width:38px; height:38px; flex:0 0 auto}
+  .hoadon .bantoi b{font-family:var(--chu-hien); font-size:16px; letter-spacing:.4px; text-transform:uppercase; display:block}
+  .hoadon .bantoi span{font-size:11.5px; color:#6b5b48}
+  .hoadon .nhan-hd{text-align:right}
+  .hoadon .nhan-hd h3{
+    margin:0 0 2px; font-family:var(--chu-hien); font-size:20px; letter-spacing:1.4px;
+    text-transform:uppercase; color:#b32d1c;
+  }
+  .hoadon .nhan-hd .ma{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:15px; font-weight:700}
+  .hoadon .nhan-hd .ngay{font-size:11.5px; color:#6b5b48}
+  .hoadon hr{border:0; border-top:1.5px solid #1a1410; margin:14px 0}
+  .hoadon .doiben{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:14px}
+  @media (max-width:520px){ .hoadon .doiben{grid-template-columns:1fr} }
+  .hoadon .doiben h4{
+    margin:0 0 5px; font-size:10.5px; letter-spacing:1.2px; text-transform:uppercase; color:#8a7563;
+    font-family:var(--chu-hien); font-weight:600;
+  }
+  .hoadon .doiben b{display:block; font-size:14px}
+  .hoadon table{width:100%; border-collapse:collapse; margin:6px 0 12px}
+  .hoadon th{
+    text-align:left; font-size:10.5px; letter-spacing:.8px; text-transform:uppercase; color:#8a7563;
+    border-bottom:1.5px solid #1a1410; padding:6px 6px; font-family:var(--chu-hien); font-weight:600;
+  }
+  .hoadon td{padding:8px 6px; border-bottom:1px solid #e3d9c8; vertical-align:top}
+  .hoadon td.so, .hoadon th.so{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .hoadon td .noi{display:block; font-size:11px; color:#8a7563}
+  .hoadon .cong{margin-left:auto; width:min(330px,100%)}
+  .hoadon .cong div{display:flex; justify-content:space-between; gap:14px; padding:3px 0; font-variant-numeric:tabular-nums}
+  .hoadon .cong div span:last-child{white-space:nowrap}
+  .hoadon .tra .giao-hd{font-size:11.5px; color:#6b5b48}
+  .hoadon .cong .tong-cuoi{
+    border-top:1.5px solid #1a1410; margin-top:5px; padding-top:7px;
+    font-family:var(--chu-hien); font-size:19px; font-weight:600;
+  }
+  .hoadon .cong .tong-cuoi span:last-child{color:#b32d1c}
+  .hoadon .tra{
+    margin-top:14px; padding:11px 13px; border:1.5px solid #b32d1c; border-radius:8px;
+    display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+  }
+  .hoadon .tra .chu{flex:1 1 190px; min-width:0}
+  .hoadon .tra b{font-size:14px}
+  .hoadon .ghi{margin-top:12px; font-size:12px}
+  .hoadon .ky{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:22px; text-align:center; font-size:11.5px}
+  .hoadon .ky b{display:block; font-size:11px; letter-spacing:.8px; text-transform:uppercase; color:#8a7563}
+  .hoadon .ky i{display:block; height:46px}
+  .hoadon .chan-hd{margin-top:14px; text-align:center; font-size:11px; color:#8a7563}
+
+  svg.qr{width:132px; height:132px; display:block; border-radius:6px}
+  .hoadon .tra svg.qr{width:112px; height:112px}
+
+  /* ---------- Phiếu giao shipper (bản chữ thuần để nhắn cho shipper) ---------- */
   .phieu{
     border:1px dashed var(--line); border-radius:12px; padding:14px; background:var(--panel-2);
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px; white-space:pre-wrap;
   }
+  details.goi{border:1px solid var(--line); border-radius:11px; padding:9px 12px; background:var(--panel-2)}
+  details.goi summary{cursor:pointer; font-weight:600; font-size:13.5px}
+  details.goi .phieu{margin-top:9px; background:var(--panel)}
   .ok-banner{
     display:flex; gap:10px; align-items:center; padding:12px 14px; border-radius:12px;
     background:color-mix(in srgb, var(--ok) 14%, transparent); border:1px solid var(--ok); color:var(--ok); font-weight:700;
@@ -504,13 +564,17 @@
     .mon:hover{transform:none}
   }
 
+  /* Ra giấy thì chỉ in mỗi hoá đơn, khổ A4, mực đen trên nền trắng */
   @media print{
-    body{background:#fff}
-    header.top,.wrap,.drawer .veil,.no-print,footer.chan{display:none !important}
+    @page{size:A4; margin:14mm}
+    body{background:#fff; color:#1a1410}
+    header.top,.wrap,.drawer .veil,.no-print,footer.chan,.ok-banner,.hop-ck,details.goi{display:none !important}
     .drawer{position:static; display:block; visibility:visible; opacity:1}
-    .drawer .box{position:static; width:auto; border:0; transform:none}
-    .drawer .box .body{overflow:visible}
-    .phieu{border:1px solid #999}
+    .drawer .box{position:static; width:auto; border:0; transform:none; box-shadow:none}
+    .drawer .box header, .drawer .box footer{display:none !important}
+    .drawer .box .body{overflow:visible; padding:0; display:block}
+    .hoadon{border:0; padding:0; font-size:12px; page-break-inside:avoid}
+    .hoadon .tra{border-color:#1a1410}
   }
 </style>
 </head>
@@ -1688,10 +1752,14 @@ function capNhatSoGio() {
    cả trang chỉ lấy thông tin từ chỗ này. */
 const NGAN_HANG = {
   ten: 'TPBank',
+  bin: '970423',                 // mã ngân hàng trong hệ thống Napas, dùng để dựng mã VietQR
   chiNhanh: 'TP. Hồ Chí Minh',
   so: '0933456400',
   chu: 'NGUYEN VU THANH'
 };
+const DIEN_THOAI = '0933 456 400';
+/* Mặt trống đồng dùng lại trên hoá đơn — màu cố định vì hoá đơn luôn nền trắng */
+const TRONG_DONG_SVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.4" fill="none" stroke="#b32d1c" stroke-width="1.6"/><circle cx="20" cy="20" r="13.2" fill="none" stroke="#c2321f" stroke-width="1.2"/><path d="M20.00,11.80 20.76,16.69 23.56,12.61 22.12,17.34 26.41,14.89 23.06,18.52 27.99,18.18 23.40,20.00 27.99,21.82 23.06,21.48 26.41,25.11 22.12,22.66 23.56,27.39 20.76,23.31 20.00,28.20 19.24,23.31 16.44,27.39 17.88,22.66 13.59,25.11 16.94,21.48 12.01,21.82 16.60,20.00 12.01,18.18 16.94,18.52 13.59,14.89 17.88,17.34 16.44,12.61 19.24,16.69Z" fill="#b32d1c"/><circle cx="20.00" cy="4.80" r="1.05" fill="#c2321f"/><circle cx="27.60" cy="6.84" r="1.05" fill="#c2321f"/><circle cx="33.16" cy="12.40" r="1.05" fill="#c2321f"/><circle cx="35.20" cy="20.00" r="1.05" fill="#c2321f"/><circle cx="33.16" cy="27.60" r="1.05" fill="#c2321f"/><circle cx="27.60" cy="33.16" r="1.05" fill="#c2321f"/><circle cx="20.00" cy="35.20" r="1.05" fill="#c2321f"/><circle cx="12.40" cy="33.16" r="1.05" fill="#c2321f"/><circle cx="6.84" cy="27.60" r="1.05" fill="#c2321f"/><circle cx="4.80" cy="20.00" r="1.05" fill="#c2321f"/><circle cx="6.84" cy="12.40" r="1.05" fill="#c2321f"/><circle cx="12.40" cy="6.84" r="1.05" fill="#c2321f"/></svg>';
 
 /* Phí giao hàng: gom hàng từ nhiều tỉnh thì tốn thêm một chút */
 const NGUONG_MIEN_SHIP = 1000000;
@@ -1999,6 +2067,84 @@ function phaoGiay() {
   setTimeout(() => hop.remove(), 3400);
 }
 
+/* Hoá đơn bán hàng — bản để xem và để in. Chữ do người mua nhập được đưa vào
+   bằng textContent ở dưới, không ghép thẳng vào chuỗi HTML. */
+function hoaDonHTML(don) {
+  const soPhan = don.mon.reduce((s, m) => s + m.sl, 0);
+  const hang = don.mon.map((m, i) =>
+    '<tr>' +
+      '<td class="so">' + (i + 1) + '</td>' +
+      '<td><b class="ten"></b><span class="noi">Lấy tại ' + hienTen(m.tinh) + '</span></td>' +
+      '<td class="dvt"></td>' +
+      '<td class="so">' + m.sl + '</td>' +
+      '<td class="so">' + tien(m.gia) + '</td>' +
+      '<td class="so"><b>' + tien(m.gia * m.sl) + '</b></td>' +
+    '</tr>').join('');
+
+  const traTien = don.thanhToan === 'cod'
+    ? '<div class="tra"><div class="chu"><b>Thanh toán khi nhận hàng (COD)</b><br>' +
+        'Shipper thu hộ <b>' + tien(don.tong) + '</b><br>' +
+        '<span class="giao-hd">Giao ' + TEN_GIAO[don.giao].toLowerCase() + '</span></div></div>'
+    : '<div class="tra">' +
+        '<div class="chu"><b>Chuyển khoản trước</b><br>' +
+        NGAN_HANG.ten + ' · ' + NGAN_HANG.so + '<br>' + NGAN_HANG.chu + '<br>' +
+        'Nội dung: <b>' + noiDungCK(don.ma) + '</b><br>' +
+        '<span class="giao-hd">Giao ' + TEN_GIAO[don.giao].toLowerCase() + '</span></div>' +
+        veQR(vietQR(don.tong, noiDungCK(don.ma))) +
+      '</div>';
+
+  return '<div class="hoadon" id="hoaDon">' +
+    '<div class="dinh">' +
+      '<div class="bantoi">' + TRONG_DONG_SVG +
+        '<span><b>Quê Hương Việt Nam</b>' +
+        '<span>Công ty TNHH · đặc sản ba miền<br>Điện thoại ' + DIEN_THOAI + '</span></span>' +
+      '</div>' +
+      '<div class="nhan-hd"><h3>Hoá đơn bán hàng</h3>' +
+        '<div class="ma">' + don.ma + '</div>' +
+        '<div class="ngay">Lập lúc ' + ngayGio(don.luc) + '</div></div>' +
+    '</div>' +
+    '<hr>' +
+    '<div class="doiben">' +
+      '<div><h4>Bên bán</h4><b>Công ty TNHH Quê Hương Việt Nam</b>' +
+        '<div>Người đại diện: Nguyễn Vũ Thanh</div><div>Điện thoại: ' + DIEN_THOAI + '</div></div>' +
+      '<div><h4>Người nhận hàng</h4><b class="kh-ten"></b>' +
+        '<div class="kh-sdt"></div><div class="kh-dc"></div></div>' +
+    '</div>' +
+    '<table><thead><tr>' +
+      '<th class="so">TT</th><th>Tên hàng</th><th>Đơn vị</th>' +
+      '<th class="so">SL</th><th class="so">Đơn giá</th><th class="so">Thành tiền</th>' +
+    '</tr></thead><tbody>' + hang + '</tbody></table>' +
+    '<div class="cong">' +
+      '<div><span>Tạm tính (' + soPhan + ' phần)</span><span>' + tien(don.tamTinh) + '</span></div>' +
+      '<div><span>Phí giao hàng</span><span>' + (don.phi ? tien(don.phi) : 'Miễn phí') + '</span></div>' +
+      '<div class="tong-cuoi"><span>Tổng cộng</span><span>' + tien(don.tong) + '</span></div>' +
+    '</div>' +
+    traTien +
+    (don.khach.ghiChu ? '<div class="ghi"><b>Ghi chú:</b> <span class="kh-ghi"></span></div>' : '') +
+    '<div class="ky">' +
+      '<div><b>Người bán</b><i></i>Quê Hương Việt Nam</div>' +
+      '<div><b>Người nhận</b><i></i>Ký và ghi rõ họ tên</div>' +
+    '</div>' +
+    '<div class="chan-hd">Gom hàng từ: ' + don.khoLay.join(' · ') + '</div>' +
+  '</div>';
+}
+
+/* Gắn phần chữ do người mua nhập vào hoá đơn, tránh ghép thẳng vào HTML */
+function nhetChuKhach(goc, don) {
+  const dat = (chon, chu) => { const e = goc.querySelector(chon); if (e) e.textContent = chu; };
+  dat('.kh-ten', don.khach.ten);
+  dat('.kh-sdt', 'Điện thoại: ' + don.khach.sdt);
+  dat('.kh-dc', don.khach.diaChi + ', ' + don.khach.tinh);
+  dat('.kh-ghi', don.khach.ghiChu || '');
+  goc.querySelectorAll('.hoadon tbody tr').forEach((tr, i) => {
+    tr.querySelector('.ten').textContent = don.mon[i].ten;
+    tr.querySelector('.dvt').textContent = don.mon[i].dvt;
+  });
+}
+
+/* Nội dung chuyển khoản: bỏ dấu gạch cho ngân hàng nào khó tính */
+const noiDungCK = ma => ma.replace(/[^A-Za-z0-9]/g, '');
+
 function veManXong() {
   const don = donVuaDat;
   $('#gioTieuDe').textContent = '✅ Đặt hàng thành công';
@@ -2006,24 +2152,29 @@ function veManXong() {
 
   const khoiCk = don.thanhToan === 'ck'
     ? '<div class="hop-ck">' +
-        '<h3 style="margin:0 0 4px;font-size:15px">🏦 Chuyển khoản để đơn được gửi đi</h3>' +
-        '<div class="tiny muted" style="margin-bottom:8px">Số tiền cần chuyển: <b>' + tien(don.tong) + '</b>. ' +
-        'Nhớ ghi đúng nội dung để chúng tôi đối chiếu được đơn của bạn.</div>' +
-        khoiNganHang(don.ma) +
-        '<button class="btn tiny" id="bChepStk" style="margin-top:8px">📋 Sao chép số tài khoản</button>' +
+        '<h3 style="margin:0 0 4px;font-size:15px">🏦 Quét mã để chuyển khoản</h3>' +
+        '<div class="tiny muted" style="margin-bottom:10px">Mở app ngân hàng, quét mã dưới đây là ' +
+        'điền sẵn số tài khoản, số tiền <b>' + tien(don.tong) + '</b> và nội dung chuyển.</div>' +
+        '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">' +
+          veQR(vietQR(don.tong, noiDungCK(don.ma))) +
+          '<div style="flex:1 1 190px;min-width:0">' + khoiNganHang(noiDungCK(don.ma)) +
+            '<button class="btn tiny" id="bChepStk" style="margin-top:8px">📋 Sao chép số tài khoản</button>' +
+          '</div>' +
+        '</div>' +
       '</div>'
     : '';
 
   oNoiDung.innerHTML =
     '<div class="ok-banner">🎉 <span>Đơn <b>' + don.ma + '</b> đã được ghi nhận</span></div>' +
     khoiCk +
-    '<p class="tiny muted" style="margin:0">Gửi phiếu bên dưới cho shipper để họ đi lấy hàng và giao tới người nhận.</p>' +
-    '<div class="phieu" id="phieu"></div>' +
+    hoaDonHTML(don) +
     '<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap">' +
-      '<button class="btn" id="bSaoChep">📋 Sao chép phiếu</button>' +
-      '<button class="btn" id="bIn">🖨️ In phiếu</button>' +
+      '<button class="btn primary" id="bIn">🖨️ In hoá đơn</button>' +
+      '<button class="btn" id="bSaoChep">📋 Sao chép phiếu shipper</button>' +
       '<button class="btn" id="bTai">⬇️ Tải .txt</button>' +
     '</div>' +
+    '<details class="goi no-print"><summary>Phiếu giao dạng chữ — để nhắn cho shipper</summary>' +
+      '<div class="phieu" id="phieu"></div></details>' +
     '<div class="no-print" style="border:1px solid var(--line);border-radius:12px;padding:12px">' +
       '<label for="sdtShipper">Gửi thẳng cho shipper</label>' +
       '<input id="sdtShipper" inputmode="tel" placeholder="Số điện thoại shipper, vd 0912345678" ' +
@@ -2037,6 +2188,7 @@ function veManXong() {
 
   const chu = noiDungPhieu(don);
   $('#phieu').textContent = chu;
+  nhetChuKhach(oNoiDung, don);
 
   $('#bSaoChep').onclick = () => chepChu(chu, 'Đã sao chép phiếu giao hàng');
   $('#bIn').onclick = () => window.print();
@@ -2082,12 +2234,14 @@ function veManDonHang() {
       w.innerHTML =
         '<summary>' + don.ma + ' · ' + tien(don.tong) +
         ' <span class="tiny muted" style="font-weight:500">— ' + ngayGio(don.luc) + ' · ' + soPhan + ' phần</span></summary>' +
-        '<div class="phieu" style="margin-top:10px"></div>' +
+        '<div style="margin-top:10px">' + hoaDonHTML(don) + '</div>' +
         '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">' +
           '<button class="btn tiny" data-lai>🔁 Đặt lại đơn này</button>' +
+          '<button class="btn tiny" data-chep>📋 Sao chép phiếu shipper</button>' +
         '</div>';
-      w.querySelector('.phieu').textContent = noiDungPhieu(don);
+      nhetChuKhach(w, don);
       w.querySelector('[data-lai]').onclick = () => datLai(don);
+      w.querySelector('[data-chep]').onclick = () => chepChu(noiDungPhieu(don), 'Đã sao chép phiếu giao hàng');
       oNoiDung.appendChild(w);
     });
   }
@@ -2168,6 +2322,325 @@ $('#btnGiaoDien').onclick = () => {
 try { datGiaoDien(localStorage.getItem(KHOA_GD)); } catch (e) { datGiaoDien(null); }
 capNhatSoGio();
 veDanhSach();
+
+/* =====================================================================
+   6. MÃ QR CHUYỂN KHOẢN (VietQR)
+   Tự sinh ngay trong trang, không gọi ra mạng. Quét bằng app ngân hàng là
+   điền sẵn số tài khoản, số tiền và nội dung chuyển.
+   Bộ sinh QR dùng chế độ byte, mức sửa lỗi L, theo đúng chuẩn ISO/IEC 18004.
+   ===================================================================== */
+
+/* Bảng khối sửa lỗi và vị trí ô căn chỉnh, lấy theo chuẩn cho mức L.
+   k: [số khối, tổng ký tự mã, số ký tự dữ liệu] — c: vị trí ô căn chỉnh — d: sức chứa */
+const QR_BANG = {
+  1: {k:[[1, 26, 19]], c:[], d:19},
+  2: {k:[[1, 44, 34]], c:[6, 18], d:34},
+  3: {k:[[1, 70, 55]], c:[6, 22], d:55},
+  4: {k:[[1, 100, 80]], c:[6, 26], d:80},
+  5: {k:[[1, 134, 108]], c:[6, 30], d:108},
+  6: {k:[[2, 86, 68]], c:[6, 34], d:136},
+  7: {k:[[2, 98, 78]], c:[6, 22, 38], d:156},
+  8: {k:[[2, 121, 97]], c:[6, 24, 42], d:194},
+  9: {k:[[2, 146, 116]], c:[6, 26, 46], d:232},
+  10: {k:[[2, 86, 68], [2, 87, 69]], c:[6, 28, 50], d:274},
+  11: {k:[[4, 101, 81]], c:[6, 30, 54], d:324},
+  12: {k:[[2, 116, 92], [2, 117, 93]], c:[6, 32, 58], d:370},
+  13: {k:[[4, 133, 107]], c:[6, 34, 62], d:428},
+  14: {k:[[3, 145, 115], [1, 146, 116]], c:[6, 26, 46, 66], d:461},
+  15: {k:[[5, 109, 87], [1, 110, 88]], c:[6, 26, 48, 70], d:523},
+  16: {k:[[5, 122, 98], [1, 123, 99]], c:[6, 26, 50, 74], d:589},
+  17: {k:[[1, 135, 107], [5, 136, 108]], c:[6, 30, 54, 78], d:647},
+  18: {k:[[5, 150, 120], [1, 151, 121]], c:[6, 30, 56, 82], d:721},
+  19: {k:[[3, 141, 113], [4, 142, 114]], c:[6, 30, 58, 86], d:795},
+  20: {k:[[3, 135, 107], [5, 136, 108]], c:[6, 34, 62, 90], d:861}
+};
+
+/* Trường Galois GF(256) dùng cho mã sửa lỗi Reed–Solomon */
+const GF_MU = [], GF_LOG = [];
+(function dungBangGF() {
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    GF_MU[i] = x; GF_LOG[x] = i;
+    x <<= 1;
+    if (x & 0x100) x ^= 0x11D;
+  }
+  for (let i = 255; i < 512; i++) GF_MU[i] = GF_MU[i - 255];
+})();
+const gfNhan = (a, b) => (a === 0 || b === 0) ? 0 : GF_MU[GF_LOG[a] + GF_LOG[b]];
+
+/* Đa thức sinh của mã Reed–Solomon với n ký tự sửa lỗi */
+function rsDaThuc(n) {
+  let g = [1];
+  for (let i = 0; i < n; i++) {
+    const m = new Array(g.length + 1).fill(0);
+    for (let j = 0; j < g.length; j++) {
+      m[j] ^= g[j];
+      m[j + 1] ^= gfNhan(g[j], GF_MU[i]);
+    }
+    g = m;
+  }
+  return g;
+}
+
+/* Phần dư khi chia dữ liệu cho đa thức sinh — chính là ký tự sửa lỗi */
+function rsSuaLoi(duLieu, soEc) {
+  const g = rsDaThuc(soEc);
+  const t = duLieu.concat(new Array(soEc).fill(0));
+  for (let i = 0; i < duLieu.length; i++) {
+    const he = t[i];
+    if (!he) continue;
+    for (let j = 0; j < g.length; j++) t[i + j] ^= gfNhan(g[j], he);
+  }
+  return t.slice(duLieu.length);
+}
+
+/* Xếp dữ liệu thành các ký tự mã, cài xen khối rồi nối phần sửa lỗi */
+function qrKyTuMa(byteDL, ver) {
+  const bang = QR_BANG[ver];
+  const soBitDoDai = ver < 10 ? 8 : 16;
+  const bit = [];
+  const day = (giaTri, soBit) => { for (let i = soBit - 1; i >= 0; i--) bit.push((giaTri >> i) & 1); };
+  day(4, 4);                       // chế độ byte
+  day(byteDL.length, soBitDoDai);
+  byteDL.forEach(b => day(b, 8));
+  const tongBit = bang.d * 8;
+  for (let i = 0; i < 4 && bit.length < tongBit; i++) bit.push(0);   // dấu kết thúc
+  while (bit.length % 8) bit.push(0);
+  const dl = [];
+  for (let i = 0; i < bit.length; i += 8) {
+    let b = 0;
+    for (let j = 0; j < 8; j++) b = (b << 1) | bit[i + j];
+    dl.push(b);
+  }
+  let dem = 0;
+  while (dl.length < bang.d) dl.push(dem++ % 2 ? 0x11 : 0xEC);       // ký tự đệm
+
+  const khoiDL = [], khoiEC = [];
+  let vt = 0;
+  bang.k.forEach(([so, tong, duLieu]) => {
+    for (let i = 0; i < so; i++) {
+      const phan = dl.slice(vt, vt + duLieu);
+      vt += duLieu;
+      khoiDL.push(phan);
+      khoiEC.push(rsSuaLoi(phan, tong - duLieu));
+    }
+  });
+  const ra = [];
+  const maxDL = Math.max(...khoiDL.map(k => k.length));
+  for (let i = 0; i < maxDL; i++) khoiDL.forEach(k => { if (i < k.length) ra.push(k[i]); });
+  const maxEC = Math.max(...khoiEC.map(k => k.length));
+  for (let i = 0; i < maxEC; i++) khoiEC.forEach(k => { if (i < k.length) ra.push(k[i]); });
+  return ra;
+}
+
+/* Vẽ khung: ô định vị, ô căn chỉnh, hàng nhịp, chừa chỗ cho thông tin định dạng */
+function qrKhung(ver) {
+  const n = ver * 4 + 17;
+  const o = Array.from({ length: n }, () => new Array(n).fill(null));
+  const dat = (x, y, v) => { if (x >= 0 && x < n && y >= 0 && y < n) o[y][x] = v; };
+  [[0, 0], [n - 7, 0], [0, n - 7]].forEach(([gx, gy]) => {
+    for (let y = -1; y <= 7; y++) for (let x = -1; x <= 7; x++) {
+      const trong = x >= 0 && x <= 6 && y >= 0 && y <= 6 &&
+        (x === 0 || x === 6 || y === 0 || y === 6 || (x >= 2 && x <= 4 && y >= 2 && y <= 4));
+      dat(gx + x, gy + y, trong ? 1 : 0);
+    }
+  });
+  const c = QR_BANG[ver].c;
+  c.forEach(cy => c.forEach(cx => {
+    if (o[cy][cx] !== null) return;                       // trùng ô định vị thì bỏ
+    for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++)
+      dat(cx + x, cy + y, (Math.abs(x) === 2 || Math.abs(y) === 2 || (!x && !y)) ? 1 : 0);
+  }));
+  for (let i = 8; i < n - 8; i++) { o[6][i] = i % 2 ? 0 : 1; o[i][6] = i % 2 ? 0 : 1; }
+  for (let i = 0; i < 9; i++) {                            // chừa chỗ cho thông tin định dạng
+    if (o[8][i] === null) o[8][i] = 0;
+    if (o[i][8] === null) o[i][8] = 0;
+  }
+  for (let i = 0; i < 8; i++) { o[8][n - 1 - i] = 0; o[n - 1 - i][8] = 0; }
+  o[n - 8][8] = 1;                                        // ô đen cố định — đặt sau cùng
+                                                          // kẻo bị vòng lặp trên ghi đè
+  if (ver >= 7) {
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { o[n - 11 + j][i] = 0; o[i][n - 11 + j] = 0; }
+  }
+  return o;
+}
+
+/* Rải dữ liệu theo đường ngoằn ngoèo từ góc dưới phải, bỏ qua cột số 6 */
+function qrRaiDuLieu(o, kyTuMa, ver) {
+  const n = o.length;
+  let bit = 0, tong = kyTuMa.length * 8;
+  const layBit = () => {
+    if (bit >= tong) return 0;
+    const b = (kyTuMa[bit >> 3] >> (7 - (bit & 7))) & 1;
+    bit++;
+    return b;
+  };
+  let len = -1, y = n - 1;
+  for (let x = n - 1; x > 0; x -= 2) {
+    if (x === 6) x--;                                     // cột nhịp dọc
+    for (;;) {
+      for (let i = 0; i < 2; i++) {
+        const cx = x - i;
+        if (o[y][cx] === null) o[y][cx] = layBit();
+      }
+      y += len;
+      if (y < 0 || y >= n) { y -= len; len = -len; break; }
+    }
+  }
+}
+
+/* Tám kiểu mặt nạ theo chuẩn */
+const QR_MATNA = [
+  (y, x) => (y + x) % 2 === 0,
+  (y) => y % 2 === 0,
+  (y, x) => x % 3 === 0,
+  (y, x) => (y + x) % 3 === 0,
+  (y, x) => (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0,
+  (y, x) => (y * x) % 2 + (y * x) % 3 === 0,
+  (y, x) => ((y * x) % 2 + (y * x) % 3) % 2 === 0,
+  (y, x) => ((y + x) % 2 + (y * x) % 3) % 2 === 0
+];
+
+/* Bốn phép tính điểm phạt để chọn mặt nạ dễ quét nhất */
+function qrDiemPhat(o) {
+  const n = o.length;
+  let diem = 0;
+  const chay = day => {
+    let d = 0;
+    for (let i = 0; i < n; i++) {
+      let dem = 1;
+      for (let j = 1; j < n; j++) {
+        if (day(i, j) === day(i, j - 1)) dem++;
+        else { if (dem >= 5) d += dem - 2; dem = 1; }
+      }
+      if (dem >= 5) d += dem - 2;
+    }
+    return d;
+  };
+  diem += chay((i, j) => o[i][j]) + chay((i, j) => o[j][i]);
+  for (let y = 0; y < n - 1; y++) for (let x = 0; x < n - 1; x++)
+    if (o[y][x] === o[y][x + 1] && o[y][x] === o[y + 1][x] && o[y][x] === o[y + 1][x + 1]) diem += 3;
+  /* Hình 1:1:3:1:1 kèm bốn ô sáng liền kề — dễ bị nhầm với ô định vị.
+     Xét cửa sổ 11 ô, khớp một trong hai dạng 10111010000 hoặc 00001011101. */
+  for (const lay of [(i, j) => o[i][j], (i, j) => o[j][i]]) {
+    for (let i = 0; i < n; i++) for (let j = 0; j < n - 10; j++) {
+      const p = k => lay(i, j + k);
+      if (!p(1) && p(4) && !p(5) && p(6) && !p(9) &&
+          ((p(0) && p(2) && p(3) && !p(7) && !p(8) && !p(10)) ||
+           (!p(0) && !p(2) && !p(3) && p(7) && p(8) && p(10)))) diem += 40;
+    }
+  }
+  let den = 0;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (o[y][x]) den++;
+  diem += Math.floor(Math.abs(den * 100 / (n * n) - 50) / 5) * 10;
+  return diem;
+}
+
+/* Thông tin định dạng (mức sửa lỗi L = 01) và thông tin phiên bản, đều có mã BCH */
+function qrGhiDinhDang(o, matNa) {
+  const n = o.length;
+  let so = (0x01 << 3) | matNa, d = so << 10;
+  for (let i = 4; i >= 0; i--) if (d & (1 << (i + 10))) d ^= 0x537 << i;
+  const bit = ((so << 10) | d) ^ 0x5412;
+  const lay = i => (bit >> i) & 1;
+  for (let i = 0; i <= 5; i++) o[i][8] = lay(i);
+  o[7][8] = lay(6); o[8][8] = lay(7); o[8][7] = lay(8);
+  for (let i = 9; i <= 14; i++) o[8][14 - i] = lay(i);
+  for (let i = 0; i <= 7; i++) o[8][n - 1 - i] = lay(i);
+  for (let i = 8; i <= 14; i++) o[n - 15 + i][8] = lay(i);
+}
+function qrGhiPhienBan(o, ver) {
+  if (ver < 7) return;
+  const n = o.length;
+  let d = ver << 12;
+  for (let i = 5; i >= 0; i--) if (d & (1 << (i + 12))) d ^= 0x1F25 << i;
+  const bit = (ver << 12) | d;
+  for (let i = 0; i < 18; i++) {
+    const b = (bit >> i) & 1, x = Math.floor(i / 3), y = i % 3;
+    o[n - 11 + y][x] = b;
+    o[x][n - 11 + y] = b;
+  }
+}
+
+/* Sinh ma trận QR hoàn chỉnh cho một đoạn chữ */
+function qrMaTran(chu) {
+  const byteDL = [];
+  for (let i = 0; i < chu.length; i++) byteDL.push(chu.charCodeAt(i) & 0xFF);
+  let ver = 0;
+  for (let v = 1; v <= 20; v++) {
+    const soBitDoDai = v < 10 ? 8 : 16;
+    if (QR_BANG[v].d * 8 >= 4 + soBitDoDai + byteDL.length * 8) { ver = v; break; }
+  }
+  if (!ver) throw new Error('Nội dung quá dài cho mã QR');
+  const kyTuMa = qrKyTuMa(byteDL, ver);
+  const khung = qrKhung(ver);
+  const nen = qrKhung(ver);                              // bản sao để biết ô nào là khung
+  qrRaiDuLieu(khung, kyTuMa, ver);
+  let tot = null, matNaTot = 0, diemTot = Infinity;
+  for (let m = 0; m < 8; m++) {
+    const o = khung.map(h => h.slice());
+    for (let y = 0; y < o.length; y++) for (let x = 0; x < o.length; x++)
+      if (nen[y][x] === null && QR_MATNA[m](y, x)) o[y][x] ^= 1;
+    /* Chấm điểm khi chưa ghi thông tin định dạng và để ô đen cố định sáng —
+       đúng cách các bộ sinh QR phổ biến vẫn làm, nhờ vậy mã sinh ra trùng khít
+       với chúng và thừa hưởng luôn phần đã được dùng nhiều năm ngoài thực tế. */
+    const cham = o.map(h => h.slice());
+    cham[o.length - 8][8] = 0;
+    const d = qrDiemPhat(cham);
+    if (d < diemTot) { diemTot = d; tot = o; matNaTot = m; }
+  }
+  qrGhiDinhDang(tot, matNaTot);
+  qrGhiPhienBan(tot, ver);
+  return tot;
+}
+
+/* ---------------------------------------------------------------------
+   Nội dung mã VietQR theo chuẩn EMVCo mà các ngân hàng Việt Nam dùng chung.
+   Mỗi trường gồm: mã trường (2 chữ số) + độ dài (2 chữ số) + nội dung.
+   --------------------------------------------------------------------- */
+const truong = (ma, noiDung) => ma + String(noiDung.length).padStart(2, '0') + noiDung;
+
+/* Mã kiểm tra CRC-16/CCITT-FALSE, tính trên toàn bộ nội dung kể cả "6304" */
+function crc16(chu) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < chu.length; i++) {
+    crc ^= chu.charCodeAt(i) << 8;
+    for (let b = 0; b < 8; b++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+/* Dựng nội dung QR cho một lần chuyển khoản.
+   soTien để trống thì ra mã tĩnh (người chuyển tự nhập số tiền). */
+function vietQR(soTien, noiDung) {
+  const nganHang =
+    truong('00', 'A000000727') +
+    truong('01', truong('00', NGAN_HANG.bin) + truong('01', NGAN_HANG.so)) +
+    truong('02', 'QRIBFTTA');
+  let chu =
+    truong('00', '01') +
+    truong('01', soTien ? '12' : '11') +
+    truong('38', nganHang) +
+    truong('53', '704') +
+    (soTien ? truong('54', String(Math.round(soTien))) : '') +
+    truong('58', 'VN');
+  if (noiDung) chu += truong('62', truong('08', noiDung));
+  chu += '6304';
+  return chu + crc16(chu);
+}
+
+/* Vẽ mã QR thành SVG — nét vẽ nên phóng to bao nhiêu cũng sắc */
+function veQR(chu, oLe = 4) {
+  const m = qrMaTran(chu), n = m.length, c = n + oLe * 2;
+  let d = '';
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++)
+    if (m[y][x]) d += 'M' + (x + oLe) + ' ' + (y + oLe) + 'h1v1h-1z';
+  return '<svg class="qr" viewBox="0 0 ' + c + ' ' + c + '" shape-rendering="crispEdges" ' +
+    'role="img" aria-label="Mã QR chuyển khoản">' +
+    '<rect width="' + c + '" height="' + c + '" fill="#fff"/>' +
+    '<path d="' + d + '" fill="#000"/></svg>';
+}
+
 </script>
 </body>
 </html>
