@@ -40,6 +40,7 @@ cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 quan-ly-tre-em.html      # Bé Ngoan — quản lý trẻ em trên iPhone (xem bên dưới)
 dac-san.html             # Đặc Sản Việt — chợ đặc sản 63 tỉnh thành (xem bên dưới)
+gioi-thieu.html          # Quê Hương Việt Nam — trang giới thiệu công ty (xem bên dưới)
 anh/                     # ảnh đặc sản (để trống cũng chạy, xem anh/README.md)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
@@ -643,3 +644,46 @@ Thêm món thì thêm một dòng, đổi giá thì sửa con số — không ph
   một kho khác.
 - Trang dùng số tỉnh **63** như cách chia quen thuộc lâu nay (trước năm 2008 là 64 tỉnh,
   khi Hà Tây còn tách riêng). Muốn đổi cách chia thì sửa `TINH_LIST` và `DAC_SAN`.
+
+---
+
+# 🏮 Quê Hương Việt Nam — trang giới thiệu
+
+Mở `gioi-thieu.html`. Trang giới thiệu **Công ty TNHH Quê Hương Việt Nam**, đi kèm trang chợ
+`dac-san.html` và dùng chung một diện mạo: mực Đông Hồ, nền giấy điệp, hoa văn gạch bông,
+nhãn hiệu mặt trống đồng. Cũng một tệp HTML duy nhất, không thư viện, không build.
+
+Hai trang nối vào nhau: bấm nhãn hiệu hoặc nút **Giới thiệu** ở trang chợ thì sang đây,
+bấm **Đi chợ đặc sản** ở đây thì sang trang chợ.
+
+## Trang có gì
+
+| Mục | Nội dung |
+| --- | --- |
+| **Mở đầu** | Hình đất nước hình chữ S tô theo ba miền, dựng từ chính ranh giới 63 tỉnh của trang chợ |
+| **Đất nước** | Bắc – Trung – Nam: đất đai, khí hậu, và món ngon sinh ra từ đó |
+| **Con người** | Nghề cha truyền con nối, ăn theo mùa, miếng ngon là miếng chia, đi xa vẫn nhớ vị nhà |
+| **Truyền thống** | Một năm âm lịch của người Việt: từ ông Công ông Táo, Tết Nguyên đán, Giỗ Tổ Hùng Vương, Đoan Ngọ, Vu Lan tới Trung thu — mốc nào cũng có món riêng |
+| **Di sản** | Các di sản văn hoá phi vật thể được UNESCO ghi danh kèm năm công nhận, và những làng nghề còn đỏ lửa |
+| **Công ty** | Bốn điều cam kết và bảng thông tin doanh nghiệp |
+| **Liên hệ** | Điện thoại, email, địa chỉ cửa hàng |
+
+## Chỗ cần điền
+
+Thông tin thật của doanh nghiệp **cố ý để trống**, không dựng số giả. Trên trang, chúng hiện
+thành những ô viền đứt nét màu đỏ:
+
+- mã số thuế, ngày thành lập, người đại diện
+- địa chỉ trụ sở, địa chỉ kho
+- số điện thoại, email, địa chỉ cửa hàng
+
+Muốn điền thì mở `gioi-thieu.html`, tìm chữ `dienvao`, thay đoạn trong thẻ bằng thông tin
+thật rồi bỏ luôn `class="dienvao"` đi. Điền xong nhớ xoá khung nhắc màu đỏ ở cuối mục
+**Thông tin doanh nghiệp**.
+
+## Lưu ý
+
+Các con số và mốc lịch trên trang là những thứ phổ thông, dễ tra lại: 63 tỉnh thành,
+54 dân tộc, hơn 3.260 km bờ biển, các ngày lễ theo âm lịch, năm UNESCO ghi danh từng di sản.
+Còn mọi thông tin riêng của doanh nghiệp thì để trống chờ chủ trang điền — trang này không
+tự bịa ra thông tin pháp lý nào.
