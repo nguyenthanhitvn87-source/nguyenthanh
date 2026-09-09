@@ -164,7 +164,7 @@
     max-width:1180px; margin:0 auto; padding:10px 16px;
     display:flex; align-items:center; gap:12px; flex-wrap:wrap;
   }
-  .brand{display:flex; align-items:center; gap:11px}
+  .brand{display:flex; align-items:center; gap:11px; text-decoration:none; color:inherit}
   .brand .trong{width:42px; height:42px; flex:0 0 auto; display:block}
   .brand .trong .vanh{fill:none; stroke:var(--son); stroke-width:1.6}
   .brand .trong .vanh2{fill:none; stroke:var(--hoe); stroke-width:1.2}
@@ -190,6 +190,7 @@
   .btn{
     border:1px solid var(--vien-dam); background:var(--panel); border-radius:10px;
     padding:8px 13px; cursor:pointer; font-weight:600; white-space:nowrap;
+    text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:6px;
   }
   .btn:focus-visible{outline:2px solid var(--son); outline-offset:2px}
   .btn{transition:transform .14s ease, box-shadow .18s ease, border-color .16s ease, filter .16s ease}
@@ -503,7 +504,7 @@
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand">
+    <a class="brand" href="gioi-thieu.html" title="Về trang giới thiệu Quê Hương Việt Nam">
       <!-- Mặt trống đồng Đông Sơn: ngôi sao 14 cánh giữa mặt, hai vành hoa văn quanh -->
       <svg class="trong" viewBox="0 0 40 40" aria-hidden="true">
         <circle class="vanh" cx="20" cy="20" r="18.4"/>
@@ -515,12 +516,13 @@
         <b>Đặc Sản <i>Việt</i></b>
         <small>Đi chợ 63 tỉnh thành trong một trang</small>
       </span>
-    </div>
+    </a>
     <div class="spacer"></div>
     <div class="searchbox">
       <span>🔍</span>
       <input id="q" type="search" placeholder="Tìm món hoặc tỉnh… (vd: chả mực, Huế)" autocomplete="off">
     </div>
+    <a class="btn ghost" href="gioi-thieu.html">Giới thiệu</a>
     <button class="btn ghost" id="btnGiaoDien" title="Đổi nền sáng / tối" aria-label="Đổi nền sáng tối">🌙</button>
     <button class="btn ghost" id="btnDon" title="Đơn hàng đã đặt">🧾 Đơn của tôi</button>
     <button class="btn primary cart-btn" id="btnGio">🛒 Giỏ hàng<span class="badge" id="soLuongGio">0</span></button>
@@ -604,6 +606,8 @@
     <b><i style="background:var(--dong)"></i>xanh gỉ đồng — rỉ đồng</b>
   </div>
   <div class="ke"></div>
+  <a href="gioi-thieu.html">Giới thiệu về Công ty TNHH Quê Hương Việt Nam, đất nước và con người Việt Nam →</a>
+  <br><br>
   Nền giấy điệp, hoa văn lấy từ viên gạch bông lát nhà, nhãn hiệu là mặt trống đồng Đông Sơn với ngôi sao 14 cánh.
   <br>
   Đặc Sản Việt — trang demo chạy trong trình duyệt. Giỏ hàng và đơn hàng lưu trong máy bạn (localStorage), không gửi đi đâu cả.
