@@ -40,6 +40,7 @@ cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 quan-ly-tre-em.html      # Bé Ngoan — quản lý trẻ em trên iPhone (xem bên dưới)
 dac-san.html             # Đặc Sản Việt — chợ đặc sản 63 tỉnh thành (xem bên dưới)
+anh/                     # ảnh đặc sản (để trống cũng chạy, xem anh/README.md)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
@@ -502,6 +503,35 @@ giỏ → thanh toán → gửi phiếu cho shipper.**
 - Ba nút **Miền Bắc / Miền Trung / Miền Nam** lọc nhanh; **Xem tất cả** quay về toàn bộ.
 - Mỗi thẻ món có nút `−` `+` chọn số lượng rồi **Thêm vào giỏ**.
 
+## Ảnh đặc sản
+
+Trang **không cần ảnh vẫn chạy**: món nào chưa có ảnh thì ô đầu thẻ hàng là một mảng màu
+theo miền, giữa là biểu tượng của món. Muốn có ảnh thật thì thả tệp vào thư mục `anh/`
+đặt cạnh trang, tên tệp lấy theo **tên món bỏ dấu, nối bằng gạch ngang**:
+
+```
+Chả mực Hạ Long   →  anh/cha-muc-ha-long.jpg
+Kẹo dừa Bến Tre   →  anh/keo-dua-ben-tre.jpg
+```
+
+Bỏ vào tấm nào thì tấm đó hiện lên, chưa có thì vẫn là biểu tượng — không phải sửa mã,
+không sợ ô ảnh vỡ. Danh sách đủ **252 tên tệp** xếp theo miền và tỉnh nằm ở
+`anh/danh-sach-anh.txt`; hướng dẫn kỹ hơn ở `anh/README.md`.
+
+Ảnh nên cắt khung **4:3 ngang**, cỡ 800×600, nhẹ dưới 150 KB. Mấy chỗ chỉnh nằm ở đầu
+phần `<script>`:
+
+```js
+const ANH = {
+  bat: true,          // để false nếu chưa có tấm nào, trang khỏi đi tìm tệp
+  thuMuc: 'anh/',     // thư mục chứa ảnh
+  duoi: '.jpg'        // đổi thành '.webp' hay '.png' nếu dùng định dạng khác
+};
+```
+
+Mở trang bằng cách nhấp đúp có thể bị trình duyệt chặn đọc tệp ảnh bên cạnh; chạy qua
+`npx http-server .` là hiện đủ. Khi gửi trang cho người khác nhớ gửi kèm cả thư mục `anh/`.
+
 ## Giỏ hàng và phí giao hàng
 
 Giỏ hàng nằm trong ngăn kéo bên phải, sửa số lượng và bỏ món ngay tại đó.
@@ -557,7 +587,8 @@ Nút **🧾 Đơn của tôi** giữ 30 đơn gần nhất: mở ra xem lại ng
 ## Sửa hàng hoá
 
 Dữ liệu nằm ngay đầu phần `<script>`, mỗi tỉnh một khối, mỗi món một dòng theo thứ tự
-`[tên, biểu tượng, đơn vị bán, giá, mô tả]`:
+`[tên, biểu tượng, đơn vị bán, giá, mô tả]` — thêm được ô thứ sáu là **đường dẫn ảnh
+riêng** cho món đó (ghi rồi thì ô này ưu tiên hơn tên tệp tự suy ra):
 
 ```js
 const DAC_SAN = {

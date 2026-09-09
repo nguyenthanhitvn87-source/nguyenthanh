@@ -223,8 +223,30 @@
   }
   @keyframes monVao{ from{opacity:0; transform:translateY(10px)} }
   .mon:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:var(--shadow)}
-  .mon .emo{font-size:30px; line-height:1; transition:transform .28s cubic-bezier(.34,1.6,.5,1)}
-  .mon:hover .emo{transform:scale(1.18) rotate(-7deg)}
+  /* Ô ảnh: có tệp ảnh thì hiện ảnh, chưa có thì là ô màu với biểu tượng món */
+  .anh{
+    position:relative; overflow:hidden; border-radius:10px;
+    display:grid; place-items:center; isolation:isolate;
+    background:linear-gradient(145deg,
+      color-mix(in srgb, var(--bac) 62%, var(--panel)),
+      color-mix(in srgb, var(--bac) 20%, var(--panel)));
+  }
+  [data-vung="trung"] .anh{background:linear-gradient(145deg,
+      color-mix(in srgb, var(--trung) 62%, var(--panel)),
+      color-mix(in srgb, var(--trung) 20%, var(--panel)))}
+  [data-vung="nam"] .anh{background:linear-gradient(145deg,
+      color-mix(in srgb, var(--nam) 62%, var(--panel)),
+      color-mix(in srgb, var(--nam) 20%, var(--panel)))}
+  .anh img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    opacity:0; transition:opacity .35s ease, transform .4s ease;
+  }
+  .anh img.hien{opacity:1}
+  .mon .anh{aspect-ratio:4/3; margin-bottom:2px}
+  .mon .emo{font-size:44px; line-height:1; transition:transform .28s cubic-bezier(.34,1.6,.5,1);
+    filter:drop-shadow(0 2px 3px rgba(12,16,24,.18))}
+  .mon:hover .emo{transform:scale(1.14) rotate(-7deg)}
+  .mon:hover .anh img.hien{transform:scale(1.06)}
   .mon h3{margin:0; font-size:15px}
   .mon .mota{font-size:12.5px; color:var(--muted); flex:1 1 auto}
   .mon .gia{font-weight:800; color:var(--accent); font-size:16px}
@@ -257,6 +279,7 @@
   .drawer .box .body{flex:1 1 auto; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
   .drawer .box footer{padding:14px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:10px}
   .line-item{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:11px; padding:10px; background:var(--panel-2)}
+  .line-item .anh{width:46px; height:46px; flex:0 0 auto}
   .line-item .emo{font-size:24px}
   .line-item .info{flex:1 1 auto; min-width:0}
   .line-item .info b{display:block; font-size:14px}
@@ -987,7 +1010,7 @@ TINH_LIST.forEach(t => {
     const sp = {
       id: t.id + '-' + i,
       tinh: t.name, tinhId: t.id, vung: VUNG[t.name],
-      ten: m[0], emo: m[1], dvt: m[2], gia: m[3], mota: m[4]
+      ten: m[0], emo: m[1], dvt: m[2], gia: m[3], mota: m[4], anh: m[5] || ''
     };
     SP.push(sp);
     SP_THEO_ID[sp.id] = sp;
@@ -1174,6 +1197,49 @@ function boDau(s) {
           .replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
 
+/* ---------------------------------------------------------------------
+   ẢNH ĐẶC SẢN
+   Thả tệp ảnh vào thư mục anh/ đặt cạnh trang này, tên tệp lấy theo tên món
+   bỏ dấu và nối bằng gạch ngang — ví dụ:
+       Chả mực Hạ Long   →  anh/cha-muc-ha-long.jpg
+       Kẹo dừa Bến Tre   →  anh/keo-dua-ben-tre.jpg
+   Danh sách đầy đủ 252 tên tệp nằm ở anh/danh-sach-anh.txt.
+   Món nào chưa có ảnh thì thẻ hàng vẫn đẹp: hiện ô màu kèm biểu tượng như cũ.
+   Muốn dùng ảnh trên mạng thì ghi thẳng đường link vào ô thứ 6 của món trong DAC_SAN.
+   --------------------------------------------------------------------- */
+const ANH = {
+  bat: true,          // để false nếu chưa có tấm ảnh nào, trang khỏi đi tìm tệp
+  thuMuc: 'anh/',     // thư mục chứa ảnh
+  duoi: '.jpg'        // đuôi tệp dùng chung, đổi thành '.webp' hay '.png' cũng được
+};
+const tenTepAnh = ten => boDau(ten).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+function duongDanAnh(sp) {
+  if (sp.anh) return sp.anh;                       // món tự ghi đường dẫn thì theo món
+  return ANH.bat ? ANH.thuMuc + tenTepAnh(sp.ten) + ANH.duoi : '';
+}
+/* Ô ảnh: biểu tượng nằm sẵn bên dưới, ảnh thật tải xong mới hiện đè lên.
+   Không có tệp ảnh thì bỏ thẻ img đi, người xem không thấy ô vỡ. */
+function oAnh(sp) {
+  const o = document.createElement('div');
+  o.className = 'anh';
+  const e = document.createElement('span');
+  e.className = 'emo';
+  e.textContent = sp.emo;
+  o.appendChild(e);
+  const dan = duongDanAnh(sp);
+  if (dan) {
+    const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.alt = sp.ten;
+    img.onload = () => img.classList.add('hien');
+    img.onerror = () => img.remove();
+    img.src = dan;
+    o.appendChild(img);
+  }
+  return o;
+}
+
 /* Danh sách tỉnh trong ô chọn nhanh, nhóm theo miền */
 (function dungOChonTinh() {
   oTinh.innerHTML = '<option value="">— Chọn tỉnh, thành phố —</option>';
@@ -1278,8 +1344,9 @@ function veDanhSach() {
     const d = document.createElement('article');
     d.className = 'mon';
     d.style.setProperty('--i', Math.min(i, 14));   // chờ lâu quá thì mất vui
+    d.dataset.vung = s.vung;
     d.innerHTML =
-      '<div class="emo">' + s.emo + '</div>' +
+      '<div class="cho-anh"></div>' +
       (tinhDangChon ? '' : '<div class="tu-tinh">📍 ' + hienTen(s.tinh) + '</div>') +
       '<h3></h3><div class="dvt"></div><p class="mota"></p>' +
       '<div class="gia">' + tien(s.gia) + '</div>' +
@@ -1289,6 +1356,7 @@ function veDanhSach() {
         '<button data-b="+" aria-label="Thêm">+</button></span>' +
         '<button class="btn primary" style="flex:1 1 auto" data-them="' + s.id + '">Thêm vào giỏ</button>' +
       '</div>';
+    d.querySelector('.cho-anh').replaceWith(oAnh(s));
     d.querySelector('h3').textContent = s.ten;
     d.querySelector('.dvt').textContent = s.dvt;
     d.querySelector('.mota').textContent = s.mota;
@@ -1447,8 +1515,9 @@ function veManGio() {
     const w = document.createElement('div');
     w.className = 'line-item';
     w.style.setProperty('--i', Math.min(i, 8));
+    w.dataset.vung = d.sp.vung;
     w.innerHTML =
-      '<div class="emo">' + d.sp.emo + '</div>' +
+      '<div class="cho-anh"></div>' +
       '<div class="info"><b></b>' +
         '<div class="tiny muted">📍 ' + hienTen(d.sp.tinh) + ' · <span class="dvt"></span></div>' +
         '<div style="display:flex;align-items:center;gap:10px;margin-top:6px">' +
@@ -1459,6 +1528,7 @@ function veManGio() {
         '</div>' +
       '</div>' +
       '<button class="xoa" title="Bỏ khỏi giỏ">✕</button>';
+    w.querySelector('.cho-anh').replaceWith(oAnh(d.sp));
     w.querySelector('b').textContent = d.sp.ten;
     w.querySelector('.dvt').textContent = d.sp.dvt;
     w.querySelector('.xoa').onclick = () => boKhoiGio(d.sp.id);
