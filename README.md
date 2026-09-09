@@ -463,7 +463,9 @@ Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để gi�
 # 🇻🇳 Đặc Sản Việt — chợ đặc sản 63 tỉnh thành
 
 Mở `dac-san.html` bằng trình duyệt bất kỳ. Vẫn theo lối cũ của kho này: **một file HTML
-duy nhất**, không thư viện, không build, không gọi ra mạng lần nào.
+duy nhất**, không thư viện, không build. Trang chỉ tải hai bộ phông chữ từ Google Fonts;
+không có mạng thì nó tự dùng phông của máy, mọi thứ khác vẫn chạy nguyên vẹn và không có
+dữ liệu nào rời khỏi máy bạn.
 
 Cách dùng gọn trong một câu: **bấm vào một tỉnh trên bản đồ Việt Nam → chọn món → bỏ vào
 giỏ → thanh toán → gửi phiếu cho shipper.**
@@ -483,6 +485,36 @@ giỏ → thanh toán → gửi phiếu cho shipper.**
   (tỉnh Khánh Hòa), nằm ngoài khung bản đồ nên vẽ riêng.
 - Ai ngại bấm bản đồ thì dùng ô **chọn nhanh trong danh sách** ngay dưới — chọn xong
   bản đồ tự phóng tới tỉnh đó.
+
+## Diện mạo lấy từ đâu
+
+Trang không dùng bảng màu mặc định của thư viện nào. Bốn màu chính lấy đúng theo bốn thứ
+mực của **tranh dân gian Đông Hồ**, mỗi màu một nguồn gốc thật:
+
+| Màu | Lấy từ | Dùng ở đâu |
+| --- | --- | --- |
+| **Đỏ son** | sỏi son tán nhỏ | nút bấm, tem giá, tỉnh đang chọn |
+| **Vàng hoè** | hoa hoè nấu lên | miền Trung trên bản đồ, viền nhấn |
+| **Xanh chàm** | lá chàm | miền Bắc, mặt Biển Đông |
+| **Xanh gỉ đồng** | rỉ đồng | miền Nam |
+
+Cùng với đó:
+
+- **Nền giấy điệp** — sắc ngà ấm của giấy in tranh Đông Hồ, phủ vân **gạch bông** rất mờ,
+  đúng viên gạch hoa lát nhà ngày trước: bốn cung tròn dựng từ bốn góc chụm lại thành
+  một bông hoa giữa viên. Vân này vẽ bằng SVG rồi dùng làm mặt nạ nên tự đổi màu theo
+  nền sáng hay tối.
+- **Nhãn hiệu là mặt trống đồng Đông Sơn** — ngôi sao 14 cánh giữa mặt, hai vành hoa văn
+  bao quanh, vẽ thẳng bằng SVG chứ không phải ảnh.
+- **Nẹp răng cưa** dưới thanh đầu trang lấy theo hoa văn chạy quanh tang trống đồng.
+- **Nền tối theo chất sơn mài**: vóc đen, son và vàng kim — không phải bản đảo màu máy móc
+  của nền sáng.
+- **Mặt Biển Đông** có sóng lăn tăn; hai quần đảo Hoàng Sa và Trường Sa vẽ thành ô riêng.
+- **Chữ**: *Be Vietnam Pro* — bộ phông do người Việt vẽ riêng cho tiếng Việt — dùng cho
+  phần thân; *Oswald* cho tiêu đề, kiểu chữ nén cao của biển hiệu chợ. Không tải được
+  phông thì trang dùng phông hệ thống, vẫn đọc tốt.
+- **Giá tiền đóng như con tem** dán trên sạp hàng, tên tỉnh gạch chân bằng nét mực, nhãn
+  miền đóng như con dấu đỏ hơi nghiêng.
 
 ## Cho vui mắt
 
