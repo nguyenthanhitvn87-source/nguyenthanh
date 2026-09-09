@@ -154,12 +154,17 @@
   }
   .chip .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
   .chip[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
-  .mapwrap{position:relative; background:var(--sea); border-radius:12px; overflow:hidden; touch-action:none}
+  .mapwrap{position:relative; background:var(--sea); border-radius:12px; overflow:hidden; touch-action:pan-y}
+  .mapwrap.dang-phong{touch-action:none}
   svg#vnmap{display:block; width:100%; height:auto; cursor:grab}
   svg#vnmap.dragging{cursor:grabbing}
+  /* Hình tỉnh chỉ để nhìn; mọi cú bấm do lớp #lopBam phía trên nhận. Tách ra như vậy
+     thì hiệu ứng nhô lên không còn làm trình duyệt dò trượt điểm dưới con trỏ nữa. */
+  svg#vnmap #lopTinh, svg#vnmap #lopDao{pointer-events:none}
+  svg#vnmap path.bam{fill:transparent; stroke:transparent; stroke-width:2.5; cursor:pointer}
+  svg#vnmap path.bam:focus{outline:none}
   svg#vnmap path.tinh{
     fill:var(--bac); stroke:var(--land-line); stroke-width:.6; stroke-linejoin:round;
-    cursor:pointer;
     /* phóng to quanh tâm chính tỉnh đó, không phải tâm cả bản đồ */
     transform-box:fill-box; transform-origin:center;
     transition:fill .16s ease, opacity .16s ease, stroke-width .16s ease,
@@ -175,11 +180,10 @@
     transform:scale(var(--chon,1.05));
   }
   /* Rê chuột (hoặc Tab tới) là tỉnh nhô hẳn lên khỏi bản đồ */
-  svg#vnmap path.tinh:hover, svg#vnmap path.tinh:focus-visible{
+  svg#vnmap path.tinh.noi{
     fill:var(--accent); stroke:var(--gold); stroke-width:1;
     transform:scale(var(--pop,1.14));
     filter:drop-shadow(0 3px 5px rgba(12,16,24,.45));
-    outline:none;
   }
   @keyframes tinhVao{ from{opacity:0; transform:scale(.86)} }
   svg#vnmap .dao{fill:none; stroke:var(--muted); stroke-dasharray:3 3; stroke-width:1}
@@ -343,7 +347,7 @@
       animation-duration:.01ms !important; animation-iteration-count:1 !important;
       transition-duration:.01ms !important; scroll-behavior:auto !important;
     }
-    svg#vnmap path.tinh:hover, svg#vnmap path.tinh:focus-visible{transform:none}
+    svg#vnmap path.tinh.noi{transform:none}
     .mon:hover{transform:none}
   }
 
@@ -399,6 +403,9 @@
             <g id="camera">
               <g id="lopTinh"></g>
               <g id="lopDao"></g>
+              <!-- Lớp trong suốt nằm trên cùng, chỉ để nhận chuột. Nó không bao giờ
+                   nhúc nhích nên bấm lúc nào cũng trúng, kể cả khi hình tỉnh đang nhô lên. -->
+              <g id="lopBam"></g>
             </g>
           </svg>
         </div>
@@ -1028,9 +1035,11 @@ let gio          = docGio();
    ===================================================================== */
 const svg      = $('#vnmap');
 const camera   = $('#camera');
-const lopTinh  = $('#lopTinh');
-const lopDao   = $('#lopDao');
+const lopTinh  = $('#lopTinh');   // hình tỉnh — chỉ để nhìn
+const lopDao   = $('#lopDao');    // hai quần đảo
+const lopBam   = $('#lopBam');    // hình trong suốt nằm trên, lo việc nhận chuột
 const tooltip  = $('#tooltip');
+const hinhTinh = {};              // tra nhanh hình tỉnh theo mã
 
 const VIEW_W = BAN_DO.w + 200;   // chừa chỗ bên phải cho Biển Đông và hai quần đảo
 const VIEW_H = BAN_DO.h;
@@ -1045,13 +1054,19 @@ function el(ten, thuoc, noiDung) {
 }
 
 TINH_LIST.forEach(t => {
-  const p = el('path', {
-    d: t.d, class: 'tinh', 'data-id': t.id, 'data-vung': VUNG[t.name],
+  const p = el('path', { d: t.d, class: 'tinh', 'data-id': t.id, 'data-vung': VUNG[t.name] });
+  lopTinh.appendChild(p);
+  hinhTinh[t.id] = p;
+
+  /* Hình bấm dùng chung đường viền nhưng trong suốt và không bao giờ phóng to.
+     Viền dày 2,5 nới rộng vùng bấm một chút cho mấy tỉnh bé. */
+  const b = el('path', {
+    d: t.d, class: 'bam', 'data-id': t.id,
     tabindex: '0', role: 'button',
     'aria-label': hienTen(t.name) + ' — ' + (DAC_SAN[t.name] || []).length + ' đặc sản'
   });
-  p.appendChild(el('title', {}, hienTen(t.name)));
-  lopTinh.appendChild(p);
+  b.appendChild(el('title', {}, hienTen(t.name)));
+  lopBam.appendChild(b);
 });
 
 /* Tỉnh nhỏ cho nhô lên nhiều, tỉnh lớn nhô ít — nhìn mới cân, và tỉnh bé cũng dễ bấm hơn.
@@ -1070,11 +1085,20 @@ TINH_LIST.forEach(t => {
   });
 })();
 
-/* Tỉnh đang rê chuột phải nằm trên cùng, không thì nhô lên lại bị tỉnh bên cạnh che */
-lopTinh.addEventListener('pointerover', ev => {
-  const p = ev.target.closest && ev.target.closest('path.tinh');
-  if (p && lopTinh.lastElementChild !== p) lopTinh.appendChild(p);
-});
+/* Đánh dấu tỉnh đang được rê chuột tới. Đổi lớp CSS chứ không dùng :hover, vì hình
+   tỉnh đã thôi nhận chuột; và đưa nó lên trên cùng cho khỏi bị tỉnh bên cạnh che —
+   xáo thứ tự ở lớp này vô hại, vì lớp nhận chuột nằm riêng và không hề động tới. */
+let tinhDangRe = null;
+function reVao(id) {
+  if (tinhDangRe === id) return;
+  if (tinhDangRe && hinhTinh[tinhDangRe]) hinhTinh[tinhDangRe].classList.remove('noi');
+  tinhDangRe = id;
+  const p = id && hinhTinh[id];
+  if (p) {
+    p.classList.add('noi');
+    if (lopTinh.lastElementChild !== p) lopTinh.appendChild(p);
+  }
+}
 
 /* Hai quần đảo của Việt Nam nằm ngoài khung bản đồ nên vẽ dạng ô phụ */
 function veQuanDao(x, y, w, h, nhan, chuThich, chams) {
@@ -1093,6 +1117,9 @@ lopDao.appendChild(el('text', { x: BAN_DO.w + 105, y: 430, 'text-anchor': 'middl
 let cam = { x: 0, y: 0, k: 1 };
 function apDungCamera() {
   camera.setAttribute('transform', `translate(${cam.x} ${cam.y}) scale(${cam.k})`);
+  /* Chưa phóng to thì để ngón tay vuốt dọc cuộn trang như thường;
+     phóng lên rồi mới khoá cuộn để kéo bản đồ cho thoải mái. */
+  $('#mapwrap').classList.toggle('dang-phong', cam.k > 1.001);
 }
 function datZoom(k, tamX, tamY) {
   k = Math.min(8, Math.max(1, k));
@@ -1120,24 +1147,36 @@ svg.addEventListener('wheel', ev => {
   datZoom(cam.k * (ev.deltaY < 0 ? 1.18 : 1 / 1.18), p.x, p.y);
 }, { passive: false });
 
+/* Bấm hay kéo?
+   Tay người bấm bao giờ cũng xê dịch một chút, nhất là khi chạm trên điện thoại,
+   nên xê dưới ngưỡng này vẫn tính là một cú bấm chọn tỉnh. */
+const NGUONG_KEO = 6;
 let keo = null, daKeo = false;
+
 svg.addEventListener('pointerdown', ev => {
-  keo = { x: ev.clientX, y: ev.clientY, camX: cam.x, camY: cam.y };
+  if (ev.button > 0) return;                 // chỉ nhận nút chuột trái
+  keo = { x: ev.clientX, y: ev.clientY, camX: cam.x, camY: cam.y, id: ev.pointerId };
   daKeo = false;
-  svg.setPointerCapture(ev.pointerId);
+  /* Cố ý CHƯA giữ con trỏ ở đây: giữ ngay từ lúc bấm xuống sẽ làm trình duyệt
+     đổi đích của sự kiện thành cả thẻ svg, và cú bấm chọn tỉnh mất luôn.
+     Chỉ giữ khi đã chắc chắn là một cú kéo. */
 });
 svg.addEventListener('pointermove', ev => {
   if (keo) {
     const r = svg.getBoundingClientRect();
     const dx = (ev.clientX - keo.x) / r.width * VIEW_W;
     const dy = (ev.clientY - keo.y) / r.height * VIEW_H;
-    if (Math.abs(ev.clientX - keo.x) + Math.abs(ev.clientY - keo.y) > 4) {
-      daKeo = true; svg.classList.add('dragging');
+    if (!daKeo && Math.abs(ev.clientX - keo.x) + Math.abs(ev.clientY - keo.y) > NGUONG_KEO) {
+      daKeo = true;
+      svg.classList.add('dragging');
+      tooltip.classList.remove('on');
+      try { svg.setPointerCapture(keo.id); } catch (e) {}
     }
     if (daKeo) { cam.x = keo.camX + dx; cam.y = keo.camY + dy; gioiHan(); apDungCamera(); }
   }
   /* Nhãn tên tỉnh bám theo con trỏ */
-  const p = ev.target.closest && ev.target.closest('path.tinh');
+  const p = ev.target.closest && ev.target.closest('path.bam');
+  reVao(p && !daKeo ? p.dataset.id : null);
   if (p && !daKeo) {
     const t = TINH_THEO_ID[p.dataset.id];
     const mon = DAC_SAN[t.name] || [];
@@ -1155,21 +1194,37 @@ svg.addEventListener('pointermove', ev => {
     tooltip.classList.remove('on');
   }
 });
-function thaKeo() { keo = null; svg.classList.remove('dragging'); }
-svg.addEventListener('pointerup', thaKeo);
-svg.addEventListener('pointercancel', thaKeo);
-svg.addEventListener('pointerleave', () => { thaKeo(); tooltip.classList.remove('on'); });
-
-svg.addEventListener('click', ev => {
-  if (daKeo) { daKeo = false; return; }
-  const p = ev.target.closest('path.tinh');
+function thaKeo() {
+  if (keo) { try { svg.releasePointerCapture(keo.id); } catch (e) {} }
+  keo = null; daKeo = false; svg.classList.remove('dragging');
+}
+/* Chọn tỉnh ngay lúc nhả tay, và tự tra xem dưới đầu ngón tay là hình nào —
+   không tin vào đích của sự kiện, vì nó đổi khi con trỏ đang bị giữ hoặc khi chạm. */
+svg.addEventListener('pointerup', ev => {
+  const laCuBam = !!keo && !daKeo;
+  thaKeo();
+  if (!laCuBam) return;
+  const o = document.elementFromPoint(ev.clientX, ev.clientY);
+  const p = o && o.closest ? o.closest('path.bam') : null;
   if (p) chonTinh(p.dataset.id);
+});
+svg.addEventListener('pointercancel', thaKeo);
+svg.addEventListener('pointerleave', () => {
+  if (keo && !daKeo) thaKeo();
+  tooltip.classList.remove('on');
+  reVao(null);
 });
 svg.addEventListener('keydown', ev => {
   if (ev.key !== 'Enter' && ev.key !== ' ') return;
-  const p = ev.target.closest('path.tinh');
+  const p = ev.target.closest('path.bam');
   if (p) { ev.preventDefault(); chonTinh(p.dataset.id); }
 });
+/* Đi bằng phím Tab cũng thấy tỉnh nhô lên như khi rê chuột */
+lopBam.addEventListener('focusin', ev => {
+  const p = ev.target.closest && ev.target.closest('path.bam');
+  if (p) reVao(p.dataset.id);
+});
+lopBam.addEventListener('focusout', () => reVao(null));
 $('#zIn').onclick    = () => datZoom(cam.k * 1.4);
 $('#zOut').onclick   = () => datZoom(cam.k / 1.4);
 $('#zReset').onclick = () => { cam = { x: 0, y: 0, k: 1 }; apDungCamera(); };
@@ -1270,6 +1325,11 @@ function chonTinh(id) {
   tinhDangChon = id;
   tuKhoa = '';
   $('#q').value = '';
+  /* Bấm một tỉnh ngoài miền đang lọc thì bỏ bộ lọc đi, kẻo danh sách trống trơn */
+  if (vungLoc !== 'all' && VUNG[TINH_THEO_ID[id].name] !== vungLoc) {
+    vungLoc = 'all';
+    $$('.chip[data-vung]').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.vung === 'all')));
+  }
   veDanhSach();
   if (window.matchMedia('(max-width:900px)').matches) {
     oDs.scrollIntoView({ behavior: 'smooth', block: 'start' });
