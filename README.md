@@ -471,8 +471,10 @@ giỏ → thanh toán → gửi phiếu cho shipper.**
 
 - Vẽ bằng SVG từ ranh giới hành chính thật của **63 tỉnh, thành phố**, tô màu theo
   ba miền Bắc – Trung – Nam.
-- Rê chuột lên tỉnh nào hiện tên tỉnh đó và số món đang bán; bấm vào là mở danh sách
-  đặc sản ở cột bên phải.
+- **Rê chuột lên tỉnh nào là tỉnh đó nhô hẳn lên** khỏi bản đồ: phóng to, đổi màu, có
+  bóng đổ và nổi lên trên các tỉnh bên cạnh. Kèm theo là nhãn tên tỉnh, số món đang bán
+  và vài biểu tượng món xem trước. Tỉnh nhỏ được phóng nhiều hơn tỉnh lớn nên mấy tỉnh
+  bé xíu ngoài Bắc cũng dễ nhắm. Bấm vào là mở danh sách đặc sản ở cột bên phải.
 - **Kéo** để di chuyển, **lăn chuột** hoặc nút `+` `−` để phóng to, `⟲` để về mặc định.
   Các tỉnh nhỏ ở đồng bằng Bắc Bộ nên phóng to lên cho dễ bấm.
 - Bấm bàn phím cũng được: `Tab` tới tỉnh rồi `Enter`.
@@ -480,6 +482,17 @@ giỏ → thanh toán → gửi phiếu cho shipper.**
   (tỉnh Khánh Hòa), nằm ngoài khung bản đồ nên vẽ riêng.
 - Ai ngại bấm bản đồ thì dùng ô **chọn nhanh trong danh sách** ngay dưới — chọn xong
   bản đồ tự phóng tới tỉnh đó.
+
+## Cho vui mắt
+
+- Bản đồ hiện dần từ Bắc vào Nam lúc mới mở trang.
+- Thẻ món trượt lên hiện ra theo thứ tự; rê chuột vào thì thẻ nhấc lên và biểu tượng
+  món nghiêng người một cái.
+- Bấm **Thêm vào giỏ** thì món bay một đường từ thẻ hàng vào nút giỏ, huy hiệu số lượng
+  nảy lên.
+- Ngăn kéo giỏ hàng trượt từ mép phải vào, các dòng hàng hiện lần lượt.
+- Đặt hàng xong có pháo giấy rơi chúc mừng.
+- Máy nào bật *giảm chuyển động* (`prefers-reduced-motion`) thì trang tự tắt hết hiệu ứng.
 
 ## Đi chợ
 

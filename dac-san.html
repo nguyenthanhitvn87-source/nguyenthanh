@@ -106,9 +106,11 @@
     border:1px solid var(--line); background:var(--panel); border-radius:10px;
     padding:8px 13px; cursor:pointer; font-weight:600; white-space:nowrap;
   }
-  .btn:hover{border-color:var(--accent)}
+  .btn{transition:transform .14s ease, box-shadow .18s ease, border-color .16s ease, filter .16s ease}
+  .btn:hover{border-color:var(--accent); transform:translateY(-1px)}
+  .btn:active{transform:translateY(0) scale(.97)}
   .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
-  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.primary:hover{filter:brightness(1.07); box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 38%, transparent)}
   .btn.ghost{background:transparent}
   .btn:disabled{opacity:.5; cursor:not-allowed}
   .cart-btn{position:relative}
@@ -116,6 +118,16 @@
     position:absolute; top:-7px; right:-7px; min-width:20px; height:20px; padding:0 5px;
     border-radius:999px; background:var(--gold); color:#fff; font-size:11px; font-weight:800;
     display:grid; place-items:center;
+  }
+  .cart-btn .badge.nay{animation:nayLen .5s cubic-bezier(.34,1.6,.5,1)}
+  @keyframes nayLen{
+    0%{transform:scale(1)} 35%{transform:scale(1.55) rotate(-8deg)}
+    70%{transform:scale(.9)} 100%{transform:scale(1)}
+  }
+  /* Món bay từ thẻ hàng vào giỏ */
+  .bay{
+    position:fixed; z-index:90; font-size:30px; pointer-events:none; line-height:1;
+    transition:transform .62s cubic-bezier(.5,-0.35,.6,1), opacity .62s ease;
   }
 
   /* ---------- Bố cục ---------- */
@@ -147,13 +159,29 @@
   svg#vnmap.dragging{cursor:grabbing}
   svg#vnmap path.tinh{
     fill:var(--bac); stroke:var(--land-line); stroke-width:.6; stroke-linejoin:round;
-    cursor:pointer; transition:fill .12s ease, opacity .12s ease;
+    cursor:pointer;
+    /* phóng to quanh tâm chính tỉnh đó, không phải tâm cả bản đồ */
+    transform-box:fill-box; transform-origin:center;
+    transition:fill .16s ease, opacity .16s ease, stroke-width .16s ease,
+               transform .26s cubic-bezier(.34,1.5,.5,1), filter .2s ease;
+    animation:tinhVao .55s cubic-bezier(.2,.75,.35,1) backwards;
+    animation-delay:calc(var(--i,0) * 7ms);
   }
   svg#vnmap path.tinh[data-vung="trung"]{fill:var(--trung)}
   svg#vnmap path.tinh[data-vung="nam"]{fill:var(--nam)}
-  svg#vnmap path.tinh:hover{fill:var(--accent)}
-  svg#vnmap path.tinh.chon{fill:var(--accent); stroke:var(--gold); stroke-width:1.1}
   svg#vnmap path.tinh.mo{opacity:.22}
+  svg#vnmap path.tinh.chon{
+    fill:var(--accent); stroke:var(--gold); stroke-width:1.1;
+    transform:scale(var(--chon,1.05));
+  }
+  /* Rê chuột (hoặc Tab tới) là tỉnh nhô hẳn lên khỏi bản đồ */
+  svg#vnmap path.tinh:hover, svg#vnmap path.tinh:focus-visible{
+    fill:var(--accent); stroke:var(--gold); stroke-width:1;
+    transform:scale(var(--pop,1.14));
+    filter:drop-shadow(0 3px 5px rgba(12,16,24,.45));
+    outline:none;
+  }
+  @keyframes tinhVao{ from{opacity:0; transform:scale(.86)} }
   svg#vnmap .dao{fill:none; stroke:var(--muted); stroke-dasharray:3 3; stroke-width:1}
   svg#vnmap .daochm{fill:var(--muted)}
   svg#vnmap text{font:600 11px system-ui,sans-serif; fill:var(--muted); pointer-events:none; user-select:none}
@@ -165,11 +193,19 @@
     background:var(--panel); cursor:pointer; font-weight:700; line-height:1;
   }
   #tooltip{
-    position:absolute; pointer-events:none; z-index:5; padding:5px 9px; border-radius:8px;
-    background:var(--ink); color:var(--bg); font-size:12px; font-weight:600; white-space:nowrap;
-    transform:translate(-50%,-135%); opacity:0; transition:opacity .1s;
+    position:absolute; pointer-events:none; z-index:5; padding:7px 11px; border-radius:10px;
+    background:var(--ink); color:var(--bg); font-size:12.5px; font-weight:700; white-space:nowrap;
+    box-shadow:0 6px 18px rgba(10,14,22,.35);
+    transform:translate(-50%,-118%) scale(.9); transform-origin:50% 120%;
+    opacity:0; transition:opacity .13s ease, transform .18s cubic-bezier(.34,1.5,.5,1);
   }
-  #tooltip.on{opacity:.95}
+  #tooltip.on{opacity:1; transform:translate(-50%,-118%) scale(1)}
+  #tooltip::after{
+    content:''; position:absolute; left:50%; top:100%; margin-left:-5px;
+    border:5px solid transparent; border-top-color:var(--ink);
+  }
+  #tooltip .mon-xem{display:block; margin-top:3px; font-size:14px; letter-spacing:2px; font-weight:400}
+  #tooltip .so{font-weight:500; opacity:.75}
 
   /* ---------- Danh sách món ---------- */
   .tinhbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
@@ -182,8 +218,13 @@
   .mon{
     border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--panel-2);
     display:flex; flex-direction:column; gap:8px;
+    transition:transform .2s ease, box-shadow .22s ease, border-color .2s ease;
+    animation:monVao .3s ease backwards; animation-delay:calc(var(--i,0) * 22ms);
   }
-  .mon .emo{font-size:30px; line-height:1}
+  @keyframes monVao{ from{opacity:0; transform:translateY(10px)} }
+  .mon:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:var(--shadow)}
+  .mon .emo{font-size:30px; line-height:1; transition:transform .28s cubic-bezier(.34,1.6,.5,1)}
+  .mon:hover .emo{transform:scale(1.18) rotate(-7deg)}
   .mon h3{margin:0; font-size:15px}
   .mon .mota{font-size:12.5px; color:var(--muted); flex:1 1 auto}
   .mon .gia{font-weight:800; color:var(--accent); font-size:16px}
@@ -198,15 +239,19 @@
 
   /* ---------- Giỏ hàng ---------- */
   .drawer{
-    position:fixed; inset:0; z-index:60; display:none;
+    position:fixed; inset:0; z-index:60;
+    visibility:hidden; opacity:0; transition:opacity .22s ease, visibility 0s linear .22s;
   }
-  .drawer.on{display:block}
+  .drawer.on{visibility:visible; opacity:1; transition:opacity .22s ease}
   .drawer .veil{position:absolute; inset:0; background:rgba(10,12,18,.45)}
   .drawer .box{
     position:absolute; top:0; right:0; bottom:0; width:min(460px,100%);
     background:var(--panel); border-left:1px solid var(--line);
     display:flex; flex-direction:column;
+    transform:translateX(102%); transition:transform .3s cubic-bezier(.32,.72,.3,1);
   }
+  .drawer.on .box{transform:none}
+  .line-item{animation:monVao .26s ease backwards; animation-delay:calc(var(--i,0) * 45ms)}
   .drawer .box header{padding:14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px}
   .drawer .box header h2{margin:0; font-size:17px; flex:1 1 auto}
   .drawer .box .body{flex:1 1 auto; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
@@ -247,6 +292,17 @@
   .ok-banner{
     display:flex; gap:10px; align-items:center; padding:12px 14px; border-radius:12px;
     background:color-mix(in srgb, var(--ok) 14%, transparent); border:1px solid var(--ok); color:var(--ok); font-weight:700;
+    animation:nayVao .5s cubic-bezier(.34,1.6,.5,1);
+  }
+  @keyframes nayVao{ 0%{opacity:0; transform:scale(.86)} 60%{transform:scale(1.04)} 100%{opacity:1; transform:scale(1)} }
+  #phaoGiay{position:fixed; inset:0; z-index:95; pointer-events:none; overflow:hidden}
+  #phaoGiay i{
+    position:absolute; top:-14px; width:9px; height:14px; border-radius:2px; display:block;
+    animation:roi linear forwards;
+  }
+  @keyframes roi{
+    from{transform:translateY(0) rotate(0deg); opacity:1}
+    to{transform:translateY(105vh) rotate(760deg); opacity:.1}
   }
   .toast{
     position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px); z-index:80;
@@ -258,11 +314,21 @@
   .donhang summary{cursor:pointer; font-weight:700}
   footer.chan{max-width:1180px; margin:0 auto; padding:20px 16px 40px; color:var(--muted); font-size:12.5px}
 
+  /* Máy nào đặt "giảm chuyển động" thì bỏ hết hiệu ứng */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:.01ms !important; scroll-behavior:auto !important;
+    }
+    svg#vnmap path.tinh:hover, svg#vnmap path.tinh:focus-visible{transform:none}
+    .mon:hover{transform:none}
+  }
+
   @media print{
     body{background:#fff}
     header.top,.wrap,.drawer .veil,.no-print,footer.chan{display:none !important}
-    .drawer{position:static; display:block}
-    .drawer .box{position:static; width:auto; border:0}
+    .drawer{position:static; display:block; visibility:visible; opacity:1}
+    .drawer .box{position:static; width:auto; border:0; transform:none}
     .drawer .box .body{overflow:visible}
     .phieu{border:1px solid #999}
   }
@@ -965,6 +1031,28 @@ TINH_LIST.forEach(t => {
   lopTinh.appendChild(p);
 });
 
+/* Tỉnh nhỏ cho nhô lên nhiều, tỉnh lớn nhô ít — nhìn mới cân, và tỉnh bé cũng dễ bấm hơn.
+   Thứ tự hiện dần chạy từ Bắc vào Nam cho vui mắt lúc mới mở trang. */
+(function chinhDoNho() {
+  const ds = $$('path.tinh');
+  ds.slice()
+    .sort((a, b) => TINH_THEO_ID[a.dataset.id].cy - TINH_THEO_ID[b.dataset.id].cy)
+    .forEach((p, i) => p.style.setProperty('--i', i));
+  ds.forEach(p => {
+    const b = p.getBBox();
+    const canh = Math.max(b.width, b.height, 6);
+    const nho = Math.min(1.9, Math.max(1.11, 1 + 21 / canh));
+    p.style.setProperty('--pop', nho.toFixed(3));
+    p.style.setProperty('--chon', (1 + (nho - 1) * 0.45).toFixed(3));
+  });
+})();
+
+/* Tỉnh đang rê chuột phải nằm trên cùng, không thì nhô lên lại bị tỉnh bên cạnh che */
+lopTinh.addEventListener('pointerover', ev => {
+  const p = ev.target.closest && ev.target.closest('path.tinh');
+  if (p && lopTinh.lastElementChild !== p) lopTinh.appendChild(p);
+});
+
 /* Hai quần đảo của Việt Nam nằm ngoài khung bản đồ nên vẽ dạng ô phụ */
 function veQuanDao(x, y, w, h, nhan, chuThich, chams) {
   lopDao.appendChild(el('rect', { x, y, width: w, height: h, rx: 10, class: 'dao' }));
@@ -1029,8 +1117,14 @@ svg.addEventListener('pointermove', ev => {
   const p = ev.target.closest && ev.target.closest('path.tinh');
   if (p && !daKeo) {
     const t = TINH_THEO_ID[p.dataset.id];
+    const mon = DAC_SAN[t.name] || [];
     const w = $('#mapwrap').getBoundingClientRect();
-    tooltip.textContent = hienTen(t.name) + ' · ' + (DAC_SAN[t.name] || []).length + ' món';
+    tooltip.textContent = '';
+    const ten = document.createElement('b'); ten.textContent = hienTen(t.name);
+    const so = document.createElement('span'); so.className = 'so'; so.textContent = ' · ' + mon.length + ' món';
+    const xem = document.createElement('span'); xem.className = 'mon-xem';
+    xem.textContent = mon.slice(0, 4).map(m => m[1]).join(' ');
+    tooltip.append(ten, so, xem);
     tooltip.style.left = (ev.clientX - w.left) + 'px';
     tooltip.style.top = (ev.clientY - w.top) + 'px';
     tooltip.classList.add('on');
@@ -1180,9 +1274,10 @@ function veDanhSach() {
   oDs.innerHTML = '';
   oTrong.hidden = ds.length > 0;
   const khung = document.createDocumentFragment();
-  ds.forEach(s => {
+  ds.forEach((s, i) => {
     const d = document.createElement('article');
     d.className = 'mon';
+    d.style.setProperty('--i', Math.min(i, 14));   // chờ lâu quá thì mất vui
     d.innerHTML =
       '<div class="emo">' + s.emo + '</div>' +
       (tinhDangChon ? '' : '<div class="tu-tinh">📍 ' + hienTen(s.tinh) + '</div>') +
@@ -1212,11 +1307,33 @@ oDs.addEventListener('click', ev => {
     return;
   }
   if (b.dataset.them) {
-    const sl = parseInt(b.closest('.mon').querySelector('.qty input').value, 10) || 1;
+    const the = b.closest('.mon');
+    const sl = parseInt(the.querySelector('.qty input').value, 10) || 1;
+    bayVaoGio(the.querySelector('.emo'), SP_THEO_ID[b.dataset.them].emo);
     themVaoGio(b.dataset.them, sl);
-    b.closest('.mon').querySelector('.qty input').value = 1;
+    the.querySelector('.qty input').value = 1;
   }
 });
+
+/* Món bay một đường vòng từ thẻ hàng vào nút giỏ — cho biết là đã thêm được */
+const itChuyenDong = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function bayVaoGio(tu, emo) {
+  if (!tu || itChuyenDong()) return;
+  const a = tu.getBoundingClientRect(), b = $('#btnGio').getBoundingClientRect();
+  const bay = document.createElement('div');
+  bay.className = 'bay';
+  bay.textContent = emo;
+  bay.style.left = (a.left + a.width / 2 - 15) + 'px';
+  bay.style.top = (a.top + a.height / 2 - 15) + 'px';
+  document.body.appendChild(bay);
+  requestAnimationFrame(() => {
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+    const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+    bay.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(.34) rotate(22deg)';
+    bay.style.opacity = '.15';
+  });
+  setTimeout(() => bay.remove(), 700);
+}
 
 /* =====================================================================
    3. GIỎ HÀNG
@@ -1250,10 +1367,18 @@ function boKhoiGio(spId) {
   gio = gio.filter(x => x.sp !== spId);
   luuGio(); capNhatSoGio(); veGio();
 }
+let soGioCu = 0;
 function capNhatSoGio() {
   const n = gio.reduce((s, x) => s + x.sl, 0);
-  $('#soLuongGio').textContent = n;
-  $('#soLuongGio').style.display = n ? '' : 'none';
+  const o = $('#soLuongGio');
+  o.textContent = n;
+  o.style.display = n ? '' : 'none';
+  if (n > soGioCu && !itChuyenDong()) {
+    o.classList.remove('nay');
+    void o.offsetWidth;              // ép trình duyệt chạy lại hoạt ảnh
+    o.classList.add('nay');
+  }
+  soGioCu = n;
 }
 
 /* Phí giao hàng: gom hàng từ nhiều tỉnh thì tốn thêm một chút */
@@ -1318,9 +1443,10 @@ function veManGio() {
   }
 
   oNoiDung.innerHTML = '';
-  dong.forEach(d => {
+  dong.forEach((d, i) => {
     const w = document.createElement('div');
     w.className = 'line-item';
+    w.style.setProperty('--i', Math.min(i, 8));
     w.innerHTML =
       '<div class="emo">' + d.sp.emo + '</div>' +
       '<div class="info"><b></b>' +
@@ -1529,9 +1655,29 @@ function tinNhanShipper(don) {
     (don.thanhToan === 'cod' ? 'THU HO ' + tien(don.tong) : 'Da thanh toan, khong thu tien');
 }
 
+/* Pháo giấy chúc mừng lúc đặt hàng xong */
+function phaoGiay() {
+  if (itChuyenDong()) return;
+  const hop = document.createElement('div');
+  hop.id = 'phaoGiay';
+  const mau = ['#c0392b', '#e8b06a', '#1f8a5b', '#b8860b', '#4c8fd0', '#e35d4c', '#d64f8a'];
+  for (let i = 0; i < 36; i++) {
+    const c = document.createElement('i');
+    c.style.left = (Math.random() * 100) + '%';
+    c.style.background = mau[i % mau.length];
+    c.style.animationDuration = (1.5 + Math.random() * 1.2) + 's';
+    c.style.animationDelay = (Math.random() * 0.4) + 's';
+    c.style.width = (6 + Math.random() * 5).toFixed(0) + 'px';
+    hop.appendChild(c);
+  }
+  document.body.appendChild(hop);
+  setTimeout(() => hop.remove(), 3400);
+}
+
 function veManXong() {
   const don = donVuaDat;
   $('#gioTieuDe').textContent = '✅ Đặt hàng thành công';
+  phaoGiay();
 
   oNoiDung.innerHTML =
     '<div class="ok-banner">🎉 <span>Đơn <b>' + don.ma + '</b> đã được ghi nhận</span></div>' +
