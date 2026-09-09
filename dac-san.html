@@ -5,68 +5,115 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Đặc Sản Việt — Chợ đặc sản 63 tỉnh thành</title>
 <meta name="description" content="Bấm vào từng tỉnh trên bản đồ Việt Nam để xem đặc sản, chọn món, bỏ vào giỏ, thanh toán và gửi phiếu cho shipper.">
+<!-- Phông chữ: Be Vietnam Pro do người Việt vẽ riêng cho tiếng Việt, Oswald cho chữ tiêu đề
+     kiểu biển hiệu chợ. Không tải được thì trang tự dùng phông của máy, vẫn đọc tốt. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Oswald:wght@500;600;700&display=swap">
 <style>
   :root{
-    --bg:#f6f4ef;
-    --panel:#ffffff;
-    --panel-2:#faf8f4;
-    --ink:#20242e;
-    --muted:#6d7486;
-    --line:#e4e0d6;
-    --accent:#c0392b;
-    --accent-ink:#ffffff;
-    --accent-soft:#fdeeeb;
-    --gold:#b8860b;
-    --ok:#1f8a5b;
-    --bac:#9dc0dc;
-    --trung:#eab97a;
-    --nam:#98cba3;
-    --land-line:#ffffff;
-    --sea:#e9f1f7;
-    --shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 26px rgba(16,24,40,.07);
+    /* Màu lấy theo bốn thứ mực của tranh Đông Hồ: đỏ son từ sỏi son, vàng hoè từ
+       hoa hoè, xanh chàm từ lá chàm, xanh gỉ đồng từ rỉ đồng. Nền là giấy điệp. */
+    --son:#C2321F;      /* đỏ son  */
+    --hoe:#D9A02C;      /* vàng hoè */
+    --cham:#1E4E5E;     /* xanh chàm */
+    --dong:#4C8A69;     /* xanh gỉ đồng */
+
+    --bg:#EFE3CE;       /* giấy điệp */
+    --panel:#FFFCF5;
+    --panel-2:#F8F0DF;
+    --ink:#241A12;      /* mực than lá tre */
+    --muted:#7C6A54;
+    --line:#E0CFAF;
+    --vien-dam:#C9B48C;
+
+    --accent:var(--son);
+    --accent-ink:#FFF7EA;
+    --accent-soft:#F9E3DC;
+    --gold:var(--hoe);
+    --ok:#2E7D57;
+
+    /* Ba miền trên bản đồ — cùng hệ mực nhưng pha nhạt cho dễ nhìn */
+    --bac:#7FA8B8;
+    --trung:#E3B15C;
+    --nam:#7FB893;
+    --land-line:#FFFCF5;
+    --sea:#D7E4E8;
+    --sea-2:#C3D6DD;
+
+    --chu-hien:'Oswald','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
+    --chu-than:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+
+    --shadow:0 1px 2px rgba(58,40,24,.06), 0 10px 26px rgba(58,40,24,.10);
+    --shadow-nho:0 1px 2px rgba(58,40,24,.08);
     --radius:14px;
+    --gach-nen:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cg fill='none' stroke='%23241A12' stroke-opacity='.038' stroke-width='1.5'%3E%3Cpath d='M23 0A23 23 0 0 1 46 23'/%3E%3Cpath d='M46 23A23 23 0 0 1 23 46'/%3E%3Cpath d='M23 46A23 23 0 0 1 0 23'/%3E%3Cpath d='M0 23A23 23 0 0 1 23 0'/%3E%3Ccircle cx='23' cy='23' r='5.5'/%3E%3C/g%3E%3C/svg%3E");
   }
-  /* Nền tối theo hệ thống, trừ khi trang được đặt rõ là nền sáng */
+  /* Nền tối lấy chất sơn mài: vóc đen, son và vàng kim */
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#14161c;
-      --panel:#1b1e26;
-      --panel-2:#212530;
-      --ink:#e9ebf2;
-      --muted:#98a0b2;
-      --line:#2c3140;
-      --accent:#e35d4c;
-      --accent-ink:#17191f;
-      --accent-soft:#2e201d;
-      --gold:#d7a94a;
-      --ok:#4ec38c;
-      --bac:#3f6b8f;
-      --trung:#8a6435;
-      --nam:#3f7a52;
-      --land-line:#14161c;
-      --sea:#141d27;
-      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px rgba(0,0,0,.4);
+      --son:#E0563E;
+      --hoe:#E5B24C;
+      --cham:#3E7C91;
+      --dong:#6BB388;
+
+      --bg:#141010;
+      --panel:#1E1815;
+      --panel-2:#271F1A;
+      --ink:#F2E6D2;
+      --muted:#A89179;
+      --line:#3B2C23;
+      --vien-dam:#4C3A2C;
+
+      --accent:var(--son);
+      --accent-ink:#1A1412;
+      --accent-soft:#33201B;
+      --gold:var(--hoe);
+      --ok:#54BE8C;
+
+      --bac:#3E6B7C;
+      --trung:#9C7734;
+      --nam:#3F7659;
+      --land-line:#141010;
+      --sea:#101B21;
+      --sea-2:#0B1418;
+
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px rgba(0,0,0,.45);
+      --shadow-nho:0 1px 2px rgba(0,0,0,.5);
+      --gach-nen:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cg fill='none' stroke='%23F2E6D2' stroke-opacity='.038' stroke-width='1.5'%3E%3Cpath d='M23 0A23 23 0 0 1 46 23'/%3E%3Cpath d='M46 23A23 23 0 0 1 23 46'/%3E%3Cpath d='M23 46A23 23 0 0 1 0 23'/%3E%3Cpath d='M0 23A23 23 0 0 1 23 0'/%3E%3Ccircle cx='23' cy='23' r='5.5'/%3E%3C/g%3E%3C/svg%3E");
     }
   }
   /* Chọn nền tối rõ ràng thì luôn thắng, kể cả khi hệ thống đang để nền sáng */
   :root[data-theme="dark"]{
-    --bg:#14161c;
-    --panel:#1b1e26;
-    --panel-2:#212530;
-    --ink:#e9ebf2;
-    --muted:#98a0b2;
-    --line:#2c3140;
-    --accent:#e35d4c;
-    --accent-ink:#17191f;
-    --accent-soft:#2e201d;
-    --gold:#d7a94a;
-    --ok:#4ec38c;
-    --bac:#3f6b8f;
-    --trung:#8a6435;
-    --nam:#3f7a52;
-    --land-line:#14161c;
-    --sea:#141d27;
-    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px rgba(0,0,0,.4);
+    --son:#E0563E;
+    --hoe:#E5B24C;
+    --cham:#3E7C91;
+    --dong:#6BB388;
+
+    --bg:#141010;
+    --panel:#1E1815;
+    --panel-2:#271F1A;
+    --ink:#F2E6D2;
+    --muted:#A89179;
+    --line:#3B2C23;
+    --vien-dam:#4C3A2C;
+
+    --accent:var(--son);
+    --accent-ink:#1A1412;
+    --accent-soft:#33201B;
+    --gold:var(--hoe);
+    --ok:#54BE8C;
+
+    --bac:#3E6B7C;
+    --trung:#9C7734;
+    --nam:#3F7659;
+    --land-line:#141010;
+    --sea:#101B21;
+    --sea-2:#0B1418;
+
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px rgba(0,0,0,.45);
+    --shadow-nho:0 1px 2px rgba(0,0,0,.5);
+    --gach-nen:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cg fill='none' stroke='%23F2E6D2' stroke-opacity='.038' stroke-width='1.5'%3E%3Cpath d='M23 0A23 23 0 0 1 46 23'/%3E%3Cpath d='M46 23A23 23 0 0 1 23 46'/%3E%3Cpath d='M23 46A23 23 0 0 1 0 23'/%3E%3Cpath d='M0 23A23 23 0 0 1 23 0'/%3E%3Ccircle cx='23' cy='23' r='5.5'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   *{box-sizing:border-box}
@@ -74,38 +121,77 @@
   body{
     background:var(--bg);
     color:var(--ink);
-    font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font:15px/1.6 var(--chu-than);
     -webkit-text-size-adjust:100%;
   }
+
+  /* ------------------------------------------------------------------
+     Hoa văn gạch bông — viên gạch hoa lát nền quen thuộc của nhà Việt:
+     bốn cung tròn dựng từ bốn góc chụm lại thành một bông hoa giữa viên.
+     Vẽ bằng SVG rồi dùng làm mặt nạ, nhờ vậy nó đổi màu theo nền sáng/tối.
+     ------------------------------------------------------------------ */
+  :root{
+    --gach:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 46'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.5'%3E%3Cpath d='M23 0A23 23 0 0 1 46 23'/%3E%3Cpath d='M46 23A23 23 0 0 1 23 46'/%3E%3Cpath d='M23 46A23 23 0 0 1 0 23'/%3E%3Cpath d='M0 23A23 23 0 0 1 23 0'/%3E%3Ccircle cx='23' cy='23' r='5.5'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  /* Vân gạch bông rất mờ trên nền trang, đủ để mặt giấy không phẳng lì */
+  body{background-image:var(--gach-nen); background-size:74px 74px}
+
+  h1,h2,h3,.chu-hien{font-family:var(--chu-hien); font-weight:600; letter-spacing:.2px}
   button,input,select,textarea{font:inherit;color:inherit}
   a{color:var(--accent)}
 
   /* ---------- Thanh đầu trang ---------- */
   header.top{
     position:sticky; top:0; z-index:40;
-    background:color-mix(in srgb, var(--panel) 92%, transparent);
+    background:color-mix(in srgb, var(--panel) 93%, transparent);
     backdrop-filter:saturate(1.4) blur(8px);
-    border-bottom:1px solid var(--line);
+    border-bottom:1px solid var(--vien-dam);
+    color:var(--ink);
+  }
+  /* Dải hoa văn mỏng chạy dưới chân thanh đầu trang, như nẹp gạch hoa */
+  header.top::after{
+    content:''; display:block; height:6px; opacity:.9;
+    background:var(--son);
+    -webkit-mask-image:var(--rangcua); mask-image:var(--rangcua);
+    -webkit-mask-size:26px 6px; mask-size:26px 6px;
+    -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x;
+  }
+  :root{
+    /* Răng cưa — hoa văn chạy vòng quanh tang trống đồng Đông Sơn */
+    --rangcua:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 6'%3E%3Cpath d='M0 6 L13 0 L26 6 Z' fill='%23000'/%3E%3C/svg%3E");
   }
   .top-in{
     max-width:1180px; margin:0 auto; padding:10px 16px;
     display:flex; align-items:center; gap:12px; flex-wrap:wrap;
   }
-  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px; font-size:18px}
-  .brand .dot{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--accent-ink);
-    display:grid;place-items:center;font-size:17px}
-  .brand small{display:block;font-weight:500;font-size:11px;color:var(--muted);letter-spacing:0}
+  .brand{display:flex; align-items:center; gap:11px}
+  .brand .trong{width:42px; height:42px; flex:0 0 auto; display:block}
+  .brand .trong .vanh{fill:none; stroke:var(--son); stroke-width:1.6}
+  .brand .trong .vanh2{fill:none; stroke:var(--hoe); stroke-width:1.2}
+  .brand .trong .sao{fill:var(--son)}
+  .brand .trong .cham{fill:var(--hoe)}
+  .brand b{
+    display:block; font-family:var(--chu-hien); font-weight:700; font-size:23px;
+    line-height:1.05; letter-spacing:.5px; text-transform:uppercase; color:var(--ink);
+  }
+  .brand b i{font-style:normal; color:var(--son)}
+  .brand small{
+    display:block; font-weight:500; font-size:11px; color:var(--muted);
+    letter-spacing:.3px; margin-top:1px;
+  }
   .spacer{flex:1 1 auto}
   .searchbox{position:relative; flex:1 1 240px; max-width:360px}
   .searchbox input{
     width:100%; padding:9px 12px 9px 34px; border-radius:999px;
-    border:1px solid var(--line); background:var(--panel-2);
+    border:1px solid var(--vien-dam); background:var(--panel-2);
   }
+  .searchbox input:focus{outline:2px solid var(--son); outline-offset:1px; border-color:var(--son)}
   .searchbox span{position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.55}
   .btn{
-    border:1px solid var(--line); background:var(--panel); border-radius:10px;
+    border:1px solid var(--vien-dam); background:var(--panel); border-radius:10px;
     padding:8px 13px; cursor:pointer; font-weight:600; white-space:nowrap;
   }
+  .btn:focus-visible{outline:2px solid var(--son); outline-offset:2px}
   .btn{transition:transform .14s ease, box-shadow .18s ease, border-color .16s ease, filter .16s ease}
   .btn:hover{border-color:var(--accent); transform:translateY(-1px)}
   .btn:active{transform:translateY(0) scale(.97)}
@@ -135,11 +221,16 @@
   .layout{display:grid; grid-template-columns:minmax(300px,380px) 1fr; gap:16px; align-items:start}
   @media (max-width:900px){ .layout{grid-template-columns:1fr} }
   .card{
-    background:var(--panel); border:1px solid var(--line);
+    background:var(--panel); border:1px solid var(--vien-dam);
     border-radius:var(--radius); box-shadow:var(--shadow);
   }
-  .card .hd{padding:12px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-  .card .hd h2{margin:0; font-size:15px}
+  .card .hd{
+    padding:12px 14px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:linear-gradient(var(--panel-2), var(--panel));
+    border-radius:var(--radius) var(--radius) 0 0;
+  }
+  .card .hd h2{margin:0; font-size:16px; letter-spacing:.4px}
   .card .bd{padding:14px}
   .muted{color:var(--muted)}
   .tiny{font-size:12px}
@@ -149,13 +240,30 @@
   @media (max-width:900px){ .mapcard{position:static} }
   .maptools{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .chip{
-    border:1px solid var(--line); background:var(--panel-2); border-radius:999px;
-    padding:5px 11px; cursor:pointer; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--vien-dam); background:var(--panel-2); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:12.5px; font-weight:600;
+    display:inline-flex; align-items:center; gap:7px; letter-spacing:.2px;
+    transition:border-color .16s, background .16s, color .16s;
   }
-  .chip .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
-  .chip[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
-  .mapwrap{position:relative; background:var(--sea); border-radius:12px; overflow:hidden; touch-action:pan-y}
+  .chip .sw{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+  .chip[aria-pressed="true"]{border-color:var(--son); background:var(--accent-soft); color:var(--son)}
+  .chip:focus-visible{outline:2px solid var(--son); outline-offset:2px}
+  .mapwrap{
+    position:relative; border-radius:12px; overflow:hidden; touch-action:pan-y;
+    background:radial-gradient(120% 80% at 30% 8%, var(--sea) 0%, var(--sea-2) 100%);
+    border:1px solid var(--vien-dam); color:var(--cham);
+  }
   .mapwrap.dang-phong{touch-action:none}
+  /* Sóng nước lăn tăn trên mặt Biển Đông */
+  .mapwrap::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:currentColor; opacity:.08;
+    -webkit-mask-image:var(--song); mask-image:var(--song);
+    -webkit-mask-size:52px 30px; mask-size:52px 30px;
+  }
+  :root{
+    --song:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 26'%3E%3Cpath d='M0 13q8-7 16 0t16 0 16 0 16 0' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E");
+  }
   svg#vnmap{display:block; width:100%; height:auto; cursor:grab}
   svg#vnmap.dragging{cursor:grabbing}
   /* Hình tỉnh chỉ để nhìn; mọi cú bấm do lớp #lopBam phía trên nhận. Tách ra như vậy
@@ -208,33 +316,48 @@
     content:''; position:absolute; left:50%; top:100%; margin-left:-5px;
     border:5px solid transparent; border-top-color:var(--ink);
   }
+  #tooltip b{font-family:var(--chu-hien); font-weight:600; letter-spacing:.4px; font-size:13.5px}
   #tooltip .mon-xem{display:block; margin-top:3px; font-size:14px; letter-spacing:2px; font-weight:400}
   #tooltip .so{font-weight:500; opacity:.75}
 
   /* ---------- Danh sách món ---------- */
   .tinhbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-  .tinhbar h2{margin:0; font-size:19px}
+  .tinhbar h2{margin:0; font-size:21px; letter-spacing:.4px}
+  /* Nhãn miền đóng như một con dấu mực đỏ */
   .vung-tag{
-    font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px;
-    background:var(--accent-soft); color:var(--accent); text-transform:uppercase; letter-spacing:.4px;
+    font-family:var(--chu-hien); font-size:12px; font-weight:600;
+    padding:2px 10px; border-radius:4px; letter-spacing:1px; text-transform:uppercase;
+    background:transparent; color:var(--son); border:1.5px solid var(--son);
+    transform:rotate(-1.2deg);
   }
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px}
   .mon{
-    border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--panel-2);
-    display:flex; flex-direction:column; gap:8px;
+    border:1px solid var(--vien-dam); border-radius:12px; padding:11px; background:var(--panel);
+    display:flex; flex-direction:column; gap:7px; position:relative;
+    box-shadow:var(--shadow-nho);
     transition:transform .2s ease, box-shadow .22s ease, border-color .2s ease;
     animation:monVao .3s ease backwards; animation-delay:calc(var(--i,0) * 22ms);
   }
   @keyframes monVao{ from{opacity:0; transform:translateY(10px)} }
-  .mon:hover{transform:translateY(-3px); border-color:var(--accent); box-shadow:var(--shadow)}
+  .mon:hover{transform:translateY(-3px); border-color:var(--son); box-shadow:var(--shadow)}
   /* Ô ảnh: có tệp ảnh thì hiện ảnh, chưa có thì là ô màu với biểu tượng món */
   .anh{
-    position:relative; overflow:hidden; border-radius:10px;
+    position:relative; overflow:hidden; border-radius:9px;
     display:grid; place-items:center; isolation:isolate;
+    color:var(--ink);
     background:linear-gradient(145deg,
       color-mix(in srgb, var(--bac) 62%, var(--panel)),
       color-mix(in srgb, var(--bac) 20%, var(--panel)));
   }
+  /* Hoa văn gạch bông chìm dưới biểu tượng món */
+  .anh::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:currentColor; opacity:.07;
+    -webkit-mask-image:var(--gach); mask-image:var(--gach);
+    -webkit-mask-size:30px 30px; mask-size:30px 30px;
+  }
+  .anh img{z-index:1}
+  .anh .emo{position:relative; z-index:1}
   [data-vung="trung"] .anh{background:linear-gradient(145deg,
       color-mix(in srgb, var(--trung) 62%, var(--panel)),
       color-mix(in srgb, var(--trung) 20%, var(--panel)))}
@@ -247,15 +370,26 @@
   }
   .anh img.hien{opacity:1}
   .mon .anh{aspect-ratio:4/3; margin-bottom:2px}
-  .mon .emo{font-size:44px; line-height:1; transition:transform .28s cubic-bezier(.34,1.6,.5,1);
-    filter:drop-shadow(0 2px 3px rgba(12,16,24,.18))}
+  .mon .emo{font-size:54px; line-height:1; transition:transform .28s cubic-bezier(.34,1.6,.5,1);
+    filter:drop-shadow(0 3px 4px rgba(36,26,18,.22))}
   .mon:hover .emo{transform:scale(1.14) rotate(-7deg)}
   .mon:hover .anh img.hien{transform:scale(1.06)}
-  .mon h3{margin:0; font-size:15px}
-  .mon .mota{font-size:12.5px; color:var(--muted); flex:1 1 auto}
-  .mon .gia{font-weight:800; color:var(--accent); font-size:16px}
-  .mon .dvt{font-size:12px; color:var(--muted)}
-  .mon .tu-tinh{font-size:11px; font-weight:700; color:var(--gold)}
+  .mon h3{margin:0; font-size:16px; font-family:var(--chu-hien); font-weight:600; letter-spacing:.2px}
+  .mon .mota{font-size:12.5px; color:var(--muted); flex:1 1 auto; margin:0}
+  /* Giá đóng dấu như tem giấy dán trên sạp hàng */
+  .mon .gia{
+    align-self:flex-start; font-family:var(--chu-hien); font-weight:600; font-size:17px;
+    color:var(--accent-ink); background:var(--son); padding:2px 10px; border-radius:3px;
+    letter-spacing:.4px; font-variant-numeric:tabular-nums;
+    box-shadow:1.5px 1.5px 0 color-mix(in srgb, var(--ink) 16%, transparent);
+  }
+  .mon .dvt{font-size:12px; color:var(--muted); margin-top:-3px}
+  /* Tên tỉnh gạch chân bằng nét mực, không phải cái nhãn tròn nhàn nhạt */
+  .mon .tu-tinh{
+    font-size:11px; font-weight:700; color:var(--cham); letter-spacing:.6px;
+    text-transform:uppercase; display:inline-flex; align-items:center; gap:5px;
+  }
+  .mon .tu-tinh::after{content:''; flex:1 1 auto; height:1px; background:var(--line)}
   .mon .hang{display:flex; gap:8px; align-items:center}
   .qty{display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--panel)}
   .qty button{width:30px;height:32px;border:0;background:transparent;cursor:pointer;font-weight:700}
@@ -279,7 +413,7 @@
   .drawer.on .box{transform:none}
   .line-item{animation:monVao .26s ease backwards; animation-delay:calc(var(--i,0) * 45ms)}
   .drawer .box header{padding:14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px}
-  .drawer .box header h2{margin:0; font-size:17px; flex:1 1 auto}
+  .drawer .box header h2{margin:0; font-size:18px; flex:1 1 auto; letter-spacing:.4px}
   .drawer .box .body{flex:1 1 auto; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
   .drawer .box footer{padding:14px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:10px}
   .line-item{display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:11px; padding:10px; background:var(--panel-2)}
@@ -290,7 +424,8 @@
   .line-item .xoa{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:18px;line-height:1}
   .line-item .xoa:hover{color:var(--accent)}
   .tong{display:flex; justify-content:space-between; font-size:14px}
-  .tong.big{font-size:18px; font-weight:800}
+  .tong{font-variant-numeric:tabular-nums}
+  .tong.big{font-size:19px; font-weight:800; font-family:var(--chu-hien); letter-spacing:.3px}
   .tong.big span:last-child{color:var(--accent)}
 
   /* ---------- Thanh toán ---------- */
@@ -339,7 +474,11 @@
   .toast.on{opacity:.96; transform:translateX(-50%) translateY(0)}
   .donhang{border:1px solid var(--line); border-radius:11px; padding:10px 12px; background:var(--panel-2)}
   .donhang summary{cursor:pointer; font-weight:700}
-  footer.chan{max-width:1180px; margin:0 auto; padding:20px 16px 40px; color:var(--muted); font-size:12.5px}
+  footer.chan{max-width:1180px; margin:0 auto; padding:22px 16px 44px; color:var(--muted); font-size:12.5px}
+  footer.chan .mau{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; align-items:center}
+  footer.chan .mau b{display:inline-flex; align-items:center; gap:7px; font-weight:600; color:var(--ink); font-size:12px}
+  footer.chan .mau i{width:13px; height:13px; border-radius:3px; border:1px solid rgba(0,0,0,.18)}
+  footer.chan .ke{height:1px; background:var(--line); margin:12px 0}
 
   /* Máy nào đặt "giảm chuyển động" thì bỏ hết hiệu ứng */
   @media (prefers-reduced-motion: reduce){
@@ -365,8 +504,17 @@
 <header class="top">
   <div class="top-in">
     <div class="brand">
-      <span class="dot">🇻🇳</span>
-      <span>Đặc Sản Việt<small>Đi chợ 63 tỉnh thành trong một trang</small></span>
+      <!-- Mặt trống đồng Đông Sơn: ngôi sao 14 cánh giữa mặt, hai vành hoa văn quanh -->
+      <svg class="trong" viewBox="0 0 40 40" aria-hidden="true">
+        <circle class="vanh" cx="20" cy="20" r="18.4"/>
+        <circle class="vanh2" cx="20" cy="20" r="13.2"/>
+        <path class="sao" d="M20.00,11.80 20.76,16.69 23.56,12.61 22.12,17.34 26.41,14.89 23.06,18.52 27.99,18.18 23.40,20.00 27.99,21.82 23.06,21.48 26.41,25.11 22.12,22.66 23.56,27.39 20.76,23.31 20.00,28.20 19.24,23.31 16.44,27.39 17.88,22.66 13.59,25.11 16.94,21.48 12.01,21.82 16.60,20.00 12.01,18.18 16.94,18.52 13.59,14.89 17.88,17.34 16.44,12.61 19.24,16.69Z"/>
+        <circle class="cham" cx="20.00" cy="4.80" r="1.05"/><circle class="cham" cx="27.60" cy="6.84" r="1.05"/><circle class="cham" cx="33.16" cy="12.40" r="1.05"/><circle class="cham" cx="35.20" cy="20.00" r="1.05"/><circle class="cham" cx="33.16" cy="27.60" r="1.05"/><circle class="cham" cx="27.60" cy="33.16" r="1.05"/><circle class="cham" cx="20.00" cy="35.20" r="1.05"/><circle class="cham" cx="12.40" cy="33.16" r="1.05"/><circle class="cham" cx="6.84" cy="27.60" r="1.05"/><circle class="cham" cx="4.80" cy="20.00" r="1.05"/><circle class="cham" cx="6.84" cy="12.40" r="1.05"/><circle class="cham" cx="12.40" cy="6.84" r="1.05"/>
+      </svg>
+      <span>
+        <b>Đặc Sản <i>Việt</i></b>
+        <small>Đi chợ 63 tỉnh thành trong một trang</small>
+      </span>
     </div>
     <div class="spacer"></div>
     <div class="searchbox">
@@ -448,7 +596,17 @@
 </div>
 
 <footer class="chan">
-  Đặc Sản Việt — trang demo chạy hoàn toàn trong trình duyệt. Giỏ hàng và đơn hàng được lưu trong máy bạn (localStorage), không gửi đi đâu cả.
+  <div class="mau">
+    <span>Màu của trang lấy theo bốn thứ mực tranh Đông Hồ:</span>
+    <b><i style="background:var(--son)"></i>đỏ son — sỏi son tán nhỏ</b>
+    <b><i style="background:var(--hoe)"></i>vàng hoè — hoa hoè nấu</b>
+    <b><i style="background:var(--cham)"></i>xanh chàm — lá chàm</b>
+    <b><i style="background:var(--dong)"></i>xanh gỉ đồng — rỉ đồng</b>
+  </div>
+  <div class="ke"></div>
+  Nền giấy điệp, hoa văn lấy từ viên gạch bông lát nhà, nhãn hiệu là mặt trống đồng Đông Sơn với ngôi sao 14 cánh.
+  <br>
+  Đặc Sản Việt — trang demo chạy trong trình duyệt. Giỏ hàng và đơn hàng lưu trong máy bạn (localStorage), không gửi đi đâu cả.
 </footer>
 
 <!-- ===== Ngăn kéo giỏ hàng / thanh toán ===== -->
