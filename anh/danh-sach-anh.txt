@@ -1,0 +1,389 @@
+# Danh sách tên tệp ảnh — 252 món đặc sản
+# Thả ảnh vào chính thư mục này, đặt đúng tên ở cột đầu là trang tự hiện.
+# Chưa có tấm nào cũng không sao: món thiếu ảnh vẫn hiện ô màu kèm biểu tượng.
+
+=== Miền Bắc ===
+
+-- Bắc Giang
+   vai-thieu-luc-ngan.jpg                  Vải thiều Lục Ngạn
+   my-chu.jpg                              Mỳ Chũ
+   ruou-lang-van.jpg                       Rượu làng Vân
+   banh-da-ke.jpg                          Bánh đa Kế
+
+-- Bắc Kạn
+   mien-dong-na-ri.jpg                     Miến dong Na Rì
+   mang-kho-ba-be.jpg                      Măng khô Ba Bể
+   hong-khong-hat-bac-kan.jpg              Hồng không hạt Bắc Kạn
+   ruou-men-la-bang-phuc.jpg               Rượu men lá Bằng Phúc
+
+-- Bắc Ninh
+   banh-phu-the-dinh-bang.jpg              Bánh phu thê Đình Bảng
+   nem-bui-ninh-xa.jpg                     Nem Bùi Ninh Xá
+   banh-te-lang-cho.jpg                    Bánh tẻ làng Chờ
+   ruou-nep-cai-hoa-vang.jpg               Rượu nếp cái hoa vàng
+
+-- Cao Bằng
+   hat-de-trung-khanh.jpg                  Hạt dẻ Trùng Khánh
+   mien-dong-phia-den.jpg                  Miến dong Phia Đén
+   lap-xuong-hun-khoi.jpg                  Lạp xưởng hun khói
+   banh-khao.jpg                           Bánh khảo
+
+-- Hà Giang
+   mat-ong-bac-ha.jpg                      Mật ong bạc hà
+   thit-trau-gac-bep.jpg                   Thịt trâu gác bếp
+   che-shan-tuyet-lung-phin.jpg            Chè Shan tuyết Lũng Phìn
+   cam-sanh-bac-quang.jpg                  Cam sành Bắc Quang
+
+-- Hà Nam
+   ca-kho-lang-vu-dai.jpg                  Cá kho làng Vũ Đại
+   chuoi-ngu-dai-hoang.jpg                 Chuối ngự Đại Hoàng
+   banh-cuon-phu-ly.jpg                    Bánh cuốn Phủ Lý
+   ruou-lang-voc.jpg                       Rượu làng Vọc
+
+-- Hà Nội
+   com-lang-vong.jpg                       Cốm làng Vòng
+   o-mai-hang-duong.jpg                    Ô mai Hàng Đường
+   banh-com-hang-than.jpg                  Bánh cốm Hàng Than
+   cha-com.jpg                             Chả cốm
+
+-- Hòa Bình
+   cam-cao-phong.jpg                       Cam Cao Phong
+   ruou-can-muong.jpg                      Rượu cần Mường
+   mang-dang-tan-lac.jpg                   Măng đắng Tân Lạc
+   ca-song-da-nuong.jpg                    Cá sông Đà nướng
+
+-- Hưng Yên
+   nhan-long-pho-hien.jpg                  Nhãn lồng Phố Hiến
+   long-nhan-say.jpg                       Long nhãn sấy
+   tuong-ban.jpg                           Tương Bần
+   cha-ga-tieu-quan.jpg                    Chả gà Tiểu Quan
+
+-- Hải Dương
+   banh-dau-xanh-rong-vang.jpg             Bánh đậu xanh Rồng Vàng
+   vai-thieu-thanh-ha.jpg                  Vải thiều Thanh Hà
+   banh-gai-ninh-giang.jpg                 Bánh gai Ninh Giang
+   ruoi-tu-ky.jpg                          Rươi Tứ Kỳ
+
+-- Hải Phòng
+   banh-da-cua-kho.jpg                     Bánh đa cua khô
+   nem-cua-be.jpg                          Nem cua bể
+   nuoc-mam-cat-hai.jpg                    Nước mắm Cát Hải
+   banh-mi-cay-que.jpg                     Bánh mì cay que
+
+-- Lai Châu
+   lap-xuong-hun-khoi-lai-chau.jpg         Lạp xưởng hun khói Lai Châu
+   mac-ca-lai-chau.jpg                     Mắc ca Lai Châu
+   che-co-thu-tam-duong.jpg                Chè cổ thụ Tam Đường
+   thit-trau-say-lai-chau.jpg              Thịt trâu sấy Lai Châu
+
+-- Lào Cai
+   man-tam-hoa-bac-ha.jpg                  Mận Tam hoa Bắc Hà
+   ruou-ngo-ban-pho.jpg                    Rượu ngô Bản Phố
+   ca-hoi-sa-pa.jpg                        Cá hồi Sa Pa
+   su-su-sa-pa.jpg                         Su su Sa Pa
+
+-- Lạng Sơn
+   vit-quay-la-mac-mat.jpg                 Vịt quay lá mắc mật
+   na-chi-lang.jpg                         Na Chi Lăng
+   ruou-mau-son.jpg                        Rượu Mẫu Sơn
+   mang-ot-mac-mat.jpg                     Măng ớt mắc mật
+
+-- Nam Định
+   nem-nam-giao-thuy.jpg                   Nem nắm Giao Thủy
+   banh-nhan-hai-hau.jpg                   Bánh nhãn Hải Hậu
+   keo-siu-chau.jpg                        Kẹo Sìu Châu
+   pho-bo-kho-nam-dinh.jpg                 Phở bò khô Nam Định
+
+-- Ninh Bình
+   com-chay-ninh-binh.jpg                  Cơm cháy Ninh Bình
+   thit-de-nui.jpg                         Thịt dê núi
+   mam-tep-gia-vien.jpg                    Mắm tép Gia Viễn
+   dua-dong-giao.jpg                       Dứa Đồng Giao
+
+-- Phú Thọ
+   buoi-doan-hung.jpg                      Bưởi Đoan Hùng
+   thit-chua-thanh-son.jpg                 Thịt chua Thanh Sơn
+   banh-tai-phu-tho.jpg                    Bánh tai Phú Thọ
+   che-phu-ho.jpg                          Chè Phú Hộ
+
+-- Quảng Ninh
+   cha-muc-ha-long.jpg                     Chả mực Hạ Long
+   sa-sung-kho-van-don.jpg                 Sá sùng khô Vân Đồn
+   ruoc-hau-van-don.jpg                    Ruốc hàu Vân Đồn
+   tra-hoa-vang-ba-che.jpg                 Trà hoa vàng Ba Chẽ
+
+-- Sơn La
+   man-hau-moc-chau.jpg                    Mận hậu Mộc Châu
+   sua-chua-moc-chau.jpg                   Sữa chua Mộc Châu
+   thit-trau-gac-bep-son-la.jpg            Thịt trâu gác bếp Sơn La
+   tra-o-long-moc-chau.jpg                 Trà ô long Mộc Châu
+
+-- Thái Bình
+   banh-cay-lang-nguyen.jpg                Bánh cáy làng Nguyễn
+   gao-tam-thom-thai-binh.jpg              Gạo tám thơm Thái Bình
+   nem-chao-vi-thuy.jpg                    Nem chạo Vị Thủy
+   canh-ca-quynh-coi.jpg                   Canh cá Quỳnh Côi
+
+-- Thái Nguyên
+   che-tan-cuong.jpg                       Chè Tân Cương
+   tra-dinh-cao-cap.jpg                    Trà đinh cao cấp
+   tuong-nep-uc-ky.jpg                     Tương nếp Úc Kỳ
+   banh-chung-bo-dau.jpg                   Bánh chưng Bờ Đậu
+
+-- Tuyên Quang
+   cam-sanh-ham-yen.jpg                    Cam sành Hàm Yên
+   ruou-ngo-na-hang.jpg                    Rượu ngô Na Hang
+   thit-trau-kho-chiem-hoa.jpg             Thịt trâu khô Chiêm Hóa
+   banh-gai-chiem-hoa.jpg                  Bánh gai Chiêm Hóa
+
+-- Vĩnh Phúc
+   su-su-tam-dao.jpg                       Su su Tam Đảo
+   ca-thinh-lap-thach.jpg                  Cá thính Lập Thạch
+   banh-trung-mat-mia.jpg                  Bánh trùng mật mía
+   ruou-dua-yen-lac.jpg                    Rượu dừa Yên Lạc
+
+-- Yên Bái
+   che-suoi-giang.jpg                      Chè Suối Giàng
+   nep-tu-le.jpg                           Nếp Tú Lệ
+   mang-sat-tram-tau.jpg                   Măng sặt Trạm Tấu
+   cam-sanh-luc-yen.jpg                    Cam sành Lục Yên
+
+-- Điện Biên
+   gao-dien-bien.jpg                       Gạo Điện Biên
+   thit-lon-gac-bep.jpg                    Thịt lợn gác bếp
+   cham-cheo.jpg                           Chẩm chéo
+   banh-khau-xen.jpg                       Bánh khẩu xén
+
+=== Miền Trung ===
+
+-- Bình Thuận
+   nuoc-mam-phan-thiet.jpg                 Nước mắm Phan Thiết
+   thanh-long-binh-thuan.jpg               Thanh long Bình Thuận
+   muc-mot-nang-phan-thiet.jpg             Mực một nắng Phan Thiết
+   banh-re-phan-ri.jpg                     Bánh rế Phan Rí
+
+-- Bình Định
+   ruou-bau-da.jpg                         Rượu Bàu Đá
+   banh-it-la-gai.jpg                      Bánh ít lá gai
+   nem-cho-huyen.jpg                       Nem chợ Huyện
+   banh-trang-nuoc-dua-tam-quan.jpg        Bánh tráng nước dừa Tam Quan
+
+-- Gia Lai
+   ca-phe-pleiku.jpg                       Cà phê Pleiku
+   bo-mot-nang-krong-pa.jpg                Bò một nắng Krông Pa
+   muoi-kien-vang-gia-lai.jpg              Muối kiến vàng Gia Lai
+   mat-ong-rung-gia-lai.jpg                Mật ong rừng Gia Lai
+
+-- Hà Tĩnh
+   keo-cu-do.jpg                           Kẹo cu đơ
+   buoi-phuc-trach.jpg                     Bưởi Phúc Trạch
+   muc-kho-vung-ang.jpg                    Mực khô Vũng Áng
+   nuoc-mam-cam-nhuong.jpg                 Nước mắm Cẩm Nhượng
+
+-- Khánh Hòa
+   yen-sao-nha-trang.jpg                   Yến sào Nha Trang
+   nem-nuong-ninh-hoa.jpg                  Nem nướng Ninh Hòa
+   muc-mot-nang-nha-trang.jpg              Mực một nắng Nha Trang
+   banh-trang-xoai.jpg                     Bánh tráng xoài
+
+-- Kon Tum
+   ca-phe-dak-ha.jpg                       Cà phê Đắk Hà
+   sam-day-ngoc-linh.jpg                   Sâm dây Ngọc Linh
+   mang-le-kho.jpg                         Măng le khô
+   ruou-ghe-men-la.jpg                     Rượu ghè men lá
+
+-- Lâm Đồng
+   tra-atiso-da-lat.jpg                    Trà atiso Đà Lạt
+   mut-dau-tay-da-lat.jpg                  Mứt dâu tây Đà Lạt
+   hong-treo-gio.jpg                       Hồng treo gió
+   ruou-vang-da-lat.jpg                    Rượu vang Đà Lạt
+
+-- Nghệ An
+   cam-vinh.jpg                            Cam Vinh
+   tuong-nam-dan.jpg                       Tương Nam Đàn
+   bo-giang-xu-nghe.jpg                    Bò giàng xứ Nghệ
+   nhut-thanh-chuong.jpg                   Nhút Thanh Chương
+
+-- Ninh Thuận
+   nho-ninh-thuan.jpg                      Nho Ninh Thuận
+   tao-xanh-ninh-thuan.jpg                 Táo xanh Ninh Thuận
+   nuoc-mam-ca-na.jpg                      Nước mắm Cà Ná
+   toi-phan-rang.jpg                       Tỏi Phan Rang
+
+-- Phú Yên
+   ca-ngu-dai-duong.jpg                    Cá ngừ đại dương
+   banh-trang-hoa-da.jpg                   Bánh tráng Hòa Đa
+   so-huyet-o-loan.jpg                     Sò huyết Ô Loan
+   muoi-kien-vang.jpg                      Muối kiến vàng
+
+-- Quảng Bình
+   khoai-deo-hai-ninh.jpg                  Khoai deo Hải Ninh
+   banh-trang-me-tan-an.jpg                Bánh tráng mè Tân An
+   muc-kho-nhat-le.jpg                     Mực khô Nhật Lệ
+   ruou-vo-xa.jpg                          Rượu Võ Xá
+
+-- Quảng Nam
+   mi-quang-kho.jpg                        Mì Quảng khô
+   banh-trang-dai-loc.jpg                  Bánh tráng Đại Lộc
+   que-tra-my.jpg                          Quế Trà My
+   tuong-ot-hoi-an.jpg                     Tương ớt Hội An
+
+-- Quảng Ngãi
+   keo-guong.jpg                           Kẹo gương
+   duong-phen-quang-ngai.jpg               Đường phèn Quảng Ngãi
+   don-song-tra.jpg                        Don sông Trà
+   toi-ly-son.jpg                          Tỏi Lý Sơn
+
+-- Quảng Trị
+   tieu-cua.jpg                            Tiêu Cùa
+   ca-phe-khe-sanh.jpg                     Cà phê Khe Sanh
+   nuoc-mam-my-thuy.jpg                    Nước mắm Mỹ Thủy
+   banh-uot-phuong-lang.jpg                Bánh ướt Phương Lang
+
+-- Thanh Hóa
+   nem-chua-thanh-hoa.jpg                  Nem chua Thanh Hóa
+   cha-tom-thanh-hoa.jpg                   Chả tôm Thanh Hóa
+   banh-gai-tu-tru.jpg                     Bánh gai Tứ Trụ
+   mam-tep-ha-yen.jpg                      Mắm tép Hà Yên
+
+-- Thừa Thiên - Huế
+   me-xung-hue.jpg                         Mè xửng Huế
+   tom-chua-hue.jpg                        Tôm chua Huế
+   tre-hue.jpg                             Tré Huế
+   tra-cung-dinh-hue.jpg                   Trà cung đình Huế
+
+-- Đà Nẵng
+   cha-bo-da-nang.jpg                      Chả bò Đà Nẵng
+   muc-rim-me.jpg                          Mực rim me
+   banh-kho-me-cam-le.jpg                  Bánh khô mè Cẩm Lệ
+   nuoc-mam-nam-o.jpg                      Nước mắm Nam Ô
+
+-- Đắk Lắk
+   ca-phe-buon-ma-thuot.jpg                Cà phê Buôn Ma Thuột
+   ca-phe-chon.jpg                         Cà phê chồn
+   bo-sap-dak-lak.jpg                      Bơ sáp Đắk Lắk
+   mac-ca-krong-nang.jpg                   Mắc ca Krông Năng
+
+-- Đắk Nông
+   hat-dieu-dak-nong.jpg                   Hạt điều Đắk Nông
+   tieu-dak-song.jpg                       Tiêu Đắk Song
+   khoai-lang-tuy-duc.jpg                  Khoai lang Tuy Đức
+   ca-phe-duc-lap.jpg                      Cà phê Đức Lập
+
+=== Miền Nam ===
+
+-- An Giang
+   mam-ca-linh-chau-doc.jpg                Mắm cá linh Châu Đốc
+   kho-ca-tra-phong.jpg                    Khô cá tra phồng
+   duong-thot-not-tri-ton.jpg              Đường thốt nốt Tri Tôn
+   tung-lo-mo.jpg                          Tung lò mò
+
+-- Bà Rịa - Vũng Tàu
+   banh-khot-vung-tau.jpg                  Bánh khọt Vũng Tàu
+   muc-mot-nang-long-hai.jpg               Mực một nắng Long Hải
+   banh-bong-lan-trung-muoi.jpg            Bánh bông lan trứng muối
+   hat-tieu-ba-ria.jpg                     Hạt tiêu Bà Rịa
+
+-- Bình Dương
+   banh-beo-bi-my-lien.jpg                 Bánh bèo bì Mỹ Liên
+   mang-cut-lai-thieu.jpg                  Măng cụt Lái Thiêu
+   gom-su-binh-duong.jpg                   Gốm sứ Bình Dương
+   nem-lai-thieu.jpg                       Nem Lái Thiêu
+
+-- Bình Phước
+   hat-dieu-rang-muoi.jpg                  Hạt điều rang muối
+   tieu-loc-ninh.jpg                       Tiêu Lộc Ninh
+   ruou-can-s-tieng.jpg                    Rượu cần S'tiêng
+   mat-ong-rung-bu-gia-map.jpg             Mật ong rừng Bù Gia Mập
+
+-- Bạc Liêu
+   muoi-bac-lieu.jpg                       Muối Bạc Liêu
+   banh-tam-bi-ngan-dua.jpg                Bánh tằm bì Ngan Dừa
+   nhan-xuong-com-vang.jpg                 Nhãn xuồng cơm vàng
+   ba-khia-muoi-bac-lieu.jpg               Ba khía muối Bạc Liêu
+
+-- Bến Tre
+   keo-dua-ben-tre.jpg                     Kẹo dừa Bến Tre
+   dau-dua-nguyen-chat.jpg                 Dầu dừa nguyên chất
+   banh-trang-my-long.jpg                  Bánh tráng Mỹ Lồng
+   banh-phong-son-doc.jpg                  Bánh phồng Sơn Đốc
+
+-- Cà Mau
+   cua-bien-ca-mau.jpg                     Cua biển Cà Mau
+   tom-kho-rach-goc.jpg                    Tôm khô Rạch Gốc
+   ba-khia-rach-goc.jpg                    Ba khía Rạch Gốc
+   mat-ong-u-minh-ha.jpg                   Mật ong U Minh Hạ
+
+-- Cần Thơ
+   banh-tet-la-cam.jpg                     Bánh tét lá cẩm
+   nem-nuong-cai-rang.jpg                  Nem nướng Cái Răng
+   mam-ca-sac.jpg                          Mắm cá sặc
+   dau-ha-chau-phong-dien.jpg              Dâu Hạ Châu Phong Điền
+
+-- Hậu Giang
+   khom-cau-duc.jpg                        Khóm Cầu Đúc
+   cha-ca-that-lat-hau-giang.jpg           Chả cá thát lát Hậu Giang
+   buoi-nam-roi-phu-huu.jpg                Bưởi Năm Roi Phú Hữu
+   mam-ca-loc-hau-giang.jpg                Mắm cá lóc Hậu Giang
+
+-- Kiên Giang
+   nuoc-mam-phu-quoc.jpg                   Nước mắm Phú Quốc
+   ho-tieu-phu-quoc.jpg                    Hồ tiêu Phú Quốc
+   kho-ca-thieu.jpg                        Khô cá thiều
+   ruou-sim-phu-quoc.jpg                   Rượu sim Phú Quốc
+
+-- Long An
+   gao-nang-thom-cho-dao.jpg               Gạo Nàng Thơm Chợ Đào
+   thanh-long-chau-thanh.jpg               Thanh long Châu Thành
+   ruou-de-go-den.jpg                      Rượu đế Gò Đen
+   lap-xuong-tuoi-can-duoc.jpg             Lạp xưởng tươi Cần Đước
+
+-- Sóc Trăng
+   banh-pia-soc-trang.jpg                  Bánh pía Sóc Trăng
+   lap-xuong-vung-thom.jpg                 Lạp xưởng Vũng Thơm
+   banh-cong-dai-tam.jpg                   Bánh cống Đại Tâm
+   me-lao-soc-trang.jpg                    Mè láo Sóc Trăng
+
+-- TP. Hồ Chí Minh
+   kho-bo-sai-gon.jpg                      Khô bò Sài Gòn
+   ca-phe-phin-rang-moc.jpg                Cà phê phin rang mộc
+   banh-trang-tron.jpg                     Bánh tráng trộn
+   mut-me-cho-lon.jpg                      Mứt me Chợ Lớn
+
+-- Tiền Giang
+   vu-sua-lo-ren-vinh-kim.jpg              Vú sữa Lò Rèn Vĩnh Kim
+   hu-tieu-my-tho.jpg                      Hủ tiếu Mỹ Tho
+   mam-tom-cha-go-cong.jpg                 Mắm tôm chà Gò Công
+   so-ri-go-cong.jpg                       Sơ ri Gò Công
+
+-- Trà Vinh
+   dua-sap-cau-ke.jpg                      Dừa sáp Cầu Kè
+   banh-tet-tra-cuon.jpg                   Bánh tét Trà Cuôn
+   tom-kho-vinh-kim.jpg                    Tôm khô Vinh Kim
+   com-dep-ba-so.jpg                       Cốm dẹp Ba So
+
+-- Tây Ninh
+   banh-trang-phoi-suong-trang-bang.jpg    Bánh tráng phơi sương Trảng Bàng
+   muoi-tom-tay-ninh.jpg                   Muối tôm Tây Ninh
+   mang-cau-ba-den.jpg                     Mãng cầu Bà Đen
+   banh-canh-trang-bang.jpg                Bánh canh Trảng Bàng
+
+-- Vĩnh Long
+   buoi-nam-roi-binh-minh.jpg              Bưởi Năm Roi Bình Minh
+   khoai-lang-binh-tan.jpg                 Khoai lang Bình Tân
+   cam-sanh-tam-binh.jpg                   Cam sành Tam Bình
+   tau-hu-ky-my-hoa.jpg                    Tàu hủ ky Mỹ Hòa
+
+-- Đồng Nai
+   buoi-tan-trieu.jpg                      Bưởi Tân Triều
+   chom-chom-long-khanh.jpg                Chôm chôm Long Khánh
+   sau-rieng-long-khanh.jpg                Sầu riêng Long Khánh
+   ruou-buoi-tan-trieu.jpg                 Rượu bưởi Tân Triều
+
+-- Đồng Tháp
+   nem-lai-vung.jpg                        Nem Lai Vung
+   quyt-hong-lai-vung.jpg                  Quýt hồng Lai Vung
+   kho-ca-loc-tam-nong.jpg                 Khô cá lóc Tam Nông
+   hat-sen-say-thap-muoi.jpg               Hạt sen sấy Tháp Mười
+
+Tổng cộng: 252 tệp

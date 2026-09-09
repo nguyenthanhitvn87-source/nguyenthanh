@@ -39,6 +39,8 @@ index.html               # toàn bộ game: giao diện, style và logic
 cong-viec.html           # theo dõi công việc của team (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 quan-ly-tre-em.html      # Bé Ngoan — quản lý trẻ em trên iPhone (xem bên dưới)
+dac-san.html             # Đặc Sản Việt — chợ đặc sản 63 tỉnh thành (xem bên dưới)
+anh/                     # ảnh đặc sản (để trống cũng chạy, xem anh/README.md)
 huong-dan-dung-chung.html # hướng dẫn từng bước để cả nhà dùng chung
 kiem-tra.html            # trang tự chẩn đoán khi nối không được
 dong-bo-google-sheet.gs  # mã Apps Script để cả nhà dùng chung một lịch
@@ -455,3 +457,157 @@ bị ghi đè khi chưa đồng ý. Trong lúc xem thử, mọi đường ghi xu
 Dữ liệu nằm trong `localStorage` của trình duyệt, và **mỗi địa chỉ web giữ một kho riêng** —
 mở bằng đường dẫn khác hay trình duyệt khác là một kho khác. Xoá dữ liệu duyệt web của
 Safari cũng mất, nên thỉnh thoảng bấm **Xuất tệp JSON** để giữ một bản.
+
+---
+
+# 🇻🇳 Đặc Sản Việt — chợ đặc sản 63 tỉnh thành
+
+Mở `dac-san.html` bằng trình duyệt bất kỳ. Vẫn theo lối cũ của kho này: **một file HTML
+duy nhất**, không thư viện, không build, không gọi ra mạng lần nào.
+
+Cách dùng gọn trong một câu: **bấm vào một tỉnh trên bản đồ Việt Nam → chọn món → bỏ vào
+giỏ → thanh toán → gửi phiếu cho shipper.**
+
+## Bản đồ
+
+- Vẽ bằng SVG từ ranh giới hành chính thật của **63 tỉnh, thành phố**, tô màu theo
+  ba miền Bắc – Trung – Nam.
+- **Rê chuột lên tỉnh nào là tỉnh đó nhô hẳn lên** khỏi bản đồ: phóng to, đổi màu, có
+  bóng đổ và nổi lên trên các tỉnh bên cạnh. Kèm theo là nhãn tên tỉnh, số món đang bán
+  và vài biểu tượng món xem trước. Tỉnh nhỏ được phóng nhiều hơn tỉnh lớn nên mấy tỉnh
+  bé xíu ngoài Bắc cũng dễ nhắm. Bấm vào là mở danh sách đặc sản ở cột bên phải.
+- **Kéo** để di chuyển, **lăn chuột** hoặc nút `+` `−` để phóng to, `⟲` để về mặc định.
+  Các tỉnh nhỏ ở đồng bằng Bắc Bộ nên phóng to lên cho dễ bấm.
+- Bấm bàn phím cũng được: `Tab` tới tỉnh rồi `Enter`.
+- Hai ô nét đứt bên phải là quần đảo **Hoàng Sa** (TP. Đà Nẵng) và **Trường Sa**
+  (tỉnh Khánh Hòa), nằm ngoài khung bản đồ nên vẽ riêng.
+- Ai ngại bấm bản đồ thì dùng ô **chọn nhanh trong danh sách** ngay dưới — chọn xong
+  bản đồ tự phóng tới tỉnh đó.
+
+## Cho vui mắt
+
+- Bản đồ hiện dần từ Bắc vào Nam lúc mới mở trang.
+- Thẻ món trượt lên hiện ra theo thứ tự; rê chuột vào thì thẻ nhấc lên và biểu tượng
+  món nghiêng người một cái.
+- Bấm **Thêm vào giỏ** thì món bay một đường từ thẻ hàng vào nút giỏ, huy hiệu số lượng
+  nảy lên.
+- Ngăn kéo giỏ hàng trượt từ mép phải vào, các dòng hàng hiện lần lượt.
+- Đặt hàng xong có pháo giấy rơi chúc mừng.
+- Máy nào bật *giảm chuyển động* (`prefers-reduced-motion`) thì trang tự tắt hết hiệu ứng.
+
+## Đi chợ
+
+- **252 món** đặc sản, mỗi tỉnh 4 món, kèm đơn vị bán, giá và một dòng giới thiệu.
+- Ô tìm kiếm ở đầu trang tìm theo tên món, tên tỉnh hoặc mô tả, và **không cần dấu** —
+  gõ `nuoc mam phu quoc` hay `che thai nguyen` đều ra.
+- Ba nút **Miền Bắc / Miền Trung / Miền Nam** lọc nhanh; **Xem tất cả** quay về toàn bộ.
+- Mỗi thẻ món có nút `−` `+` chọn số lượng rồi **Thêm vào giỏ**.
+
+## Ảnh đặc sản
+
+Trang **không cần ảnh vẫn chạy**: món nào chưa có ảnh thì ô đầu thẻ hàng là một mảng màu
+theo miền, giữa là biểu tượng của món. Muốn có ảnh thật thì thả tệp vào thư mục `anh/`
+đặt cạnh trang, tên tệp lấy theo **tên món bỏ dấu, nối bằng gạch ngang**:
+
+```
+Chả mực Hạ Long   →  anh/cha-muc-ha-long.jpg
+Kẹo dừa Bến Tre   →  anh/keo-dua-ben-tre.jpg
+```
+
+Bỏ vào tấm nào thì tấm đó hiện lên, chưa có thì vẫn là biểu tượng — không phải sửa mã,
+không sợ ô ảnh vỡ. Danh sách đủ **252 tên tệp** xếp theo miền và tỉnh nằm ở
+`anh/danh-sach-anh.txt`; hướng dẫn kỹ hơn ở `anh/README.md`.
+
+Ảnh nên cắt khung **4:3 ngang**, cỡ 800×600, nhẹ dưới 150 KB. Mấy chỗ chỉnh nằm ở đầu
+phần `<script>`:
+
+```js
+const ANH = {
+  bat: true,          // để false nếu chưa có tấm nào, trang khỏi đi tìm tệp
+  thuMuc: 'anh/',     // thư mục chứa ảnh
+  duoi: '.jpg'        // đổi thành '.webp' hay '.png' nếu dùng định dạng khác
+};
+```
+
+Mở trang bằng cách nhấp đúp có thể bị trình duyệt chặn đọc tệp ảnh bên cạnh; chạy qua
+`npx http-server .` là hiện đủ. Khi gửi trang cho người khác nhớ gửi kèm cả thư mục `anh/`.
+
+## Giỏ hàng và phí giao hàng
+
+Giỏ hàng nằm trong ngăn kéo bên phải, sửa số lượng và bỏ món ngay tại đó.
+
+```
+Phí giao hàng = 30.000 ₫ + 10.000 ₫ cho mỗi tỉnh phải gom thêm
+Đơn từ 1.000.000 ₫  → miễn phí giao hàng
+Chọn hoả tốc        → cộng thêm 20.000 ₫
+```
+
+Gom hàng từ nhiều tỉnh thì tốn thêm, nên phí tính theo **số tỉnh phải lấy hàng**, không
+phải theo số món. Muốn đổi biểu phí thì sửa mấy hằng số này ở đầu phần giỏ hàng:
+
+```js
+const NGUONG_MIEN_SHIP = 1000000;   // mua từ mức này trở lên thì miễn phí ship
+const PHI_CO_BAN = 30000;           // phí cho tỉnh đầu tiên
+const PHI_MOI_TINH_THEM = 10000;    // mỗi tỉnh gom thêm
+const PHI_GIAO_NHANH = 20000;       // phụ phí hoả tốc
+```
+
+## Thanh toán và gửi cho shipper
+
+Form thanh toán hỏi họ tên, số điện thoại, tỉnh nhận hàng, địa chỉ chi tiết, ghi chú,
+kiểu giao (tiêu chuẩn / hoả tốc) và cách trả tiền (**COD** hoặc **chuyển khoản trước**).
+Số điện thoại phải đúng dạng 10 số đầu 03/05/07/08/09 mới cho đặt. Thông tin người nhận
+được nhớ lại cho lần đặt sau.
+
+Đặt xong trang sinh **phiếu giao hàng** dạng chữ thuần — mã đơn, người nhận, từng món và
+kho phải lấy, tổng tiền, số tiền shipper thu hộ:
+
+```
+PHIẾU GIAO HÀNG — ĐẶC SẢN VIỆT
+Mã đơn : DS260909-1228
+...
+Thanh toán: COD — shipper THU HỘ 550.000 ₫
+Gom hàng  : Quảng Ninh, An Giang
+```
+
+Bốn cách đưa phiếu cho shipper:
+
+| Nút | Làm gì |
+| --- | --- |
+| 📋 Sao chép phiếu | chép toàn bộ phiếu vào bộ nhớ tạm, dán vào đâu cũng được |
+| 🖨️ In phiếu | in ra giấy, trang chỉ in mỗi phiếu |
+| ⬇️ Tải .txt | lưu thành tệp `phieu-giao-<mã đơn>.txt` |
+| 💬 SMS / 🔵 Zalo | nhập số điện thoại shipper, mở sẵn tin nhắn hoặc cửa sổ Zalo |
+
+## Đơn của tôi
+
+Nút **🧾 Đơn của tôi** giữ 30 đơn gần nhất: mở ra xem lại nguyên phiếu giao, hoặc bấm
+**🔁 Đặt lại đơn này** để nạp y hệt các món cũ vào giỏ.
+
+## Sửa hàng hoá
+
+Dữ liệu nằm ngay đầu phần `<script>`, mỗi tỉnh một khối, mỗi món một dòng theo thứ tự
+`[tên, biểu tượng, đơn vị bán, giá, mô tả]` — thêm được ô thứ sáu là **đường dẫn ảnh
+riêng** cho món đó (ghi rồi thì ô này ưu tiên hơn tên tệp tự suy ra):
+
+```js
+const DAC_SAN = {
+  "Quảng Ninh": [
+    ["Chả mực Hạ Long","🦑","Khay 500g",320000,"Mực mai giã tay, giòn sần sật, thơm nức."],
+    ...
+  ],
+  ...
+};
+```
+
+Thêm món thì thêm một dòng, đổi giá thì sửa con số — không phải động tới chỗ nào khác.
+
+## Lưu ý
+
+- Giỏ hàng, đơn đã đặt, thông tin người nhận và lựa chọn nền sáng/tối đều nằm trong
+  `localStorage` của trình duyệt. Không có máy chủ nào, **không đơn hàng nào được gửi đi**
+  — đây là trang demo, muốn bán thật thì phải nối thêm phần nhận đơn ở phía sau.
+- Mỗi địa chỉ web giữ một kho riêng: mở bằng đường dẫn khác hay trình duyệt khác là
+  một kho khác.
+- Trang dùng số tỉnh **63** như cách chia quen thuộc lâu nay (trước năm 2008 là 64 tỉnh,
+  khi Hà Tây còn tách riêng). Muốn đổi cách chia thì sửa `TINH_LIST` và `DAC_SAN`.
