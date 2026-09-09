@@ -447,6 +447,19 @@
   .radios label:has(input:checked){border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
   .radios input{accent-color:var(--accent)}
 
+  /* ---------- Khối tài khoản chuyển khoản ---------- */
+  .hop-ck{
+    border:1px solid var(--gold); border-radius:12px; padding:12px 14px;
+    background:color-mix(in srgb, var(--gold) 10%, transparent);
+  }
+  .hop-ck .nh{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:0; font-size:13.5px}
+  .hop-ck .nh dt{color:var(--muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; padding-top:2px}
+  .hop-ck .nh dd{margin:0}
+  .hop-ck .stk{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:15px;
+    letter-spacing:.6px; color:var(--accent);
+  }
+
   /* ---------- Phiếu giao shipper ---------- */
   .phieu{
     border:1px dashed var(--line); border-radius:12px; padding:14px; background:var(--panel-2);
@@ -1671,6 +1684,15 @@ function capNhatSoGio() {
   soGioCu = n;
 }
 
+/* Tài khoản nhận chuyển khoản. Đổi số hay đổi ngân hàng thì sửa ngay đây,
+   cả trang chỉ lấy thông tin từ chỗ này. */
+const NGAN_HANG = {
+  ten: 'TPBank',
+  chiNhanh: 'TP. Hồ Chí Minh',
+  so: '0933456400',
+  chu: 'NGUYEN VU THANH'
+};
+
 /* Phí giao hàng: gom hàng từ nhiều tỉnh thì tốn thêm một chút */
 const NGUONG_MIEN_SHIP = 1000000;
 const PHI_CO_BAN = 30000, PHI_MOI_TINH_THEM = 10000, PHI_GIAO_NHANH = 20000;
@@ -1809,9 +1831,10 @@ function veManForm() {
         '<label><input type="radio" name="tt" value="cod" checked> 💵 Tiền mặt khi nhận (COD)</label>' +
         '<label><input type="radio" name="tt" value="ck"> 🏦 Chuyển khoản trước</label>' +
       '</div></div>' +
-      '<div id="hopCk" hidden class="tiny muted" style="border:1px dashed var(--line);border-radius:10px;padding:10px">' +
-        'Chuyển khoản tới <b>ĐẶC SẢN VIỆT</b> — Vietcombank <b>0123 456 789</b>, nội dung ghi mã đơn hàng. ' +
-        'Đơn được giao ngay khi tiền về.' +
+      '<div id="hopCk" hidden class="hop-ck">' +
+        '<div class="tiny muted" style="margin-bottom:8px">Chuyển khoản tới tài khoản dưới đây, ' +
+        'nội dung ghi <b>mã đơn hàng</b>. Đơn được gửi đi ngay khi tiền về.</div>' +
+        khoiNganHang('') +
       '</div>' +
       '<div><label for="fGhiChu">Ghi chú cho shipper</label><textarea id="fGhiChu" placeholder="Ví dụ: gọi trước 15 phút, giao giờ hành chính…">' + (kh.ghiChu || '') + '</textarea></div>' +
       '<div class="err" id="fLoi"></div>' +
@@ -1838,6 +1861,16 @@ function veManForm() {
     $('#hopCk').hidden = $('input[name="tt"]:checked').value !== 'ck';
   });
   if (kh.tinh) $('#fTinh').value = kh.tinh;
+}
+
+/* Khối thông tin tài khoản. Truyền mã đơn vào thì hiện luôn nội dung cần ghi khi chuyển. */
+function khoiNganHang(maDon) {
+  return '<dl class="nh">' +
+    '<dt>Ngân hàng</dt><dd>' + NGAN_HANG.ten + ' — chi nhánh ' + NGAN_HANG.chiNhanh + '</dd>' +
+    '<dt>Số tài khoản</dt><dd><b class="stk">' + NGAN_HANG.so + '</b></dd>' +
+    '<dt>Chủ tài khoản</dt><dd>' + NGAN_HANG.chu + '</dd>' +
+    (maDon ? '<dt>Nội dung</dt><dd><b class="stk">' + maDon + '</b></dd>' : '') +
+    '</dl>';
 }
 
 /* ---------- Kiểm tra và tạo đơn ---------- */
@@ -1934,7 +1967,7 @@ function noiDungPhieu(don) {
   d.push('Giao      : ' + TEN_GIAO[don.giao]);
   d.push(don.thanhToan === 'cod'
     ? 'Thanh toán: COD — shipper THU HỘ ' + tien(don.tong)
-    : 'Thanh toán: Đã chuyển khoản — KHÔNG thu tiền');
+    : 'Thanh toán: Chuyển khoản trước — KHÔNG thu tiền mặt');
   d.push('Gom hàng  : ' + don.khoLay.join(', '));
   return d.join('\n');
 }
@@ -1971,8 +2004,19 @@ function veManXong() {
   $('#gioTieuDe').textContent = '✅ Đặt hàng thành công';
   phaoGiay();
 
+  const khoiCk = don.thanhToan === 'ck'
+    ? '<div class="hop-ck">' +
+        '<h3 style="margin:0 0 4px;font-size:15px">🏦 Chuyển khoản để đơn được gửi đi</h3>' +
+        '<div class="tiny muted" style="margin-bottom:8px">Số tiền cần chuyển: <b>' + tien(don.tong) + '</b>. ' +
+        'Nhớ ghi đúng nội dung để chúng tôi đối chiếu được đơn của bạn.</div>' +
+        khoiNganHang(don.ma) +
+        '<button class="btn tiny" id="bChepStk" style="margin-top:8px">📋 Sao chép số tài khoản</button>' +
+      '</div>'
+    : '';
+
   oNoiDung.innerHTML =
     '<div class="ok-banner">🎉 <span>Đơn <b>' + don.ma + '</b> đã được ghi nhận</span></div>' +
+    khoiCk +
     '<p class="tiny muted" style="margin:0">Gửi phiếu bên dưới cho shipper để họ đi lấy hàng và giao tới người nhận.</p>' +
     '<div class="phieu" id="phieu"></div>' +
     '<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap">' +
@@ -1994,19 +2038,9 @@ function veManXong() {
   const chu = noiDungPhieu(don);
   $('#phieu').textContent = chu;
 
-  $('#bSaoChep').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(chu);
-      bao('Đã sao chép phiếu giao hàng');
-    } catch (e) {
-      const t = document.createElement('textarea');
-      t.value = chu; document.body.appendChild(t); t.select();
-      try { document.execCommand('copy'); bao('Đã sao chép phiếu giao hàng'); }
-      catch (e2) { bao('Trình duyệt không cho sao chép — bạn chọn tay giúp nhé'); }
-      t.remove();
-    }
-  };
+  $('#bSaoChep').onclick = () => chepChu(chu, 'Đã sao chép phiếu giao hàng');
   $('#bIn').onclick = () => window.print();
+  if ($('#bChepStk')) $('#bChepStk').onclick = () => chepChu(NGAN_HANG.so, 'Đã sao chép số tài khoản');
   $('#bTai').onclick = () => {
     const blob = new Blob([chu], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
@@ -2081,6 +2115,22 @@ function datLai(don) {
   luuGio(); capNhatSoGio();
   manHinh = 'gio'; veGio();
   bao(them + ' món đã vào giỏ' + (thieu ? ' (' + thieu + ' món không còn bán)' : ''));
+}
+
+/* Sao chép một đoạn chữ, có đường lui cho trình duyệt cũ */
+async function chepChu(chu, loiBao) {
+  try {
+    await navigator.clipboard.writeText(chu);
+    bao(loiBao);
+    return;
+  } catch (e) {}
+  const t = document.createElement('textarea');
+  t.value = chu;
+  document.body.appendChild(t);
+  t.select();
+  try { document.execCommand('copy'); bao(loiBao); }
+  catch (e) { bao('Trình duyệt không cho sao chép — bạn chọn tay giúp nhé'); }
+  t.remove();
 }
 
 /* ---------- Lời nhắn nhỏ góc màn hình ---------- */

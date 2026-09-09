@@ -592,6 +592,19 @@ kiểu giao (tiêu chuẩn / hoả tốc) và cách trả tiền (**COD** hoặc
 Số điện thoại phải đúng dạng 10 số đầu 03/05/07/08/09 mới cho đặt. Thông tin người nhận
 được nhớ lại cho lần đặt sau.
 
+Chọn **chuyển khoản** thì tài khoản nhận tiền hiện ngay trong form, và hiện lại lần nữa ở
+màn đặt hàng xong — kèm số tiền cần chuyển, mã đơn để ghi vào nội dung, và nút sao chép số
+tài khoản. Đổi tài khoản thì sửa một chỗ duy nhất ở đầu phần giỏ hàng:
+
+```js
+const NGAN_HANG = {
+  ten: 'TPBank',
+  chiNhanh: 'TP. Hồ Chí Minh',
+  so: '0933456400',
+  chu: 'NGUYEN VU THANH'
+};
+```
+
 Đặt xong trang sinh **phiếu giao hàng** dạng chữ thuần — mã đơn, người nhận, từng món và
 kho phải lấy, tổng tiền, số tiền shipper thu hộ:
 
