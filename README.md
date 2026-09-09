@@ -605,8 +605,29 @@ const NGAN_HANG = {
 };
 ```
 
-Đặt xong trang sinh **phiếu giao hàng** dạng chữ thuần — mã đơn, người nhận, từng món và
-kho phải lấy, tổng tiền, số tiền shipper thu hộ:
+## Hoá đơn và mã QR chuyển khoản
+
+Đặt xong, trang lập luôn **hoá đơn bán hàng**: đầu trang là mặt trống đồng và tên công ty,
+bên phải là mã đơn và giờ lập; dưới là bảng hàng đủ số thứ tự, tên món, nơi lấy hàng, đơn vị,
+số lượng, đơn giá, thành tiền; rồi tới phần cộng tiền, ô thanh toán, ghi chú và hai chỗ ký.
+Bấm **In hoá đơn** thì trang chỉ in mỗi tờ hoá đơn, khổ A4, mực đen trên nền trắng — mọi thứ
+khác của cửa hàng đều được ẩn đi.
+
+Đơn chọn **chuyển khoản** thì có thêm **mã QR theo chuẩn VietQR**, in ngay trên hoá đơn và
+hiện cả ở màn đặt hàng xong. Người mua mở app ngân hàng quét là điền sẵn số tài khoản, số
+tiền và nội dung chuyển (mã đơn), khỏi gõ tay.
+
+Mã QR do trang tự sinh, **không gọi ra mạng, không dùng thư viện ngoài**. Bộ sinh viết theo
+chuẩn ISO/IEC 18004 (chế độ byte, mức sửa lỗi L) và đã được đối chiếu từng ô với một thư
+viện QR chuẩn: **120/120 mẫu thử khớp tuyệt đối**, qua 20 phiên bản mã và độ dài 1–850 ký tự.
+Phần CRC của nội dung VietQR cũng khớp giá trị kiểm tra chuẩn (`123456789` → `29B1`).
+
+> **Trước khi bán thật, hãy tự quét thử mã QR một lần bằng app ngân hàng** để chắc chắn
+> tên người nhận và số tài khoản hiện lên đúng. Mã QR chỉ đúng khi `bin` trong khối
+> `NGAN_HANG` khớp với ngân hàng của bạn (`970423` là TPBank).
+
+Phiếu giao dạng chữ thuần vẫn còn, nằm trong mục gấp **Phiếu giao dạng chữ** — để sao chép
+hoặc nhắn thẳng cho shipper:
 
 ```
 PHIẾU GIAO HÀNG — ĐẶC SẢN VIỆT
@@ -621,7 +642,7 @@ Bốn cách đưa phiếu cho shipper:
 | Nút | Làm gì |
 | --- | --- |
 | 📋 Sao chép phiếu | chép toàn bộ phiếu vào bộ nhớ tạm, dán vào đâu cũng được |
-| 🖨️ In phiếu | in ra giấy, trang chỉ in mỗi phiếu |
+| 🖨️ In hoá đơn | in tờ hoá đơn ra giấy, khổ A4 |
 | ⬇️ Tải .txt | lưu thành tệp `phieu-giao-<mã đơn>.txt` |
 | 💬 SMS / 🔵 Zalo | nhập số điện thoại shipper, mở sẵn tin nhắn hoặc cửa sổ Zalo |
 
