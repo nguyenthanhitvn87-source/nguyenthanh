@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dự án · Yêu cầu thay đổi · Công việc</title>
+<title>Projects · Change Requests · Tasks</title>
 <style>
   :root{
     --bg:#f4f6fb;
@@ -203,43 +203,43 @@
 
   <header class="top">
     <h1>
-      <input id="tenTrang" value="Dự án của tôi" aria-label="Tên trang, bấm vào để sửa">
-      <small>Dự án · Yêu cầu thay đổi · Công việc · Tài liệu — lưu ngay trong máy bạn</small>
+      <input id="tenTrang" value="My Projects" aria-label="Page name, click to edit">
+      <small>Projects · Change requests · Tasks · Documents — kept on this computer</small>
     </h1>
     <div class="toolbar">
-      <span id="daLuu" class="da-luu">Đã lưu</span>
-      <button id="btThem" class="chinh">+ Thêm</button>
-      <button id="btXuat">⇩ Xuất JSON</button>
-      <button id="btNhap">⇧ Nhập JSON</button>
-      <button id="btLink">🔗 Gửi link</button>
-      <button id="btIn">🖨 In / PDF</button>
+      <span id="daLuu" class="da-luu">Saved</span>
+      <button id="btThem" class="chinh">+ Add</button>
+      <button id="btXuat">⇩ Export JSON</button>
+      <button id="btNhap">⇧ Import JSON</button>
+      <button id="btLink">🔗 Share link</button>
+      <button id="btIn">🖨 Print / PDF</button>
     </div>
   </header>
 
   <div id="baoNhan" class="bao" hidden></div>
 
-  <nav class="the" role="tablist" aria-label="Khu vực">
-    <button role="tab" data-the="tong-quan" aria-selected="true">Tổng quan</button>
-    <button role="tab" data-the="du-an" aria-selected="false">Dự án <span class="dem" id="demDuAn">0</span></button>
-    <button role="tab" data-the="cr" aria-selected="false">Yêu cầu thay đổi <span class="dem" id="demCr">0</span></button>
-    <button role="tab" data-the="viec" aria-selected="false">Công việc <span class="dem" id="demViec">0</span></button>
-    <button role="tab" data-the="tai-lieu" aria-selected="false">Tài liệu <span class="dem" id="demTaiLieu">0</span></button>
+  <nav class="the" role="tablist" aria-label="Sections">
+    <button role="tab" data-the="tong-quan" aria-selected="true">Overview</button>
+    <button role="tab" data-the="du-an" aria-selected="false">Projects <span class="dem" id="demDuAn">0</span></button>
+    <button role="tab" data-the="cr" aria-selected="false">Change requests <span class="dem" id="demCr">0</span></button>
+    <button role="tab" data-the="viec" aria-selected="false">Tasks <span class="dem" id="demViec">0</span></button>
+    <button role="tab" data-the="tai-lieu" aria-selected="false">Documents <span class="dem" id="demTaiLieu">0</span></button>
   </nav>
 
   <div class="loc" id="thanhLoc">
-    <input class="tim" id="oTim" type="search" placeholder="Tìm theo tên, mã, mô tả…" aria-label="Tìm">
-    <select id="locDuAn" aria-label="Lọc theo dự án"><option value="">Mọi dự án</option></select>
-    <select id="locTrangThai" aria-label="Lọc theo trạng thái"><option value="">Mọi trạng thái</option></select>
-    <button id="btXoaLoc" class="nho">Bỏ lọc</button>
+    <input class="tim" id="oTim" type="search" placeholder="Search name, code, description…" aria-label="Search">
+    <select id="locDuAn" aria-label="Filter by project"><option value="">All projects</option></select>
+    <select id="locTrangThai" aria-label="Filter by status"><option value="">All statuses</option></select>
+    <button id="btXoaLoc" class="nho">Clear filters</button>
   </div>
 
   <main id="noiDung"></main>
 
   <p class="mo" style="margin-top:22px">
-    Dữ liệu nằm trong trình duyệt của máy này (localStorage). Đổi máy hay đổi trình duyệt thì
-    dùng <b>Xuất JSON</b> rồi <b>Nhập JSON</b>, hoặc <b>Gửi link</b>.
-    File đính kèm cũng nằm trong đó nên nhớ giữ kích thước nhỏ; tài liệu lớn thì lưu link
-    Google Drive / SharePoint sẽ nhẹ hơn.
+    Everything lives in this browser on this computer (localStorage). Moving to another machine
+    or another browser: use <b>Export JSON</b> then <b>Import JSON</b>, or <b>Share link</b>.
+    Attached files live there too, so keep them small — for big documents a Google Drive /
+    SharePoint link is lighter.
   </p>
 </div>
 
@@ -256,55 +256,55 @@
   var GIOI_HAN_FILE = 1.5 * 1024 * 1024;   // trên mức này thì khuyên dùng link thay vì đính kèm
 
   var CR_TT = [
-    { ma:"nhap",    ten:"Nháp",       lop:"nhap"   },
-    { ma:"cho",     ten:"Chờ duyệt",  lop:"cho"    },
-    { ma:"duyet",   ten:"Đã duyệt",   lop:"duyet"  },
-    { ma:"tuchoi",  ten:"Từ chối",    lop:"tuchoi" },
-    { ma:"lam",     ten:"Đang làm",   lop:"lam"    },
-    { ma:"hoan",    ten:"Tạm hoãn",   lop:"hoan"   },
-    { ma:"xong",    ten:"Xong",       lop:"xong"   },
-    { ma:"huy",     ten:"Huỷ",        lop:"huy"    }
+    { ma:"nhap",    ten:"Draft",             lop:"nhap"   },
+    { ma:"cho",     ten:"Pending approval",  lop:"cho"    },
+    { ma:"duyet",   ten:"Approved",          lop:"duyet"  },
+    { ma:"tuchoi",  ten:"Rejected",          lop:"tuchoi" },
+    { ma:"lam",     ten:"In progress",       lop:"lam"    },
+    { ma:"hoan",    ten:"On hold",           lop:"hoan"   },
+    { ma:"xong",    ten:"Done",              lop:"xong"   },
+    { ma:"huy",     ten:"Cancelled",         lop:"huy"    }
   ];
   /* Bước nào đi tiếp được từ bước nào. Giữ luồng một chiều cho dễ nhìn lại về sau. */
   var CR_BUOC = {
-    nhap:   [ { den:"cho",    ten:"Gửi duyệt" }, { den:"huy", ten:"Huỷ" } ],
-    cho:    [ { den:"duyet",  ten:"Duyệt" }, { den:"tuchoi", ten:"Từ chối" }, { den:"nhap", ten:"Trả về nháp" } ],
-    duyet:  [ { den:"lam",    ten:"Bắt đầu làm" }, { den:"hoan", ten:"Tạm hoãn" }, { den:"huy", ten:"Huỷ" } ],
-    tuchoi: [ { den:"nhap",   ten:"Sửa lại" }, { den:"huy", ten:"Huỷ" } ],
-    lam:    [ { den:"xong",   ten:"Đánh dấu xong" }, { den:"hoan", ten:"Tạm hoãn" }, { den:"huy", ten:"Huỷ" } ],
-    hoan:   [ { den:"lam",    ten:"Làm tiếp" }, { den:"xong", ten:"Đánh dấu xong" }, { den:"huy", ten:"Huỷ" } ],
-    xong:   [ { den:"lam",    ten:"Mở lại" } ],
-    huy:    [ { den:"nhap",   ten:"Mở lại" } ]
+    nhap:   [ { den:"cho",    ten:"Submit for approval" }, { den:"huy", ten:"Cancel" } ],
+    cho:    [ { den:"duyet",  ten:"Approve" }, { den:"tuchoi", ten:"Reject" }, { den:"nhap", ten:"Back to draft" } ],
+    duyet:  [ { den:"lam",    ten:"Start work" }, { den:"hoan", ten:"Put on hold" }, { den:"huy", ten:"Cancel" } ],
+    tuchoi: [ { den:"nhap",   ten:"Revise" }, { den:"huy", ten:"Cancel" } ],
+    lam:    [ { den:"xong",   ten:"Mark done" }, { den:"hoan", ten:"Put on hold" }, { den:"huy", ten:"Cancel" } ],
+    hoan:   [ { den:"lam",    ten:"Resume" }, { den:"xong", ten:"Mark done" }, { den:"huy", ten:"Cancel" } ],
+    xong:   [ { den:"lam",    ten:"Reopen" } ],
+    huy:    [ { den:"nhap",   ten:"Reopen" } ]
   };
 
   var DA_TT = [
-    { ma:"chay",  ten:"Đang chạy", lop:"lam"  },
-    { ma:"treo",  ten:"Tạm dừng",  lop:"cho"  },
-    { ma:"xong",  ten:"Đã xong",   lop:"xong" },
-    { ma:"huy",   ten:"Đã huỷ",    lop:"huy"  }
+    { ma:"chay",  ten:"Active",    lop:"lam"  },
+    { ma:"treo",  ten:"Paused",    lop:"cho"  },
+    { ma:"xong",  ten:"Completed", lop:"xong" },
+    { ma:"huy",   ten:"Cancelled", lop:"huy"  }
   ];
 
   var VIEC_TT = [
-    { ma:"chualam", ten:"Chưa làm",  lop:"nhap"  },
-    { ma:"lam",     ten:"Đang làm",  lop:"lam"   },
-    { ma:"vuong",   ten:"Đang vướng",lop:"vuong" },
-    { ma:"hoan",    ten:"Tạm hoãn",  lop:"hoan"  },
-    { ma:"xong",    ten:"Xong",      lop:"xong"  }
+    { ma:"chualam", ten:"To do",       lop:"nhap"  },
+    { ma:"lam",     ten:"In progress", lop:"lam"   },
+    { ma:"vuong",   ten:"Blocked",     lop:"vuong" },
+    { ma:"hoan",    ten:"On hold",     lop:"hoan"  },
+    { ma:"xong",    ten:"Done",        lop:"xong"  }
   ];
 
   var UU_TIEN = [
-    { ma:"cao",    ten:"Cao",       lop:"cao"  },
-    { ma:"thuong", ten:"Bình thường", lop:""   },
-    { ma:"thap",   ten:"Thấp",      lop:"thap" }
+    { ma:"cao",    ten:"High",   lop:"cao"  },
+    { ma:"thuong", ten:"Normal", lop:""     },
+    { ma:"thap",   ten:"Low",    lop:"thap" }
   ];
 
   var ANH_HUONG = [
-    { ma:"thap", ten:"Thấp" },
-    { ma:"vua",  ten:"Trung bình" },
-    { ma:"cao",  ten:"Cao" }
+    { ma:"thap", ten:"Low" },
+    { ma:"vua",  ten:"Medium" },
+    { ma:"cao",  ten:"High" }
   ];
 
-  var LOAI_TL = ["Đặc tả yêu cầu","Thiết kế","Hợp đồng","Báo giá","Biên bản họp","Kế hoạch","Báo cáo","Nghiệm thu","Khác"];
+  var LOAI_TL = ["Requirements spec","Design","Contract","Quotation","Meeting minutes","Plan","Report","Acceptance","Other"];
 
   /* ---------- tiện ích nhỏ ---------- */
 
@@ -329,17 +329,26 @@
     n = new Date(n.getFullYear(), n.getMonth(), n.getDate());
     return Math.round((d - n) / 86400000);
   }
+  var THANG = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
   function fmtNgay(iso){
     var d = ngayTu(iso);
     if (!d) return "";
-    return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear();
+    return d.getDate() + " " + THANG[d.getMonth()] + " " + d.getFullYear();
   }
   function fmtLuc(ts){
     var d = new Date(ts);
     if (isNaN(d.getTime())) return "";
-    return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear() +
+    return d.getDate() + " " + THANG[d.getMonth()] + " " + d.getFullYear() +
            " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
+  function dem(n, ten){ return n + " " + ten + (n === 1 ? "" : "s"); }
+
+  function tomTat(g){
+    return dem(g.duAn.length, "project") + " · " + dem(g.cr.length, "request") + " · " +
+           dem(g.viec.length, "task") + " · " + dem(g.taiLieu.length, "document");
+  }
+
   function fmtCo(byte){
     if (!byte && byte !== 0) return "";
     if (byte < 1024) return byte + " B";
@@ -365,9 +374,9 @@
     if (!iso) return '<span class="mo">—</span>';
     var con = conMayNgay(iso);
     if (xongRoi || con === null) return esc(fmtNgay(iso));
-    if (con < 0)  return '<span class="nhan tre">' + esc(fmtNgay(iso)) + " · trễ " + (-con) + " ngày</span>";
-    if (con === 0) return '<span class="nhan hom-nay">' + esc(fmtNgay(iso)) + " · hôm nay</span>";
-    if (con <= 7) return '<span class="nhan hom-nay">' + esc(fmtNgay(iso)) + " · còn " + con + " ngày</span>";
+    if (con < 0)  return '<span class="nhan tre">' + esc(fmtNgay(iso)) + " · " + (-con) + (con === -1 ? " day" : " days") + " late</span>";
+    if (con === 0) return '<span class="nhan hom-nay">' + esc(fmtNgay(iso)) + " · today</span>";
+    if (con <= 7) return '<span class="nhan hom-nay">' + esc(fmtNgay(iso)) + " · in " + con + (con === 1 ? " day" : " days") + "</span>";
     return esc(fmtNgay(iso));
   }
   function ghiNhatKy(x, chu){
@@ -382,22 +391,22 @@
     var homNay = isoHomNay();
     var idDA = uid();
     return {
-      ten: "Dự án của tôi",
-      toi: "Tôi",
+      ten: "My Projects",
+      toi: "Me",
       soCr: 2,
       duAn: [{
-        id: idDA, ma: "DA01", ten: "Dự án mẫu — xoá đi khi bắt đầu thật",
-        khachHang: "", moTa: "Bấm vào một dòng để xem và sửa chi tiết.",
+        id: idDA, ma: "PRJ01", ten: "Sample project — delete once you start for real",
+        khachHang: "", moTa: "Click any row to open it and edit the details.",
         batDau: homNay, ketThuc: "", trangThai: "chay", nhatKy: [], mau: true
       }],
       cr: [{
-        id: uid(), ma: "CR-0001", tieuDe: "Yêu cầu thay đổi mẫu", duAnId: idDA,
-        nguoiYeuCau: "", moTa: "Mô tả cần thay đổi cái gì.", lyDo: "Vì sao phải đổi.",
+        id: uid(), ma: "CR-0001", tieuDe: "Sample change request", duAnId: idDA,
+        nguoiYeuCau: "", moTa: "What needs to change.", lyDo: "Why it needs to change.",
         anhHuong: "vua", uocLuong: 2, ngayMongMuon: "", trangThai: "nhap",
         duyetBoi: "", duyetLuc: 0, lyDoTuChoi: "", taoLuc: Date.now(), nhatKy: [], mau: true
       }],
       viec: [{
-        id: uid(), tieuDe: "Việc mẫu — sửa hoặc xoá", duAnId: idDA, crId: "",
+        id: uid(), tieuDe: "Sample task — edit it or delete it", duAnId: idDA, crId: "",
         trangThai: "chualam", uuTien: "thuong", hanChot: "", ghiChu: "",
         taoLuc: Date.now(), xongLuc: 0, nhatKy: [], mau: true
       }],
@@ -407,8 +416,8 @@
 
   function chuanHoa(p){
     var s = {
-      ten: typeof p.ten === "string" && p.ten ? p.ten : "Dự án của tôi",
-      toi: typeof p.toi === "string" && p.toi ? p.toi : "Tôi",
+      ten: typeof p.ten === "string" && p.ten ? p.ten : "My Projects",
+      toi: typeof p.toi === "string" && p.toi ? p.toi : "Me",
       soCr: Number(p.soCr) > 0 ? Number(p.soCr) : 1,
       duAn: [], cr: [], viec: [], taiLieu: []
     };
@@ -418,7 +427,7 @@
       var id = x.id || uid();
       coDuAn[id] = true;
       s.duAn.push({
-        id: id, ma: String(x.ma || ""), ten: String(x.ten || "Dự án không tên"),
+        id: id, ma: String(x.ma || ""), ten: String(x.ten || "Untitled project"),
         khachHang: String(x.khachHang || ""), moTa: String(x.moTa || ""),
         batDau: String(x.batDau || ""), ketThuc: String(x.ketThuc || ""),
         trangThai: timTrong(DA_TT, x.trangThai) ? x.trangThai : "chay",
@@ -428,7 +437,7 @@
     (Array.isArray(p.cr) ? p.cr : []).forEach(function(x){
       if (!x || typeof x !== "object") return;
       s.cr.push({
-        id: x.id || uid(), ma: String(x.ma || ""), tieuDe: String(x.tieuDe || "Yêu cầu không tên"),
+        id: x.id || uid(), ma: String(x.ma || ""), tieuDe: String(x.tieuDe || "Untitled request"),
         duAnId: coDuAn[x.duAnId] ? x.duAnId : "",
         nguoiYeuCau: String(x.nguoiYeuCau || ""), moTa: String(x.moTa || ""), lyDo: String(x.lyDo || ""),
         anhHuong: timTrong(ANH_HUONG, x.anhHuong) ? x.anhHuong : "vua",
@@ -446,7 +455,7 @@
     (Array.isArray(p.viec) ? p.viec : []).forEach(function(x){
       if (!x || typeof x !== "object") return;
       s.viec.push({
-        id: x.id || uid(), tieuDe: String(x.tieuDe || "Việc không tên"),
+        id: x.id || uid(), tieuDe: String(x.tieuDe || "Untitled task"),
         duAnId: coDuAn[x.duAnId] ? x.duAnId : "",
         crId: coCr[x.crId] ? x.crId : "",
         trangThai: timTrong(VIEC_TT, x.trangThai) ? x.trangThai : "chualam",
@@ -459,10 +468,10 @@
     (Array.isArray(p.taiLieu) ? p.taiLieu : []).forEach(function(x){
       if (!x || typeof x !== "object") return;
       s.taiLieu.push({
-        id: x.id || uid(), ten: String(x.ten || "Tài liệu không tên"),
+        id: x.id || uid(), ten: String(x.ten || "Untitled document"),
         duAnId: coDuAn[x.duAnId] ? x.duAnId : "",
         crId: coCr[x.crId] ? x.crId : "",
-        loai: String(x.loai || "Khác"), phienBan: String(x.phienBan || ""),
+        loai: String(x.loai || "Other"), phienBan: String(x.phienBan || ""),
         link: String(x.link || ""), ghiChu: String(x.ghiChu || ""),
         ngay: String(x.ngay || ""), taoLuc: Number(x.taoLuc) || Date.now(),
         file: x.file && x.file.duLieu ? {
@@ -498,8 +507,8 @@
       localStorage.setItem(KHOA, JSON.stringify(state));
       nhayDaLuu();
     } catch (e) {
-      alert("Không lưu được. Trình duyệt có thể đã đầy chỗ (thường do file đính kèm quá lớn).\n" +
-            "Hãy xoá bớt file đính kèm và dùng link tài liệu thay thế.\n\nChi tiết: " + e.message);
+      alert("Could not save. The browser may be out of space — usually because of large attachments.\n" +
+            "Remove some attachments and use document links instead.\n\nDetails: " + e.message);
     }
   }
   function luu(){
@@ -620,7 +629,7 @@
   function veThanhLoc(){
     var sel = $("locDuAn");
     var giu = loc.duAn;
-    var html = '<option value="">Mọi dự án</option>';
+    var html = '<option value="">All projects</option>';
     state.duAn.forEach(function(d){
       html += '<option value="' + esc(d.id) + '">' + esc((d.ma ? d.ma + " · " : "") + d.ten) + "</option>";
     });
@@ -631,13 +640,13 @@
     var ds = the === "du-an" ? DA_TT : the === "cr" ? CR_TT : the === "viec" ? VIEC_TT : null;
     var h2 = "";
     if (the === "tai-lieu") {
-      h2 = '<option value="">Mọi loại</option>';
+      h2 = '<option value="">All types</option>';
       LOAI_TL.forEach(function(l){ h2 += '<option value="' + esc(l) + '">' + esc(l) + "</option>"; });
     } else if (ds) {
-      h2 = '<option value="">Mọi trạng thái</option>';
+      h2 = '<option value="">All statuses</option>';
       ds.forEach(function(t){ h2 += '<option value="' + esc(t.ma) + '">' + esc(t.ten) + "</option>"; });
     } else {
-      h2 = '<option value="">Mọi trạng thái</option>';
+      h2 = '<option value="">All statuses</option>';
     }
     var giu2 = loc.trangThai;
     tt.innerHTML = h2;
@@ -647,7 +656,7 @@
 
     $("oTim").value = loc.tim;
     var btLoc = $("btXoaLoc");
-    btLoc.textContent = loc.chiTre ? "Chỉ việc trễ hạn ✕" : "Bỏ lọc";
+    btLoc.textContent = loc.chiTre ? "Overdue only ✕" : "Clear filters";
     btLoc.className = loc.chiTre ? "nho chinh" : "nho";
   }
 
@@ -690,19 +699,19 @@
     var daChay = state.duAn.filter(function(d){ return d.trangThai === "chay"; });
 
     var h = coMau()
-      ? '<div class="bao">Đang có mấy mục <b>làm mẫu</b> cho dễ hình dung. ' +
-        '<button class="nho" id="btXoaMau">Xoá các mục mẫu</button></div>'
+      ? '<div class="bao">A few <b>sample rows</b> are here to show how it works. ' +
+        '<button class="nho" id="btXoaMau">Delete sample rows</button></div>'
       : "";
     h += '<div class="the-so">' +
-      oSo(daChay.length, "Dự án đang chạy", "", "du-an:chay") +
-      oSo(crCho.length, "Yêu cầu chờ duyệt", crCho.length ? "chu-y" : "", "cr:cho") +
-      oSo(crDuyet.length, "Đã duyệt, chờ làm", "", "cr:duyet") +
-      oSo(crLam.length, "Yêu cầu đang làm", "", "cr:lam") +
-      (crHoan.length ? oSo(crHoan.length, "Yêu cầu tạm hoãn", "chu-y", "cr:hoan") : "") +
-      oSo(viecLam.length, "Việc đang làm", "", "viec:lam") +
-      oSo(viecVuong.length, "Việc đang vướng", viecVuong.length ? "chu-y" : "", "viec:vuong") +
-      (viecHoan.length ? oSo(viecHoan.length, "Việc tạm hoãn", "", "viec:hoan") : "") +
-      oSo(viecTre.length, "Việc trễ hạn", viecTre.length ? "canh" : "", "viec:tre") +
+      oSo(daChay.length, "Active projects", "", "du-an:chay") +
+      oSo(crCho.length, "Requests awaiting approval", crCho.length ? "chu-y" : "", "cr:cho") +
+      oSo(crDuyet.length, "Approved, not started", "", "cr:duyet") +
+      oSo(crLam.length, "Requests in progress", "", "cr:lam") +
+      (crHoan.length ? oSo(crHoan.length, "Requests on hold", "chu-y", "cr:hoan") : "") +
+      oSo(viecLam.length, "Tasks in progress", "", "viec:lam") +
+      oSo(viecVuong.length, "Blocked tasks", viecVuong.length ? "chu-y" : "", "viec:vuong") +
+      (viecHoan.length ? oSo(viecHoan.length, "Tasks on hold", "", "viec:hoan") : "") +
+      oSo(viecTre.length, "Overdue tasks", viecTre.length ? "canh" : "", "viec:tre") +
       "</div>";
 
     /* Sắp tới: gom việc và yêu cầu có hạn trong 14 ngày, hoặc đã trễ. */
@@ -711,22 +720,22 @@
       if (v.trangThai === "xong" || !v.hanChot) return;
       var con = conMayNgay(v.hanChot);
       if (con === null || con > 14) return;
-      sapToi.push({ con: con, loai: "Việc", ten: v.tieuDe, han: v.hanChot, duAnId: v.duAnId, id: v.id, mo: "viec" });
+      sapToi.push({ con: con, loai: "Task", ten: v.tieuDe, han: v.hanChot, duAnId: v.duAnId, id: v.id, mo: "viec" });
     });
     state.cr.forEach(function(c){
       if (c.trangThai === "xong" || c.trangThai === "huy" || !c.ngayMongMuon) return;
       var con = conMayNgay(c.ngayMongMuon);
       if (con === null || con > 14) return;
-      sapToi.push({ con: con, loai: "Yêu cầu", ten: (c.ma ? c.ma + " · " : "") + c.tieuDe, han: c.ngayMongMuon, duAnId: c.duAnId, id: c.id, mo: "cr" });
+      sapToi.push({ con: con, loai: "Request", ten: (c.ma ? c.ma + " · " : "") + c.tieuDe, han: c.ngayMongMuon, duAnId: c.duAnId, id: c.id, mo: "cr" });
     });
     sapToi.sort(function(a, b){ return a.con - b.con; });
 
-    h += '<div class="khoi"><div class="dau"><h2>Sắp tới hạn và đã trễ</h2>' +
-         '<span class="mo">trong 14 ngày</span></div>';
+    h += '<div class="khoi"><div class="dau"><h2>Due soon and overdue</h2>' +
+         '<span class="mo">next 14 days</span></div>';
     if (!sapToi.length) {
-      h += '<p class="trong">Không có gì tới hạn trong hai tuần tới.</p>';
+      h += '<p class="trong">Nothing falls due in the next two weeks.</p>';
     } else {
-      h += '<div class="bang-cuon"><table><thead><tr><th>Hạn</th><th>Loại</th><th>Tên</th><th>Dự án</th></tr></thead><tbody>';
+      h += '<div class="bang-cuon"><table><thead><tr><th>Due</th><th>Type</th><th>Name</th><th>Project</th></tr></thead><tbody>';
       sapToi.slice(0, 25).forEach(function(x){
         h += '<tr data-mo="' + x.mo + '" data-id="' + esc(x.id) + '" style="cursor:pointer">' +
              "<td>" + nhanHan(x.han, false) + "</td>" +
@@ -739,14 +748,14 @@
     h += "</div>";
 
     /* Từng dự án một dòng: tiến độ việc, số yêu cầu đang chờ, số tài liệu. */
-    h += '<div class="khoi"><div class="dau"><h2>Từng dự án</h2>' +
-         '<button class="nho" data-them="du-an">+ Dự án</button></div>';
+    h += '<div class="khoi"><div class="dau"><h2>Project by project</h2>' +
+         '<button class="nho" data-them="du-an">+ Project</button></div>';
     if (!state.duAn.length) {
-      h += '<p class="trong">Chưa có dự án nào.</p>';
+      h += '<p class="trong">No projects yet.</p>';
     } else {
-      h += '<div class="bang-cuon"><table><thead><tr><th>Dự án</th><th>Trạng thái</th>' +
-           '<th>Việc xong</th><th class="phai">Yêu cầu</th><th class="phai">Chờ duyệt</th>' +
-           '<th class="phai">Tài liệu</th></tr></thead><tbody>';
+      h += '<div class="bang-cuon"><table><thead><tr><th>Project</th><th>Status</th>' +
+           '<th>Tasks done</th><th class="phai">Requests</th><th class="phai">Awaiting</th>' +
+           '<th class="phai">Docs</th></tr></thead><tbody>';
       state.duAn.forEach(function(d){
         var viec = state.viec.filter(function(v){ return v.duAnId === d.id; });
         var xong = viec.filter(function(v){ return v.trangThai === "xong"; }).length;
@@ -793,7 +802,7 @@
       dem[t.ma] = state.cr.filter(function(c){ return c.trangThai === t.ma; }).length;
       if (dem[t.ma]) co++;
     });
-    var h = '<div class="khoi"><h2>Yêu cầu thay đổi theo trạng thái</h2>' +
+    var h = '<div class="khoi"><h2>Change requests by status</h2>' +
             '<div style="display:flex;height:22px;border-radius:20px;overflow:hidden;border:1px solid var(--line);margin-top:10px">';
     CR_TT.forEach(function(t){
       if (!dem[t.ma]) return;
@@ -812,16 +821,16 @@
 
   function veDuAn(){
     var ds = locDuAn();
-    var h = '<div class="khoi"><div class="dau"><h2>Dự án <span class="mo">' + ds.length + " mục</span></h2>" +
-            '<button class="nho chinh" data-them="du-an">+ Dự án</button></div>';
+    var h = '<div class="khoi"><div class="dau"><h2>Projects <span class="mo">' + ds.length + " shown</span></h2>" +
+            '<button class="nho chinh" data-them="du-an">+ Project</button></div>';
     if (!ds.length) {
-      h += '<p class="trong">Không có dự án nào khớp.</p></div>';
+      h += '<p class="trong">No project matches the filters.</p></div>';
       $("noiDung").innerHTML = h;
       return;
     }
-    h += '<div class="bang-cuon"><table><thead><tr><th>Mã</th><th>Tên dự án</th><th>Khách hàng</th>' +
-         "<th>Thời gian</th><th>Trạng thái</th><th class=\"phai\">YC</th><th class=\"phai\">Việc</th>" +
-         '<th class="phai">TL</th><th></th></tr></thead><tbody>';
+    h += '<div class="bang-cuon"><table><thead><tr><th>Code</th><th>Project</th><th>Customer</th>' +
+         "<th>Dates</th><th>Status</th><th class=\"phai\">CR</th><th class=\"phai\">Tasks</th>" +
+         '<th class="phai">Docs</th><th></th></tr></thead><tbody>';
     ds.forEach(function(d){
       var cr = state.cr.filter(function(c){ return c.duAnId === d.id; }).length;
       var vi = state.viec.filter(function(v){ return v.duAnId === d.id; }).length;
@@ -833,7 +842,7 @@
            '<td class="mo">' + (d.batDau ? esc(fmtNgay(d.batDau)) : "—") + (d.ketThuc ? " → " + esc(fmtNgay(d.ketThuc)) : "") + "</td>" +
            "<td>" + nhanTrangThai(DA_TT, d.trangThai) + "</td>" +
            '<td class="phai">' + cr + '</td><td class="phai">' + vi + '</td><td class="phai">' + tl + "</td>" +
-           '<td class="phai"><button class="nho" data-sua="du-an" data-id="' + esc(d.id) + '">Sửa</button></td></tr>';
+           '<td class="phai"><button class="nho" data-sua="du-an" data-id="' + esc(d.id) + '">Edit</button></td></tr>';
     });
     h += "</tbody></table></div></div>";
     $("noiDung").innerHTML = h;
@@ -846,28 +855,28 @@
       if (ta !== tb) return ta - tb;
       return b.taoLuc - a.taoLuc;
     });
-    var h = '<div class="khoi"><div class="dau"><h2>Yêu cầu thay đổi <span class="mo">' + ds.length + " mục</span></h2>" +
-            '<button class="nho chinh" data-them="cr">+ Yêu cầu</button></div>';
+    var h = '<div class="khoi"><div class="dau"><h2>Change requests <span class="mo">' + ds.length + " shown</span></h2>" +
+            '<button class="nho chinh" data-them="cr">+ Change request</button></div>';
     if (!ds.length) {
-      h += '<p class="trong">Không có yêu cầu nào khớp.</p></div>';
+      h += '<p class="trong">No request matches the filters.</p></div>';
       $("noiDung").innerHTML = h;
       return;
     }
-    h += '<div class="bang-cuon"><table><thead><tr><th>Mã</th><th>Tiêu đề</th><th>Dự án</th>' +
-         "<th>Ảnh hưởng</th><th class=\"phai\">Công</th><th>Mong muốn</th><th>Trạng thái</th><th></th></tr></thead><tbody>";
+    h += '<div class="bang-cuon"><table><thead><tr><th>Code</th><th>Title</th><th>Project</th>' +
+         "<th>Impact</th><th class=\"phai\">Effort</th><th>Target date</th><th>Status</th><th></th></tr></thead><tbody>";
     ds.forEach(function(c){
       var ah = timTrong(ANH_HUONG, c.anhHuong);
       h += '<tr data-mo="cr" data-id="' + esc(c.id) + '" style="cursor:pointer">' +
            '<td class="ma">' + esc(c.ma) + "</td>" +
            "<td><b>" + esc(c.tieuDe) + "</b>" +
-           (c.nguoiYeuCau ? '<div class="mo">Người yêu cầu: ' + esc(c.nguoiYeuCau) + "</div>" : "") + "</td>" +
+           (c.nguoiYeuCau ? '<div class="mo">Requested by: ' + esc(c.nguoiYeuCau) + "</div>" : "") + "</td>" +
            '<td class="mo">' + esc(tenDuAn(c.duAnId) || "—") + "</td>" +
            '<td><span class="nhan ' + (c.anhHuong === "cao" ? "cao" : c.anhHuong === "thap" ? "thap" : "") + '">' +
              esc(ah ? ah.ten : c.anhHuong) + "</span></td>" +
-           '<td class="phai">' + (c.uocLuong ? esc(c.uocLuong) + " ngày" : '<span class="mo">—</span>') + "</td>" +
+           '<td class="phai">' + (c.uocLuong ? esc(c.uocLuong) + (Number(c.uocLuong) === 1 ? " day" : " days") : '<span class="mo">—</span>') + "</td>" +
            "<td>" + (c.ngayMongMuon ? nhanHan(c.ngayMongMuon, c.trangThai === "xong" || c.trangThai === "huy") : '<span class="mo">—</span>') + "</td>" +
            "<td>" + nhanTrangThai(CR_TT, c.trangThai) + "</td>" +
-           '<td class="phai"><button class="nho" data-sua="cr" data-id="' + esc(c.id) + '">Sửa</button></td></tr>';
+           '<td class="phai"><button class="nho" data-sua="cr" data-id="' + esc(c.id) + '">Edit</button></td></tr>';
     });
     h += "</tbody></table></div></div>";
     $("noiDung").innerHTML = h;
@@ -881,22 +890,22 @@
       if (ha !== hb) return ha < hb ? -1 : 1;
       return b.taoLuc - a.taoLuc;
     });
-    var h = '<div class="khoi"><div class="dau"><h2>Công việc <span class="mo">' + ds.length + " mục</span></h2>" +
-            '<div style="display:flex;gap:6px"><button class="nho" data-nhieu="1">+ Nhiều việc</button>' +
-            '<button class="nho chinh" data-them="viec">+ Việc</button></div></div>';
+    var h = '<div class="khoi"><div class="dau"><h2>Tasks <span class="mo">' + ds.length + " shown</span></h2>" +
+            '<div style="display:flex;gap:6px"><button class="nho" data-nhieu="1">+ Bulk add</button>' +
+            '<button class="nho chinh" data-them="viec">+ Task</button></div></div>';
     if (!ds.length) {
-      h += '<p class="trong">Không có việc nào khớp.</p></div>';
+      h += '<p class="trong">No task matches the filters.</p></div>';
       $("noiDung").innerHTML = h;
       return;
     }
-    h += '<div class="bang-cuon"><table><thead><tr><th style="width:34px"></th><th>Việc</th><th>Dự án</th>' +
-         "<th>Yêu cầu</th><th>Ưu tiên</th><th>Hạn</th><th>Trạng thái</th><th></th></tr></thead><tbody>";
+    h += '<div class="bang-cuon"><table><thead><tr><th style="width:34px"></th><th>Task</th><th>Project</th>' +
+         "<th>Request</th><th>Priority</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody>";
     ds.forEach(function(v){
       var ut = timTrong(UU_TIEN, v.uuTien);
       var cr = timCr(v.crId);
       h += '<tr data-mo="viec" data-id="' + esc(v.id) + '" style="cursor:pointer">' +
            '<td><input type="checkbox" data-xong="' + esc(v.id) + '" style="width:auto"' +
-             (v.trangThai === "xong" ? " checked" : "") + ' aria-label="Đánh dấu xong"></td>' +
+             (v.trangThai === "xong" ? " checked" : "") + ' aria-label="Mark done"></td>' +
            "<td>" + (v.trangThai === "xong" ? '<s style="opacity:.65">' + esc(v.tieuDe) + "</s>" : "<b>" + esc(v.tieuDe) + "</b>") +
              (v.ghiChu ? '<div class="mo">' + esc(v.ghiChu.slice(0, 80)) + (v.ghiChu.length > 80 ? "…" : "") + "</div>" : "") + "</td>" +
            '<td class="mo">' + esc(tenDuAn(v.duAnId) || "—") + "</td>" +
@@ -904,7 +913,7 @@
            '<td><span class="nhan ' + (ut ? ut.lop : "") + '">' + esc(ut ? ut.ten : v.uuTien) + "</span></td>" +
            "<td>" + nhanHan(v.hanChot, v.trangThai === "xong") + "</td>" +
            "<td>" + nhanTrangThai(VIEC_TT, v.trangThai) + "</td>" +
-           '<td class="phai"><button class="nho" data-sua="viec" data-id="' + esc(v.id) + '">Sửa</button></td></tr>';
+           '<td class="phai"><button class="nho" data-sua="viec" data-id="' + esc(v.id) + '">Edit</button></td></tr>';
     });
     h += "</tbody></table></div></div>";
     $("noiDung").innerHTML = h;
@@ -919,25 +928,25 @@
     var tong = 0;
     state.taiLieu.forEach(function(t){ if (t.file) tong += t.file.co || 0; });
 
-    var h = '<div class="khoi"><div class="dau"><h2>Tài liệu dự án <span class="mo">' + ds.length + " mục</span></h2>" +
-            '<button class="nho chinh" data-them="tai-lieu">+ Tài liệu</button></div>';
-    h += '<p class="mo" style="margin:0 0 10px">Mỗi tài liệu giữ được một <b>link</b> (Drive, SharePoint, mạng nội bộ) ' +
-         'và/hoặc một <b>file đính kèm</b> nằm luôn trong máy. File đính kèm đang chiếm <b>' + fmtCo(tong) +
-         "</b> — nên giữ dưới khoảng 4 MB cho cả trang.</p>";
+    var h = '<div class="khoi"><div class="dau"><h2>Project documents <span class="mo">' + ds.length + " shown</span></h2>" +
+            '<button class="nho chinh" data-them="tai-lieu">+ Document</button></div>';
+    h += '<p class="mo" style="margin:0 0 10px">Every document can carry a <b>link</b> (Drive, SharePoint, a network share) ' +
+         'and/or an <b>attached file</b> stored right here. Attachments currently take <b>' + fmtCo(tong) +
+         "</b> — keep the whole page under roughly 4 MB.</p>";
     if (!ds.length) {
-      h += '<p class="trong">Chưa có tài liệu nào khớp.</p></div>';
+      h += '<p class="trong">No document matches the filters.</p></div>';
       $("noiDung").innerHTML = h;
       return;
     }
-    h += '<div class="bang-cuon"><table><thead><tr><th>Tài liệu</th><th>Loại</th><th>Dự án</th>' +
-         "<th>Yêu cầu</th><th>Bản</th><th>Ngày</th><th>Nơi lưu</th><th></th></tr></thead><tbody>";
+    h += '<div class="bang-cuon"><table><thead><tr><th>Document</th><th>Type</th><th>Project</th>' +
+         "<th>Request</th><th>Ver.</th><th>Date</th><th>Stored</th><th></th></tr></thead><tbody>";
     ds.forEach(function(t){
       var cr = timCr(t.crId);
       var noi = "";
-      if (t.link) noi += '<a href="' + esc(t.link) + '" target="_blank" rel="noopener">Mở link ↗</a>';
+      if (t.link) noi += '<a href="' + esc(t.link) + '" target="_blank" rel="noopener">Open link ↗</a>';
       if (t.file) noi += (noi ? '<br>' : "") + '<button class="nho" data-tai="' + esc(t.id) + '">⇩ ' +
                           esc(t.file.ten) + " · " + fmtCo(t.file.co) + "</button>";
-      if (!noi) noi = '<span class="mo">chưa có</span>';
+      if (!noi) noi = '<span class="mo">nothing yet</span>';
       h += '<tr data-mo="tai-lieu" data-id="' + esc(t.id) + '" style="cursor:pointer">' +
            "<td><b>" + esc(t.ten) + "</b>" + (t.ghiChu ? '<div class="mo">' + esc(t.ghiChu.slice(0, 80)) + (t.ghiChu.length > 80 ? "…" : "") + "</div>" : "") + "</td>" +
            '<td><span class="nhan">' + esc(t.loai) + "</span></td>" +
@@ -946,7 +955,7 @@
            '<td class="ma">' + esc(t.phienBan || "—") + "</td>" +
            '<td class="mo">' + (t.ngay ? esc(fmtNgay(t.ngay)) : "—") + "</td>" +
            "<td>" + noi + "</td>" +
-           '<td class="phai"><button class="nho" data-sua="tai-lieu" data-id="' + esc(t.id) + '">Sửa</button></td></tr>';
+           '<td class="phai"><button class="nho" data-sua="tai-lieu" data-id="' + esc(t.id) + '">Edit</button></td></tr>';
     });
     h += "</tbody></table></div></div>";
     $("noiDung").innerHTML = h;
@@ -973,10 +982,10 @@
   }
   function dauHop(ten, phu){
     return '<div class="dau"><h2>' + esc(ten) + (phu ? ' <span class="mo">' + esc(phu) + "</span>" : "") + "</h2>" +
-           '<button class="nho" data-dong="1" aria-label="Đóng">✕</button></div>';
+           '<button class="nho" data-dong="1" aria-label="Close">✕</button></div>';
   }
   function chonDuAn(idChon, batBuoc){
-    var h = '<select id="fDuAn"><option value="">' + (batBuoc ? "— chọn dự án —" : "— không thuộc dự án nào —") + "</option>";
+    var h = '<select id="fDuAn"><option value="">' + (batBuoc ? "— pick a project —" : "— no project —") + "</option>";
     state.duAn.forEach(function(d){
       h += '<option value="' + esc(d.id) + '"' + (d.id === idChon ? " selected" : "") + ">" +
            esc((d.ma ? d.ma + " · " : "") + d.ten) + "</option>";
@@ -984,7 +993,7 @@
     return h + "</select>";
   }
   function chonCr(idChon, duAnId){
-    var h = '<select id="fCr"><option value="">— không gắn yêu cầu nào —</option>';
+    var h = '<select id="fCr"><option value="">— not linked to a request —</option>';
     state.cr.forEach(function(c){
       if (duAnId && c.duAnId && c.duAnId !== duAnId) return;
       h += '<option value="' + esc(c.id) + '"' + (c.id === idChon ? " selected" : "") + ">" +
@@ -1001,7 +1010,7 @@
   }
   function nhatKyHtml(x){
     if (!x.nhatKy || !x.nhatKy.length) return "";
-    var h = '<h3 style="margin-top:14px">Nhật ký</h3><ul class="nhat-ky">';
+    var h = '<h3 style="margin-top:14px">History</h3><ul class="nhat-ky">';
     x.nhatKy.slice(0, 12).forEach(function(d){
       h += "<li><time>" + esc(fmtLuc(d.luc)) + "</time>" + esc(d.chu) + "</li>";
     });
@@ -1018,29 +1027,29 @@
     var moi = !d;
     d = d || { ma:"", ten:"", khachHang:"", moTa:"", batDau:isoHomNay(), ketThuc:"", trangThai:"chay" };
     moHop(
-      dauHop(moi ? "Dự án mới" : "Sửa dự án") +
+      dauHop(moi ? "New project" : "Edit project") +
       '<div class="hang2">' +
-        '<label class="o"><span>Mã dự án</span><input id="fMa" value="' + esc(d.ma) + '" placeholder="VD: DA01"></label>' +
-        '<label class="o"><span>Trạng thái</span>' + chonTu(DA_TT, d.trangThai, "fTrangThai") + "</label>" +
+        '<label class="o"><span>Project code</span><input id="fMa" value="' + esc(d.ma) + '" placeholder="e.g. PRJ01"></label>' +
+        '<label class="o"><span>Status</span>' + chonTu(DA_TT, d.trangThai, "fTrangThai") + "</label>" +
       "</div>" +
-      '<label class="o"><span>Tên dự án</span><input id="fTen" value="' + esc(d.ten) + '" placeholder="Tên dự án"></label>' +
-      '<label class="o"><span>Khách hàng / bộ phận đặt hàng</span><input id="fKhach" value="' + esc(d.khachHang) + '"></label>' +
+      '<label class="o"><span>Project name</span><input id="fTen" value="' + esc(d.ten) + '" placeholder="Project name"></label>' +
+      '<label class="o"><span>Customer / requesting department</span><input id="fKhach" value="' + esc(d.khachHang) + '"></label>' +
       '<div class="hang2">' +
-        '<label class="o"><span>Bắt đầu</span><input id="fBatDau" type="date" value="' + esc(d.batDau) + '"></label>' +
-        '<label class="o"><span>Dự kiến xong</span><input id="fKetThuc" type="date" value="' + esc(d.ketThuc) + '"></label>' +
+        '<label class="o"><span>Start</span><input id="fBatDau" type="date" value="' + esc(d.batDau) + '"></label>' +
+        '<label class="o"><span>Target finish</span><input id="fKetThuc" type="date" value="' + esc(d.ketThuc) + '"></label>' +
       "</div>" +
-      '<label class="o"><span>Mô tả</span><textarea id="fMoTa">' + esc(d.moTa) + "</textarea></label>" +
+      '<label class="o"><span>Description</span><textarea id="fMoTa">' + esc(d.moTa) + "</textarea></label>" +
       '<div class="chan">' +
-        (moi ? "" : '<button class="nguy" data-xoa="du-an" data-id="' + esc(d.id) + '">Xoá dự án</button>') +
-        '<button data-dong="1">Thôi</button>' +
-        '<button class="chinh" data-luu="du-an" data-id="' + esc(d.id || "") + '">Lưu</button>' +
+        (moi ? "" : '<button class="nguy" data-xoa="du-an" data-id="' + esc(d.id) + '">Delete project</button>') +
+        '<button data-dong="1">Cancel</button>' +
+        '<button class="chinh" data-luu="du-an" data-id="' + esc(d.id || "") + '">Save</button>' +
       "</div>"
     );
   }
 
   function luuDuAn(id){
     var ten = $("fTen").value.trim();
-    if (!ten) { alert("Cần có tên dự án."); $("fTen").focus(); return; }
+    if (!ten) { alert("A project needs a name."); $("fTen").focus(); return; }
     var d = timDuAn(id);
     var moi = !d;
     if (moi) { d = { id: uid(), nhatKy: [] }; state.duAn.push(d); }
@@ -1053,8 +1062,8 @@
     d.moTa = $("fMoTa").value.trim();
     d.trangThai = $("fTrangThai").value;
     d.mau = false;
-    if (moi) ghiNhatKy(d, "Tạo dự án");
-    else if (ttCu !== d.trangThai) ghiNhatKy(d, "Đổi trạng thái: " + tenTrangThai(DA_TT, ttCu) + " → " + tenTrangThai(DA_TT, d.trangThai));
+    if (moi) ghiNhatKy(d, "Project created");
+    else if (ttCu !== d.trangThai) ghiNhatKy(d, "Status: " + tenTrangThai(DA_TT, ttCu) + " → " + tenTrangThai(DA_TT, d.trangThai));
     dongHop();
     chamVao();
   }
@@ -1068,16 +1077,17 @@
     var tl = state.taiLieu.filter(function(t){ return t.duAnId === id; });
 
     var h = dauHop(d.ten, d.ma) +
-      dong("Trạng thái", nhanTrangThai(DA_TT, d.trangThai)) +
-      dong("Khách hàng", esc(d.khachHang || "—")) +
-      dong("Thời gian", (d.batDau ? esc(fmtNgay(d.batDau)) : "—") + (d.ketThuc ? " → " + esc(fmtNgay(d.ketThuc)) : "")) +
-      dong("Công việc", xong + "/" + viec.length + " xong") +
-      dong("Yêu cầu thay đổi", cr.length + " yêu cầu, " + cr.filter(function(c){ return c.trangThai === "cho"; }).length + " đang chờ duyệt") +
-      dong("Tài liệu", tl.length + " tài liệu");
-    if (d.moTa) h += '<h3 style="margin-top:14px">Mô tả</h3><p style="margin:0;white-space:pre-wrap">' + esc(d.moTa) + "</p>";
+      dong("Status", nhanTrangThai(DA_TT, d.trangThai)) +
+      dong("Customer", esc(d.khachHang || "—")) +
+      dong("Dates", (d.batDau ? esc(fmtNgay(d.batDau)) : "—") + (d.ketThuc ? " → " + esc(fmtNgay(d.ketThuc)) : "")) +
+      dong("Tasks", xong + "/" + viec.length + " done") +
+      dong("Change requests", dem(cr.length, "request") + ", " +
+        cr.filter(function(c){ return c.trangThai === "cho"; }).length + " awaiting approval") +
+      dong("Documents", dem(tl.length, "document"));
+    if (d.moTa) h += '<h3 style="margin-top:14px">Description</h3><p style="margin:0;white-space:pre-wrap">' + esc(d.moTa) + "</p>";
 
     if (tl.length) {
-      h += '<h3 style="margin-top:14px">Tài liệu</h3><ul style="margin:0;padding-left:18px">';
+      h += '<h3 style="margin-top:14px">Documents</h3><ul style="margin:0;padding-left:18px">';
       tl.forEach(function(t){
         h += "<li>" + esc(t.ten) + ' <span class="mo">' + esc(t.loai) + (t.phienBan ? " · " + esc(t.phienBan) : "") + "</span>" +
              (t.link ? ' <a href="' + esc(t.link) + '" target="_blank" rel="noopener">↗</a>' : "") +
@@ -1087,12 +1097,12 @@
     }
     h += nhatKyHtml(d);
     h += '<div class="chan">' +
-         '<button data-them="tai-lieu" data-da="' + esc(d.id) + '">+ Tài liệu</button>' +
-         '<button data-them="cr" data-da="' + esc(d.id) + '">+ Yêu cầu</button>' +
-         '<button data-them="viec" data-da="' + esc(d.id) + '">+ Việc</button>' +
-         '<button data-nhieu="1" data-da="' + esc(d.id) + '">+ Nhiều việc</button>' +
-         '<button data-sua="du-an" data-id="' + esc(d.id) + '">Sửa</button>' +
-         '<button class="chinh" data-dong="1">Đóng</button></div>';
+         '<button data-them="tai-lieu" data-da="' + esc(d.id) + '">+ Document</button>' +
+         '<button data-them="cr" data-da="' + esc(d.id) + '">+ Change request</button>' +
+         '<button data-them="viec" data-da="' + esc(d.id) + '">+ Task</button>' +
+         '<button data-nhieu="1" data-da="' + esc(d.id) + '">+ Bulk add</button>' +
+         '<button data-sua="du-an" data-id="' + esc(d.id) + '">Edit</button>' +
+         '<button class="chinh" data-dong="1">Close</button></div>';
     moHop(h);
   }
 
@@ -1103,30 +1113,30 @@
     gan = gan || {};
     c = c || { tieuDe:"", duAnId:(gan.duAnId || loc.duAn || ""), nguoiYeuCau:"", moTa:"", lyDo:"", anhHuong:"vua", uocLuong:"", ngayMongMuon:"" };
     moHop(
-      dauHop(moi ? "Yêu cầu thay đổi mới" : "Sửa " + (c.ma || "yêu cầu")) +
-      '<label class="o"><span>Tiêu đề</span><input id="fTieuDe" value="' + esc(c.tieuDe) + '" placeholder="Đổi cái gì"></label>' +
+      dauHop(moi ? "New change request" : "Edit " + (c.ma || "request")) +
+      '<label class="o"><span>Title</span><input id="fTieuDe" value="' + esc(c.tieuDe) + '" placeholder="What changes"></label>' +
       '<div class="hang2">' +
-        '<label class="o"><span>Dự án</span>' + chonDuAn(c.duAnId, false) + "</label>" +
-        '<label class="o"><span>Người yêu cầu</span><input id="fNguoi" value="' + esc(c.nguoiYeuCau) + '"></label>' +
+        '<label class="o"><span>Project</span>' + chonDuAn(c.duAnId, false) + "</label>" +
+        '<label class="o"><span>Requested by</span><input id="fNguoi" value="' + esc(c.nguoiYeuCau) + '"></label>' +
       "</div>" +
-      '<label class="o"><span>Nội dung thay đổi</span><textarea id="fMoTa" placeholder="Hiện tại đang thế nào, muốn đổi thành thế nào">' + esc(c.moTa) + "</textarea></label>" +
-      '<label class="o"><span>Lý do</span><textarea id="fLyDo" placeholder="Vì sao cần đổi">' + esc(c.lyDo) + "</textarea></label>" +
+      '<label class="o"><span>What should change</span><textarea id="fMoTa" placeholder="How it works now, and how it should work">' + esc(c.moTa) + "</textarea></label>" +
+      '<label class="o"><span>Reason</span><textarea id="fLyDo" placeholder="Why the change is needed">' + esc(c.lyDo) + "</textarea></label>" +
       '<div class="hang3">' +
-        '<label class="o"><span>Mức ảnh hưởng</span>' + chonTu(ANH_HUONG, c.anhHuong, "fAnhHuong") + "</label>" +
-        '<label class="o"><span>Ước lượng (ngày công)</span><input id="fUocLuong" type="number" min="0" step="0.5" value="' + esc(c.uocLuong) + '"></label>' +
-        '<label class="o"><span>Ngày mong muốn xong</span><input id="fMongMuon" type="date" value="' + esc(c.ngayMongMuon) + '"></label>' +
+        '<label class="o"><span>Impact</span>' + chonTu(ANH_HUONG, c.anhHuong, "fAnhHuong") + "</label>" +
+        '<label class="o"><span>Estimate (person-days)</span><input id="fUocLuong" type="number" min="0" step="0.5" value="' + esc(c.uocLuong) + '"></label>' +
+        '<label class="o"><span>Target completion date</span><input id="fMongMuon" type="date" value="' + esc(c.ngayMongMuon) + '"></label>' +
       "</div>" +
       '<div class="chan">' +
-        (moi ? "" : '<button class="nguy" data-xoa="cr" data-id="' + esc(c.id) + '">Xoá</button>') +
-        '<button data-dong="1">Thôi</button>' +
-        '<button class="chinh" data-luu="cr" data-id="' + esc(c.id || "") + '">Lưu</button>' +
+        (moi ? "" : '<button class="nguy" data-xoa="cr" data-id="' + esc(c.id) + '">Delete</button>') +
+        '<button data-dong="1">Cancel</button>' +
+        '<button class="chinh" data-luu="cr" data-id="' + esc(c.id || "") + '">Save</button>' +
       "</div>"
     );
   }
 
   function luuCr(id){
     var tieuDe = $("fTieuDe").value.trim();
-    if (!tieuDe) { alert("Cần có tiêu đề."); $("fTieuDe").focus(); return; }
+    if (!tieuDe) { alert("A request needs a title."); $("fTieuDe").focus(); return; }
     var c = timCr(id);
     var moi = !c;
     if (moi) {
@@ -1143,8 +1153,8 @@
     c.uocLuong = Number($("fUocLuong").value) || 0;
     c.ngayMongMuon = $("fMongMuon").value;
     c.mau = false;
-    if (moi) ghiNhatKy(c, "Tạo yêu cầu " + c.ma);
-    else ghiNhatKy(c, "Sửa nội dung yêu cầu");
+    if (moi) ghiNhatKy(c, "Request " + c.ma + " created");
+    else ghiNhatKy(c, "Details edited");
     dongHop();
     chamVao();
   }
@@ -1154,16 +1164,16 @@
     if (!c) return;
     var cu = c.trangThai;
     if (den === "duyet") {
-      var ai = prompt("Ai duyệt yêu cầu này?", state.toi || "Tôi");
+      var ai = prompt("Who approves this request?", state.toi || "Me");
       if (ai === null) return;
       c.duyetBoi = ai.trim() || state.toi;
       c.duyetLuc = Date.now();
-      ghiNhatKy(c, "Đã duyệt bởi " + c.duyetBoi);
+      ghiNhatKy(c, "Approved by " + c.duyetBoi);
     } else if (den === "tuchoi") {
-      var vi = prompt("Lý do từ chối:", c.lyDoTuChoi || "");
+      var vi = prompt("Reason for rejecting:", c.lyDoTuChoi || "");
       if (vi === null) return;
       c.lyDoTuChoi = vi.trim();
-      ghiNhatKy(c, "Từ chối" + (c.lyDoTuChoi ? ": " + c.lyDoTuChoi : ""));
+      ghiNhatKy(c, "Rejected" + (c.lyDoTuChoi ? ": " + c.lyDoTuChoi : ""));
     } else {
       ghiNhatKy(c, tenTrangThai(CR_TT, cu) + " → " + tenTrangThai(CR_TT, den));
     }
@@ -1182,20 +1192,20 @@
     var tl = state.taiLieu.filter(function(t){ return t.crId === id; });
 
     var h = dauHop(c.tieuDe, c.ma) +
-      dong("Trạng thái", nhanTrangThai(CR_TT, c.trangThai)) +
-      dong("Dự án", esc(tenDuAn(c.duAnId) || "—")) +
-      dong("Người yêu cầu", esc(c.nguoiYeuCau || "—")) +
-      dong("Mức ảnh hưởng", esc(ah ? ah.ten : c.anhHuong)) +
-      dong("Ước lượng", c.uocLuong ? esc(c.uocLuong) + " ngày công" : "—") +
-      dong("Ngày mong muốn", c.ngayMongMuon ? nhanHan(c.ngayMongMuon, c.trangThai === "xong" || c.trangThai === "huy") : "—") +
-      dong("Tạo lúc", esc(fmtLuc(c.taoLuc)));
-    if (c.duyetLuc) h += dong("Duyệt", esc(c.duyetBoi) + " · " + esc(fmtLuc(c.duyetLuc)));
-    if (c.lyDoTuChoi) h += dong("Lý do từ chối", esc(c.lyDoTuChoi));
-    if (c.moTa) h += '<h3 style="margin-top:14px">Nội dung thay đổi</h3><p style="margin:0;white-space:pre-wrap">' + esc(c.moTa) + "</p>";
-    if (c.lyDo) h += '<h3 style="margin-top:14px">Lý do</h3><p style="margin:0;white-space:pre-wrap">' + esc(c.lyDo) + "</p>";
+      dong("Status", nhanTrangThai(CR_TT, c.trangThai)) +
+      dong("Project", esc(tenDuAn(c.duAnId) || "—")) +
+      dong("Requested by", esc(c.nguoiYeuCau || "—")) +
+      dong("Impact", esc(ah ? ah.ten : c.anhHuong)) +
+      dong("Estimate", c.uocLuong ? esc(c.uocLuong) + (Number(c.uocLuong) === 1 ? " person-day" : " person-days") : "—") +
+      dong("Target date", c.ngayMongMuon ? nhanHan(c.ngayMongMuon, c.trangThai === "xong" || c.trangThai === "huy") : "—") +
+      dong("Created", esc(fmtLuc(c.taoLuc)));
+    if (c.duyetLuc) h += dong("Approved", esc(c.duyetBoi) + " · " + esc(fmtLuc(c.duyetLuc)));
+    if (c.lyDoTuChoi) h += dong("Rejection reason", esc(c.lyDoTuChoi));
+    if (c.moTa) h += '<h3 style="margin-top:14px">What should change</h3><p style="margin:0;white-space:pre-wrap">' + esc(c.moTa) + "</p>";
+    if (c.lyDo) h += '<h3 style="margin-top:14px">Reason</h3><p style="margin:0;white-space:pre-wrap">' + esc(c.lyDo) + "</p>";
 
     if (viec.length) {
-      h += '<h3 style="margin-top:14px">Việc thuộc yêu cầu này</h3><ul style="margin:0;padding-left:18px">';
+      h += '<h3 style="margin-top:14px">Tasks under this request</h3><ul style="margin:0;padding-left:18px">';
       viec.forEach(function(v){
         h += "<li>" + (v.trangThai === "xong" ? "<s>" + esc(v.tieuDe) + "</s>" : esc(v.tieuDe)) +
              ' <span class="mo">' + esc(tenTrangThai(VIEC_TT, v.trangThai)) + "</span></li>";
@@ -1203,7 +1213,7 @@
       h += "</ul>";
     }
     if (tl.length) {
-      h += '<h3 style="margin-top:14px">Tài liệu kèm theo</h3><ul style="margin:0;padding-left:18px">';
+      h += '<h3 style="margin-top:14px">Documents attached</h3><ul style="margin:0;padding-left:18px">';
       tl.forEach(function(t){
         h += "<li>" + esc(t.ten) +
              (t.link ? ' <a href="' + esc(t.link) + '" target="_blank" rel="noopener">↗</a>' : "") +
@@ -1215,15 +1225,15 @@
 
     var buoc = CR_BUOC[c.trangThai] || [];
     h += '<div class="chan">';
-    h += '<button data-them="tai-lieu" data-cr="' + esc(c.id) + '">+ Tài liệu</button>';
-    h += '<button data-them="viec" data-cr="' + esc(c.id) + '">+ Việc</button>';
-    h += '<button data-nhieu="1" data-cr="' + esc(c.id) + '">+ Nhiều việc</button>';
-    h += '<button data-sua="cr" data-id="' + esc(c.id) + '">Sửa</button>';
+    h += '<button data-them="tai-lieu" data-cr="' + esc(c.id) + '">+ Document</button>';
+    h += '<button data-them="viec" data-cr="' + esc(c.id) + '">+ Task</button>';
+    h += '<button data-nhieu="1" data-cr="' + esc(c.id) + '">+ Bulk add</button>';
+    h += '<button data-sua="cr" data-id="' + esc(c.id) + '">Edit</button>';
     buoc.forEach(function(b){
       var lop = b.den === "duyet" ? "chinh" : b.den === "tuchoi" || b.den === "huy" ? "nguy" : "";
       h += '<button class="' + lop + '" data-buoc="' + esc(b.den) + '" data-id="' + esc(c.id) + '">' + esc(b.ten) + "</button>";
     });
-    h += '<button data-dong="1">Đóng</button></div>';
+    h += '<button data-dong="1">Close</button></div>';
     moHop(h);
   }
 
@@ -1235,29 +1245,29 @@
     v = v || { tieuDe:"", duAnId:(gan.duAnId || loc.duAn || ""), crId:(gan.crId || ""),
                trangThai:"chualam", uuTien:"thuong", hanChot:"", ghiChu:"" };
     moHop(
-      dauHop(moi ? "Việc mới" : "Sửa việc") +
-      '<label class="o"><span>Việc cần làm</span><input id="fTieuDe" value="' + esc(v.tieuDe) + '"></label>' +
+      dauHop(moi ? "New task" : "Edit task") +
+      '<label class="o"><span>What needs doing</span><input id="fTieuDe" value="' + esc(v.tieuDe) + '"></label>' +
       '<div class="hang2">' +
-        '<label class="o"><span>Dự án</span>' + chonDuAn(v.duAnId, false) + "</label>" +
-        '<label class="o"><span>Thuộc yêu cầu thay đổi</span>' + chonCr(v.crId, "") + "</label>" +
+        '<label class="o"><span>Project</span>' + chonDuAn(v.duAnId, false) + "</label>" +
+        '<label class="o"><span>Part of change request</span>' + chonCr(v.crId, "") + "</label>" +
       "</div>" +
       '<div class="hang3">' +
-        '<label class="o"><span>Trạng thái</span>' + chonTu(VIEC_TT, v.trangThai, "fTrangThai") + "</label>" +
-        '<label class="o"><span>Ưu tiên</span>' + chonTu(UU_TIEN, v.uuTien, "fUuTien") + "</label>" +
-        '<label class="o"><span>Hạn chót</span><input id="fHan" type="date" value="' + esc(v.hanChot) + '"></label>' +
+        '<label class="o"><span>Status</span>' + chonTu(VIEC_TT, v.trangThai, "fTrangThai") + "</label>" +
+        '<label class="o"><span>Priority</span>' + chonTu(UU_TIEN, v.uuTien, "fUuTien") + "</label>" +
+        '<label class="o"><span>Due date</span><input id="fHan" type="date" value="' + esc(v.hanChot) + '"></label>' +
       "</div>" +
-      '<label class="o"><span>Ghi chú</span><textarea id="fGhiChu">' + esc(v.ghiChu) + "</textarea></label>" +
+      '<label class="o"><span>Notes</span><textarea id="fGhiChu">' + esc(v.ghiChu) + "</textarea></label>" +
       '<div class="chan">' +
-        (moi ? "" : '<button class="nguy" data-xoa="viec" data-id="' + esc(v.id) + '">Xoá</button>') +
-        '<button data-dong="1">Thôi</button>' +
-        '<button class="chinh" data-luu="viec" data-id="' + esc(v.id || "") + '">Lưu</button>' +
+        (moi ? "" : '<button class="nguy" data-xoa="viec" data-id="' + esc(v.id) + '">Delete</button>') +
+        '<button data-dong="1">Cancel</button>' +
+        '<button class="chinh" data-luu="viec" data-id="' + esc(v.id || "") + '">Save</button>' +
       "</div>"
     );
   }
 
   function luuViec(id){
     var tieuDe = $("fTieuDe").value.trim();
-    if (!tieuDe) { alert("Cần ghi việc cần làm."); $("fTieuDe").focus(); return; }
+    if (!tieuDe) { alert("A task needs a title."); $("fTieuDe").focus(); return; }
     var v = timViec(id);
     var moi = !v;
     if (moi) { v = { id: uid(), taoLuc: Date.now(), xongLuc: 0, nhatKy: [] }; state.viec.push(v); }
@@ -1272,7 +1282,7 @@
     if (v.trangThai === "xong" && ttCu !== "xong") v.xongLuc = Date.now();
     if (v.trangThai !== "xong") v.xongLuc = 0;
     v.mau = false;
-    if (moi) ghiNhatKy(v, "Tạo việc");
+    if (moi) ghiNhatKy(v, "Task created");
     else if (ttCu !== v.trangThai) ghiNhatKy(v, tenTrangThai(VIEC_TT, ttCu) + " → " + tenTrangThai(VIEC_TT, v.trangThai));
     dongHop();
     chamVao();
@@ -1296,8 +1306,8 @@
       var ng = docNgay(t);
       if (ng) { han = ng; return; }
       var th = t.toLowerCase();
-      if (th === "cao" || th === "gấp" || th === "gap" || th === "high" || th === "!") uuTien = "cao";
-      else if (th === "thấp" || th === "thap" || th === "low") uuTien = "thap";
+      if (th === "high" || th === "urgent" || th === "cao" || th === "gấp" || th === "gap" || th === "!") uuTien = "cao";
+      else if (th === "low" || th === "thấp" || th === "thap") uuTien = "thap";
     });
     return { tieuDe: tieuDe, uuTien: uuTien, hanChot: han };
   }
@@ -1325,20 +1335,20 @@
     gan = gan || {};
     var cr = timCr(gan.crId);
     moHop(
-      dauHop("Thêm nhiều việc một lúc", cr ? cr.ma : "") +
-      '<p class="mo" style="margin:0 0 10px">Mỗi dòng một việc. Muốn ghi thêm hạn hay ưu tiên thì ngăn bằng ' +
-      'dấu <b>|</b> — ví dụ <code>Viết truy vấn tồn kho | 25/09 | cao</code>. ' +
-      'Ngày viết kiểu <code>25/09</code>, <code>25/09/2026</code> hay <code>2026-09-25</code> đều được; ' +
-      'ưu tiên ghi <code>cao</code> / <code>thấp</code>, hoặc đặt dấu <b>!</b> ở đầu dòng.</p>' +
+      dauHop("Add many tasks at once", cr ? cr.ma : "") +
+      '<p class="mo" style="margin:0 0 10px">One task per line. To add a due date or a priority, separate them ' +
+      'with <b>|</b> — for example <code>Write the stock query | 25/09 | high</code>. ' +
+      'Dates are <b>day/month</b>: <code>25/09</code>, <code>25/09/2026</code> or <code>2026-09-25</code>. ' +
+      'Priority is <code>high</code> or <code>low</code>, or put <b>!</b> at the start of the line.</p>' +
       '<div class="hang2">' +
-        '<label class="o"><span>Dự án</span>' + chonDuAn(gan.duAnId || "", false) + "</label>" +
-        '<label class="o"><span>Thuộc yêu cầu thay đổi</span>' + chonCr(gan.crId || "", "") + "</label>" +
+        '<label class="o"><span>Project</span>' + chonDuAn(gan.duAnId || "", false) + "</label>" +
+        '<label class="o"><span>Part of change request</span>' + chonCr(gan.crId || "", "") + "</label>" +
       "</div>" +
-      '<label class="o"><span>Danh sách việc</span>' +
-        '<textarea id="fNhieu" style="min-height:190px" placeholder="Rà soát dữ liệu tồn kho | 20/09\n! Viết truy vấn theo kho | 25/09\nHọp chốt mẫu báo cáo | 28/09 | thấp"></textarea></label>' +
-      '<p class="mo" id="xemTruoc">Chưa có dòng nào.</p>' +
-      '<div class="chan"><button data-dong="1">Thôi</button>' +
-      '<button class="chinh" id="btLuuNhieu">Thêm hết</button></div>'
+      '<label class="o"><span>Task list</span>' +
+        '<textarea id="fNhieu" style="min-height:190px" placeholder="Check the stock data | 20/09\n! Write the query per warehouse | 25/09\nAgree the report layout | 28/09 | low"></textarea></label>' +
+      '<p class="mo" id="xemTruoc">No lines yet.</p>' +
+      '<div class="chan"><button data-dong="1">Cancel</button>' +
+      '<button class="chinh" id="btLuuNhieu">Add them all</button></div>'
     );
     var o = $("fNhieu");
     function demThu(){
@@ -1346,10 +1356,10 @@
       var coHan = ds.filter(function(x){ return x.hanChot; }).length;
       var coCao = ds.filter(function(x){ return x.uuTien === "cao"; }).length;
       $("xemTruoc").innerHTML = ds.length
-        ? "Sẽ thêm <b>" + ds.length + " việc</b>" +
-          (coHan ? ", " + coHan + " việc có hạn" : "") +
-          (coCao ? ", " + coCao + " việc ưu tiên cao" : "") + "."
-        : "Chưa có dòng nào.";
+        ? "Will add <b>" + ds.length + (ds.length === 1 ? " task</b>" : " tasks</b>") +
+          (coHan ? ", " + coHan + " with a due date" : "") +
+          (coCao ? ", " + coCao + " at high priority" : "") + "."
+        : "No lines yet.";
     }
     o.addEventListener("input", demThu);
     $("btLuuNhieu").onclick = function(){ luuNhieuViec(); };
@@ -1357,7 +1367,7 @@
 
   function luuNhieuViec(){
     var ds = $("fNhieu").value.split("\n").map(docDongViec).filter(Boolean);
-    if (!ds.length) { alert("Chưa có dòng việc nào để thêm."); $("fNhieu").focus(); return; }
+    if (!ds.length) { alert("There are no task lines to add yet."); $("fNhieu").focus(); return; }
     var duAnId = $("fDuAn").value, crId = $("fCr").value;
     ds.forEach(function(x){
       var v = {
@@ -1365,7 +1375,7 @@
         trangThai: "chualam", uuTien: x.uuTien, hanChot: x.hanChot, ghiChu: "",
         taoLuc: Date.now(), xongLuc: 0, nhatKy: []
       };
-      ghiNhatKy(v, "Tạo việc (thêm hàng loạt)");
+      ghiNhatKy(v, "Task created (bulk add)");
       state.viec.push(v);
     });
     dongHop();
@@ -1379,17 +1389,17 @@
     var cr = timCr(v.crId);
     var ut = timTrong(UU_TIEN, v.uuTien);
     var h = dauHop(v.tieuDe) +
-      dong("Trạng thái", nhanTrangThai(VIEC_TT, v.trangThai)) +
-      dong("Dự án", esc(tenDuAn(v.duAnId) || "—")) +
-      dong("Yêu cầu thay đổi", cr ? esc(cr.ma + " · " + cr.tieuDe) : "—") +
-      dong("Ưu tiên", esc(ut ? ut.ten : v.uuTien)) +
-      dong("Hạn chót", v.hanChot ? nhanHan(v.hanChot, v.trangThai === "xong") : "—") +
-      dong("Tạo lúc", esc(fmtLuc(v.taoLuc))) +
-      (v.xongLuc ? dong("Xong lúc", esc(fmtLuc(v.xongLuc))) : "");
-    if (v.ghiChu) h += '<h3 style="margin-top:14px">Ghi chú</h3><p style="margin:0;white-space:pre-wrap">' + esc(v.ghiChu) + "</p>";
+      dong("Status", nhanTrangThai(VIEC_TT, v.trangThai)) +
+      dong("Project", esc(tenDuAn(v.duAnId) || "—")) +
+      dong("Change request", cr ? esc(cr.ma + " · " + cr.tieuDe) : "—") +
+      dong("Priority", esc(ut ? ut.ten : v.uuTien)) +
+      dong("Due date", v.hanChot ? nhanHan(v.hanChot, v.trangThai === "xong") : "—") +
+      dong("Created", esc(fmtLuc(v.taoLuc))) +
+      (v.xongLuc ? dong("Completed", esc(fmtLuc(v.xongLuc))) : "");
+    if (v.ghiChu) h += '<h3 style="margin-top:14px">Notes</h3><p style="margin:0;white-space:pre-wrap">' + esc(v.ghiChu) + "</p>";
     h += nhatKyHtml(v);
-    h += '<div class="chan"><button data-sua="viec" data-id="' + esc(v.id) + '">Sửa</button>' +
-         '<button class="chinh" data-dong="1">Đóng</button></div>';
+    h += '<div class="chan"><button data-sua="viec" data-id="' + esc(v.id) + '">Edit</button>' +
+         '<button class="chinh" data-dong="1">Close</button></div>';
     moHop(h);
   }
 
@@ -1401,31 +1411,31 @@
     var moi = !t;
     gan = gan || {};
     fileTam = undefined;
-    t = t || { ten:"", duAnId:(gan.duAnId || loc.duAn || ""), crId:(gan.crId || ""), loai:"Đặc tả yêu cầu",
+    t = t || { ten:"", duAnId:(gan.duAnId || loc.duAn || ""), crId:(gan.crId || ""), loai:"Requirements spec",
                phienBan:"", link:"", ghiChu:"", ngay:isoHomNay(), file:null };
     var hLoai = '<select id="fLoai">';
     LOAI_TL.forEach(function(l){ hLoai += '<option' + (l === t.loai ? " selected" : "") + ">" + esc(l) + "</option>"; });
     hLoai += "</select>";
 
     moHop(
-      dauHop(moi ? "Tài liệu mới" : "Sửa tài liệu") +
-      '<label class="o"><span>Tên tài liệu</span><input id="fTen" value="' + esc(t.ten) + '" placeholder="VD: Đặc tả yêu cầu v1.2"></label>' +
+      dauHop(moi ? "New document" : "Edit document") +
+      '<label class="o"><span>Document name</span><input id="fTen" value="' + esc(t.ten) + '" placeholder="e.g. Requirements spec v1.2"></label>' +
       '<div class="hang2">' +
-        '<label class="o"><span>Dự án</span>' + chonDuAn(t.duAnId, false) + "</label>" +
-        '<label class="o"><span>Gắn với yêu cầu thay đổi</span>' + chonCr(t.crId, "") + "</label>" +
+        '<label class="o"><span>Project</span>' + chonDuAn(t.duAnId, false) + "</label>" +
+        '<label class="o"><span>Linked change request</span>' + chonCr(t.crId, "") + "</label>" +
       "</div>" +
       '<div class="hang3">' +
-        '<label class="o"><span>Loại</span>' + hLoai + "</label>" +
-        '<label class="o"><span>Phiên bản</span><input id="fPhienBan" value="' + esc(t.phienBan) + '" placeholder="v1.0"></label>' +
-        '<label class="o"><span>Ngày tài liệu</span><input id="fNgay" type="date" value="' + esc(t.ngay) + '"></label>' +
+        '<label class="o"><span>Type</span>' + hLoai + "</label>" +
+        '<label class="o"><span>Version</span><input id="fPhienBan" value="' + esc(t.phienBan) + '" placeholder="v1.0"></label>' +
+        '<label class="o"><span>Document date</span><input id="fNgay" type="date" value="' + esc(t.ngay) + '"></label>' +
       "</div>" +
-      '<label class="o"><span>Link (Google Drive, SharePoint, ổ mạng…)</span><input id="fLink" value="' + esc(t.link) + '" placeholder="https://…"></label>' +
-      '<label class="o"><span>File đính kèm</span><div id="khoFile"></div></label>' +
-      '<label class="o"><span>Ghi chú</span><textarea id="fGhiChu">' + esc(t.ghiChu) + "</textarea></label>" +
+      '<label class="o"><span>Link (Google Drive, SharePoint, network share…)</span><input id="fLink" value="' + esc(t.link) + '" placeholder="https://…"></label>' +
+      '<label class="o"><span>Attached file</span><div id="khoFile"></div></label>' +
+      '<label class="o"><span>Notes</span><textarea id="fGhiChu">' + esc(t.ghiChu) + "</textarea></label>" +
       '<div class="chan">' +
-        (moi ? "" : '<button class="nguy" data-xoa="tai-lieu" data-id="' + esc(t.id) + '">Xoá</button>') +
-        '<button data-dong="1">Thôi</button>' +
-        '<button class="chinh" data-luu="tai-lieu" data-id="' + esc(t.id || "") + '">Lưu</button>' +
+        (moi ? "" : '<button class="nguy" data-xoa="tai-lieu" data-id="' + esc(t.id) + '">Delete</button>') +
+        '<button data-dong="1">Cancel</button>' +
+        '<button class="chinh" data-luu="tai-lieu" data-id="' + esc(t.id || "") + '">Save</button>' +
       "</div>"
     );
     veKhoFile(t.file);
@@ -1439,12 +1449,12 @@
     if (f) {
       el.innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
                      '<span class="nhan">' + esc(f.ten) + " · " + fmtCo(f.co) + "</span>" +
-                     '<button type="button" class="nho" id="btDoiFile">Đổi file</button>' +
-                     '<button type="button" class="nho nguy" id="btBoFile">Bỏ file</button></div>';
+                     '<button type="button" class="nho" id="btDoiFile">Replace file</button>' +
+                     '<button type="button" class="nho nguy" id="btBoFile">Remove file</button></div>';
     } else {
       el.innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
-                     '<button type="button" class="nho" id="btDoiFile">Chọn file…</button>' +
-                     '<span class="mo">nhỏ hơn ' + fmtCo(GIOI_HAN_FILE) + "; file lớn nên để ở link cho nhẹ máy</span></div>";
+                     '<button type="button" class="nho" id="btDoiFile">Choose a file…</button>' +
+                     '<span class="mo">under ' + fmtCo(GIOI_HAN_FILE) + "; for anything bigger a link keeps the page light</span></div>";
     }
     var bt = $("btDoiFile");
     if (bt) bt.onclick = function(){ $("fileDinhKem").click(); };
@@ -1457,21 +1467,21 @@
     this.value = "";
     if (!f) return;
     if (f.size > GIOI_HAN_FILE) {
-      if (!confirm("File nặng " + fmtCo(f.size) + ", trên mức khuyên dùng (" + fmtCo(GIOI_HAN_FILE) + ").\n" +
-                   "Để trong máy cỡ này dễ làm trình duyệt hết chỗ. Vẫn đính kèm?")) return;
+      if (!confirm("This file is " + fmtCo(f.size) + ", above the suggested limit of " + fmtCo(GIOI_HAN_FILE) + ".\n" +
+                   "Files this big can fill up the browser's storage. Attach it anyway?")) return;
     }
     var doc = new FileReader();
     doc.onload = function(){
       fileTam = { ten: f.name, kieu: f.type || "application/octet-stream", co: f.size, duLieu: String(doc.result) };
       veKhoFile(null);
     };
-    doc.onerror = function(){ alert("Không đọc được file này."); };
+    doc.onerror = function(){ alert("This file could not be read."); };
     doc.readAsDataURL(f);
   });
 
   function luuTaiLieu(id){
     var ten = $("fTen").value.trim();
-    if (!ten) { alert("Cần có tên tài liệu."); $("fTen").focus(); return; }
+    if (!ten) { alert("A document needs a name."); $("fTen").focus(); return; }
     var t = timTaiLieu(id);
     var moi = !t;
     if (moi) { t = { id: uid(), taoLuc: Date.now(), file: null }; state.taiLieu.push(t); }
@@ -1494,17 +1504,17 @@
     if (!t) return;
     var cr = timCr(t.crId);
     var h = dauHop(t.ten, t.phienBan) +
-      dong("Loại", '<span class="nhan">' + esc(t.loai) + "</span>") +
-      dong("Dự án", esc(tenDuAn(t.duAnId) || "—")) +
-      dong("Yêu cầu thay đổi", cr ? esc(cr.ma + " · " + cr.tieuDe) : "—") +
-      dong("Ngày tài liệu", t.ngay ? esc(fmtNgay(t.ngay)) : "—") +
+      dong("Type", '<span class="nhan">' + esc(t.loai) + "</span>") +
+      dong("Project", esc(tenDuAn(t.duAnId) || "—")) +
+      dong("Change request", cr ? esc(cr.ma + " · " + cr.tieuDe) : "—") +
+      dong("Document date", t.ngay ? esc(fmtNgay(t.ngay)) : "—") +
       dong("Link", t.link ? '<a href="' + esc(t.link) + '" target="_blank" rel="noopener">' + esc(t.link) + "</a>" : "—") +
-      dong("File đính kèm", t.file
+      dong("Attached file", t.file
         ? '<button class="nho" data-tai="' + esc(t.id) + '">⇩ ' + esc(t.file.ten) + " · " + fmtCo(t.file.co) + "</button>"
         : "—");
-    if (t.ghiChu) h += '<h3 style="margin-top:14px">Ghi chú</h3><p style="margin:0;white-space:pre-wrap">' + esc(t.ghiChu) + "</p>";
-    h += '<div class="chan"><button data-sua="tai-lieu" data-id="' + esc(t.id) + '">Sửa</button>' +
-         '<button class="chinh" data-dong="1">Đóng</button></div>';
+    if (t.ghiChu) h += '<h3 style="margin-top:14px">Notes</h3><p style="margin:0;white-space:pre-wrap">' + esc(t.ghiChu) + "</p>";
+    h += '<div class="chan"><button data-sua="tai-lieu" data-id="' + esc(t.id) + '">Edit</button>' +
+         '<button class="chinh" data-dong="1">Close</button></div>';
     moHop(h);
   }
 
@@ -1513,7 +1523,7 @@
     if (!t || !t.file) return;
     var a = document.createElement("a");
     a.href = t.file.duLieu;
-    a.download = t.file.ten || "tai-lieu";
+    a.download = t.file.ten || "document";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1528,25 +1538,26 @@
       var vi = state.viec.filter(function(v){ return v.duAnId === id; }).length;
       var cr = state.cr.filter(function(c){ return c.duAnId === id; }).length;
       var tl = state.taiLieu.filter(function(t){ return t.duAnId === id; }).length;
-      if (!confirm("Xoá dự án “" + d.ten + "”?\n" + cr + " yêu cầu, " + vi + " việc và " + tl +
-                   " tài liệu sẽ không còn thuộc dự án nào nữa (vẫn giữ lại, không mất).")) return;
+      if (!confirm("Delete the project “" + d.ten + "”?\n" + dem(cr, "request") + ", " + dem(vi, "task") +
+                   " and " + dem(tl, "document") +
+                   " will no longer belong to any project — they are kept, not deleted.")) return;
       state.duAn = state.duAn.filter(function(x){ return x.id !== id; });
       state.cr.forEach(function(c){ if (c.duAnId === id) c.duAnId = ""; });
       state.viec.forEach(function(v){ if (v.duAnId === id) v.duAnId = ""; });
       state.taiLieu.forEach(function(t){ if (t.duAnId === id) t.duAnId = ""; });
     } else if (loai === "cr") {
       var c2 = timCr(id);
-      if (!c2 || !confirm("Xoá yêu cầu " + c2.ma + " — “" + c2.tieuDe + "”?")) return;
+      if (!c2 || !confirm("Delete request " + c2.ma + " — “" + c2.tieuDe + "”?")) return;
       state.cr = state.cr.filter(function(x){ return x.id !== id; });
       state.viec.forEach(function(v){ if (v.crId === id) v.crId = ""; });
       state.taiLieu.forEach(function(t){ if (t.crId === id) t.crId = ""; });
     } else if (loai === "viec") {
       var v2 = timViec(id);
-      if (!v2 || !confirm("Xoá việc “" + v2.tieuDe + "”?")) return;
+      if (!v2 || !confirm("Delete the task “" + v2.tieuDe + "”?")) return;
       state.viec = state.viec.filter(function(x){ return x.id !== id; });
     } else if (loai === "tai-lieu") {
       var t2 = timTaiLieu(id);
-      if (!t2 || !confirm("Xoá tài liệu “" + t2.ten + "”?" + (t2.file ? "\nFile đính kèm cũng mất theo." : ""))) return;
+      if (!t2 || !confirm("Delete the document “" + t2.ten + "”?" + (t2.file ? "\nThe attached file goes with it." : ""))) return;
       state.taiLieu = state.taiLieu.filter(function(x){ return x.id !== id; });
     }
     dongHop();
@@ -1557,13 +1568,13 @@
 
   function chonThem(){
     moHop(
-      dauHop("Thêm gì?") +
+      dauHop("Add what?") +
       '<div style="display:grid;gap:8px">' +
-      '<button data-them="du-an">📁 Dự án</button>' +
-      '<button data-them="cr">📝 Yêu cầu thay đổi</button>' +
-      '<button data-them="viec">✅ Công việc</button>' +
-      '<button data-nhieu="1">📋 Nhiều việc một lúc</button>' +
-      '<button data-them="tai-lieu">📄 Tài liệu</button>' +
+      '<button data-them="du-an">📁 Project</button>' +
+      '<button data-them="cr">📝 Change request</button>' +
+      '<button data-them="viec">✅ Task</button>' +
+      '<button data-nhieu="1">📋 Many tasks at once</button>' +
+      '<button data-them="tai-lieu">📄 Document</button>' +
       "</div>"
     );
   }
@@ -1657,7 +1668,7 @@
       v.trangThai = "xong";
       v.xongLuc = Date.now();
     } else {
-      ghiNhatKy(v, "Xong → Đang làm");
+      ghiNhatKy(v, "Done → In progress");
       v.trangThai = "lam";
       v.xongLuc = 0;
     }
@@ -1697,7 +1708,7 @@
   }
 
   $("btXuat").addEventListener("click", function(){
-    taiVe("du-an-" + isoHomNay() + ".json", JSON.stringify(state, null, 2));
+    taiVe("projects-" + isoHomNay() + ".json", JSON.stringify(state, null, 2));
   });
 
   $("btNhap").addEventListener("click", function(){ $("fileNhap").click(); });
@@ -1709,10 +1720,8 @@
     r.onload = function(){
       var moi;
       try { moi = chuanHoa(JSON.parse(String(r.result))); }
-      catch (e) { alert("File không đọc được: " + e.message); return; }
-      if (!confirm("Thay toàn bộ dữ liệu đang có bằng file này?\n" +
-                   moi.duAn.length + " dự án · " + moi.cr.length + " yêu cầu · " +
-                   moi.viec.length + " việc · " + moi.taiLieu.length + " tài liệu")) return;
+      catch (e) { alert("That file could not be read: " + e.message); return; }
+      if (!confirm("Replace everything currently stored with this file?\n" + tomTat(moi))) return;
       state = moi;
       luuNgay();
       ve();
@@ -1748,16 +1757,17 @@
     var g = goiGon();
     var link = location.origin + location.pathname + "#d=" + maHoa(g.data);
     moHop(
-      dauHop("Gửi bằng đường link") +
-      "<p>Chép đường link dưới đây rồi gửi qua Zalo, email hay lưu lại làm bản sao. " +
-      "Người nhận mở link là thấy toàn bộ dự án, yêu cầu, việc và danh mục tài liệu.</p>" +
-      (g.boFile ? '<p class="mo">' + g.boFile + " file đính kèm không đi theo link (link sẽ quá dài). " +
-                  "Muốn gửi cả file thì dùng <b>Xuất JSON</b>.</p>" : "") +
+      dauHop("Share by link") +
+      "<p>Copy the link below and send it by chat or email, or keep it as a snapshot. " +
+      "Whoever opens it sees every project, request, task and document entry.</p>" +
+      (g.boFile ? '<p class="mo">' + dem(g.boFile, "attached file") + (g.boFile === 1 ? " does" : " do") +
+                  " not travel in the link — it would get too long. " +
+                  "To send the files themselves, use <b>Export JSON</b>.</p>" : "") +
       '<textarea id="oLink" readonly style="min-height:110px;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace">' +
         esc(link) + "</textarea>" +
-      '<p class="mo">Dài ' + link.length + " ký tự" + (link.length > 8000 ? " — hơi dài, vài ứng dụng có thể cắt bớt." : "") + "</p>" +
-      '<div class="chan"><button data-dong="1">Đóng</button>' +
-      '<button class="chinh" id="btChep">Chép link</button></div>'
+      '<p class="mo">' + link.length + " characters long" + (link.length > 8000 ? " — rather long, some apps may cut it short." : "") + "</p>" +
+      '<div class="chan"><button data-dong="1">Close</button>' +
+      '<button class="chinh" id="btChep">Copy link</button></div>'
     );
     $("btChep").onclick = function(){
       var o = $("oLink");
@@ -1765,8 +1775,8 @@
       try {
         if (navigator.clipboard) navigator.clipboard.writeText(o.value);
         else document.execCommand("copy");
-        this.textContent = "Đã chép ✓";
-      } catch (e) { alert("Không chép tự động được, bạn chép tay giúp nhé."); }
+        this.textContent = "Copied ✓";
+      } catch (e) { alert("Could not copy automatically — please copy it by hand."); }
     };
   });
 
@@ -1779,12 +1789,11 @@
     xemThu = goi;
     var el = $("baoNhan");
     el.hidden = false;
-    el.innerHTML = "Đang mở dữ liệu từ một đường link: <b>" + goi.duAn.length + " dự án · " +
-      goi.cr.length + " yêu cầu · " + goi.viec.length + " việc · " + goi.taiLieu.length + " tài liệu</b>. " +
-      '<button class="nho" id="btNhanLink">Nhận, thay dữ liệu của tôi</button>' +
-      '<button class="nho" id="btBoLink">Bỏ qua</button>';
+    el.innerHTML = "Opening data from a shared link: <b>" + tomTat(goi) + "</b>. " +
+      '<button class="nho" id="btNhanLink">Take it, replace mine</button>' +
+      '<button class="nho" id="btBoLink">Ignore</button>';
     $("btNhanLink").onclick = function(){
-      if (!confirm("Thay toàn bộ dữ liệu đang có trong máy này bằng dữ liệu của link?")) return;
+      if (!confirm("Replace everything stored on this computer with the data from the link?")) return;
       state = xemThu;
       xemThu = null;
       history.replaceState(null, "", location.pathname);

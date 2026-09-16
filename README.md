@@ -732,103 +732,111 @@ cần build, không phụ thuộc thư viện nào. Khác `cong-viec.html` ở c
 chung của team, còn trang này là sổ tay riêng của một người — quản dự án, giữ **hồ sơ yêu cầu
 thay đổi có duyệt đàng hoàng**, và cất **tài liệu dự án**.
 
-Bốn thứ nối với nhau: một **dự án** có nhiều **yêu cầu thay đổi**, mỗi yêu cầu đẻ ra
-nhiều **công việc**, và **tài liệu** gắn được vào dự án lẫn vào từng yêu cầu.
+**Giao diện tiếng Anh** cho hợp môi trường công ty; hướng dẫn dưới đây vẫn tiếng Việt.
+Ngày viết dạng `20 Sep 2026` chứ không phải `20/09` — kiểu số dễ bị người đọc tiếng Anh
+hiểu ngược ngày với tháng.
+
+Bốn thứ nối với nhau: một **dự án** (Project) có nhiều **yêu cầu thay đổi** (Change request),
+mỗi yêu cầu đẻ ra nhiều **công việc** (Task), và **tài liệu** (Document) gắn được vào dự án
+lẫn vào từng yêu cầu.
 
 ## Năm khu vực
 
 | Khu vực | Để làm gì |
 | --- | --- |
-| **Tổng quan** | Ô đếm bấm được, danh sách sắp tới hạn và đã trễ, bảng tiến độ từng dự án, biểu đồ yêu cầu theo trạng thái |
-| **Dự án** | Mã, tên, khách hàng, thời gian, trạng thái, kèm số yêu cầu / việc / tài liệu của mỗi dự án |
-| **Yêu cầu thay đổi** | Sổ CR, mã tự sinh `CR-0001`, xếp theo bước duyệt |
-| **Công việc** | Việc riêng lẻ hoặc việc thuộc một yêu cầu, có ưu tiên và hạn chót |
-| **Tài liệu** | Link hoặc file đính kèm, có loại và phiên bản |
+| **Overview** — Tổng quan | Ô đếm bấm được, danh sách sắp tới hạn và đã trễ, bảng tiến độ từng dự án, biểu đồ yêu cầu theo trạng thái |
+| **Projects** — Dự án | Mã, tên, khách hàng, thời gian, trạng thái, kèm số yêu cầu / việc / tài liệu của mỗi dự án |
+| **Change requests** — Yêu cầu thay đổi | Sổ CR, mã tự sinh `CR-0001`, xếp theo bước duyệt |
+| **Tasks** — Công việc | Việc riêng lẻ hoặc việc thuộc một yêu cầu, có ưu tiên và hạn chót |
+| **Documents** — Tài liệu | Link hoặc file đính kèm, có loại và phiên bản |
 
 ## Luồng duyệt yêu cầu thay đổi
 
-Đường đi chính: **Nháp → Chờ duyệt → Đã duyệt → Đang làm → Xong**. Ở mỗi bước, trang chỉ
-hiện đúng những nút đi tiếp được, nên không bao giờ nhảy lung tung:
+Đường đi chính: **Draft → Pending approval → Approved → In progress → Done**
+(Nháp → Chờ duyệt → Đã duyệt → Đang làm → Xong). Ở mỗi bước, trang chỉ hiện đúng những
+nút đi tiếp được, nên không bao giờ nhảy lung tung:
 
 | Đang ở bước | Bấm được |
 | --- | --- |
-| Nháp | Gửi duyệt · Huỷ |
-| Chờ duyệt | Duyệt · Từ chối · Trả về nháp |
-| Đã duyệt | Bắt đầu làm · **Tạm hoãn** · Huỷ |
-| Từ chối | Sửa lại · Huỷ |
-| Đang làm | Đánh dấu xong · **Tạm hoãn** · Huỷ |
-| **Tạm hoãn** | Làm tiếp · Đánh dấu xong · Huỷ |
-| Xong | Mở lại |
-| Huỷ | Mở lại |
+| Draft | Submit for approval · Cancel |
+| Pending approval | Approve · Reject · Back to draft |
+| Approved | Start work · **Put on hold** · Cancel |
+| Rejected | Revise · Cancel |
+| In progress | Mark done · **Put on hold** · Cancel |
+| **On hold** | Resume · Mark done · Cancel |
+| Done | Reopen |
+| Cancelled | Reopen |
 
-**Tạm hoãn (pending)** dành cho yêu cầu đã duyệt hoặc đang làm mà phải treo lại — chờ
-ngân sách, chờ bên khác, chờ đợt phát hành sau. Từ đó quay lại **Làm tiếp**, đi thẳng
-**Xong**, hoặc **Huỷ**. Công việc cũng có trạng thái **Tạm hoãn** y như vậy, bên cạnh
-Chưa làm · Đang làm · Đang vướng · Xong.
+**On hold** (tạm hoãn) dành cho yêu cầu đã duyệt hoặc đang làm mà phải treo lại — chờ
+ngân sách, chờ bên khác, chờ đợt phát hành sau. Từ đó quay lại **Resume**, đi thẳng
+**Mark done**, hoặc **Cancel**. Công việc cũng có trạng thái **On hold** y như vậy, bên cạnh
+To do · In progress · Blocked · Done.
 
-- Mỗi yêu cầu có **người yêu cầu, nội dung thay đổi, lý do, mức ảnh hưởng
-  (Thấp / Trung bình / Cao), ước lượng ngày công, ngày mong muốn xong**.
-- Bấm **Duyệt** thì trang hỏi ai duyệt rồi ghi lại tên với giờ; bấm **Từ chối** thì hỏi
+- Mỗi yêu cầu có **người yêu cầu (Requested by), nội dung thay đổi, lý do (Reason), mức ảnh
+  hưởng (Impact: Low / Medium / High), ước lượng ngày công (Estimate), ngày mong muốn xong
+  (Target date)**.
+- Bấm **Approve** thì trang hỏi ai duyệt rồi ghi lại tên với giờ; bấm **Reject** thì hỏi
   lý do và giữ lại lý do đó.
-- Mọi lần đổi bước đều vào **nhật ký** của yêu cầu, xem lại được về sau.
-- Ở màn hình chi tiết một yêu cầu, thêm thẳng được **việc**, **nhiều việc một lúc** và
-  **tài liệu** gắn vào nó.
+- Mọi lần đổi bước đều vào **History** (nhật ký) của yêu cầu, xem lại được về sau.
+- Ở màn hình chi tiết một yêu cầu, thêm thẳng được **+ Task**, **+ Bulk add** và
+  **+ Document** gắn vào nó.
 
 ## Thêm nhiều việc một lúc
 
-Nút **+ Nhiều việc** có ở đầu khu vực Công việc, trong hộp chi tiết của một dự án, trong hộp
-chi tiết của một yêu cầu, và trong menu **+ Thêm**. Mở ra một ô lớn, **mỗi dòng một việc**:
+Nút **+ Bulk add** có ở đầu khu vực Tasks, trong hộp chi tiết của một dự án, trong hộp chi
+tiết của một yêu cầu, và trong menu **+ Add**. Mở ra một ô lớn, **mỗi dòng một việc**:
 
 ```
-Rà soát dữ liệu tồn kho | 20/09
-! Viết truy vấn theo kho | 25/09
-- Dựng mẫu báo cáo | 2026-10-02 | thấp
-2. Họp chốt với kế toán | 5/10/2026 | cao
-Nghiệm thu với chị Hà
+Check the stock data | 20/09
+! Write the query per warehouse | 25/09
+- Draft the report layout | 2026-10-02 | low
+2. Sign-off meeting | 5/10/2026 | high
+Acceptance with Ha
 ```
 
 - Hai phần sau dấu `|` là **hạn** và **ưu tiên**, viết thứ tự nào cũng được, thiếu cũng được.
-- Ngày nhận `25/09`, `25/09/2026`, `25-09` hay `2026-09-25`. Không ghi năm thì hiểu là năm nay;
-  nếu ngày đó đã qua quá lâu thì hiểu là sang năm.
-- Ưu tiên ghi `cao` / `gấp` / `thấp`, hoặc đặt dấu `!` ở đầu dòng cho việc gấp.
+- Ngày đọc theo kiểu **ngày/tháng**: `25/09`, `25/09/2026`, `25-09` hay `2026-09-25`.
+  Không ghi năm thì hiểu là năm nay; nếu ngày đó đã qua quá lâu thì hiểu là sang năm.
+- Ưu tiên ghi `high` / `low` (vẫn nhận cả `cao` / `gấp` / `thấp`), hoặc đặt dấu `!` ở đầu
+  dòng cho việc gấp.
 - Gạch đầu dòng `-`, `*` hay số thứ tự `1.` đều tự bỏ, nên chép thẳng từ biên bản họp hay
   Zalo vào là được. Dòng trống bị bỏ qua.
 - Dòng chữ dưới ô đếm sẵn **sẽ thêm bao nhiêu việc, mấy việc có hạn, mấy việc ưu tiên cao**
-  trước khi bấm **Thêm hết**. Cả mớ việc nhận chung dự án và yêu cầu đã chọn ở trên.
+  trước khi bấm **Add them all**. Cả mớ việc nhận chung dự án và yêu cầu đã chọn ở trên.
 
 ## Tài liệu dự án
 
-Mỗi tài liệu có **tên, loại** (Đặc tả yêu cầu, Thiết kế, Hợp đồng, Báo giá, Biên bản họp,
-Kế hoạch, Báo cáo, Nghiệm thu, Khác), **phiên bản, ngày**, gắn vào dự án và/hoặc một yêu cầu,
-kèm ghi chú. Chỗ để nội dung có hai kiểu, dùng một hay cả hai đều được:
+Mỗi tài liệu có **tên, loại** (Requirements spec, Design, Contract, Quotation, Meeting
+minutes, Plan, Report, Acceptance, Other), **phiên bản (Version), ngày**, gắn vào dự án
+và/hoặc một yêu cầu, kèm ghi chú. Chỗ để nội dung có hai kiểu, dùng một hay cả hai đều được:
 
 - **Link** tới Google Drive, SharePoint hay ổ mạng — nhẹ, hợp với file lớn.
 - **File đính kèm** nằm luôn trong máy, bấm là tải về. Trang khuyên giữ dưới 1,5 MB mỗi file
   và tổng dưới khoảng 4 MB, vì chỗ trống của trình duyệt có hạn. Số MB đang dùng hiện ngay
-  đầu khu vực **Tài liệu**.
+  đầu khu vực **Documents**.
 
 ## Những thứ tiện tay
 
-- **Ô đếm bấm được** ở Tổng quan: Dự án đang chạy, Yêu cầu chờ duyệt, Đã duyệt chờ làm,
-  Yêu cầu đang làm, Việc đang làm, Việc đang vướng, Việc trễ hạn — bấm vào là lọc luôn.
-  Hai ô **tạm hoãn** (yêu cầu và việc) chỉ hiện khi thật sự có mục đang treo.
+- **Ô đếm bấm được** ở Overview: Active projects, Requests awaiting approval, Approved not
+  started, Requests in progress, Tasks in progress, Blocked tasks, Overdue tasks — bấm vào
+  là lọc luôn. Hai ô **on hold** (yêu cầu và việc) chỉ hiện khi thật sự có mục đang treo.
 - **Nhãn hạn tự đổi màu**: đỏ khi trễ kèm số ngày trễ, cam khi còn trong 7 ngày.
 - **Tích một cái là xong việc** ngay trên bảng, không cần mở ra.
 - **Tìm và lọc** theo chữ, theo dự án, theo trạng thái.
 - **Xoá dự án không làm mất gì**: yêu cầu, việc và tài liệu của nó vẫn còn, chỉ là không
   thuộc dự án nào nữa.
-- **Xuất / Nhập JSON** để sao lưu hoặc chuyển máy (có kèm cả file đính kèm).
-- **Gửi link**: gói toàn bộ vào một đường link để gửi qua Zalo hay email. Link không mang
+- **Export JSON / Import JSON** để sao lưu hoặc chuyển máy (có kèm cả file đính kèm).
+- **Share link**: gói toàn bộ vào một đường link để gửi qua Zalo hay email. Link không mang
   theo file đính kèm — nhét file vào địa chỉ thì link dài quá, dễ bị cắt; muốn gửi cả file
-  thì dùng Xuất JSON.
-- **In / PDF**, tự đổi màu theo giao diện sáng/tối của máy, dùng được trên điện thoại.
+  thì dùng Export JSON.
+- **Print / PDF**, tự đổi màu theo giao diện sáng/tối của máy, dùng được trên điện thoại.
 - Lưu ngay khi gõ, và lưu nốt lần sửa cuối khi đóng tab.
 
 ## Dữ liệu nằm ở đâu
 
 Trong `localStorage` của chính trình duyệt trên máy này, khoá `du-an-v1`, kèm một bản sao lưu
 ở `du-an-backup-v1`. Không có máy chủ nào, không có tài khoản nào, không gì đi ra mạng.
-Đổi máy hay xoá dữ liệu duyệt web thì mất, nên thi thoảng bấm **Xuất JSON** giữ một bản.
+Đổi máy hay xoá dữ liệu duyệt web thì mất, nên thi thoảng bấm **Export JSON** giữ một bản.
 
-Mở trang lần đầu sẽ thấy vài mục **làm mẫu** cho dễ hình dung; bấm **Xoá các mục mẫu** ở
-Tổng quan là sạch.
+Mở trang lần đầu sẽ thấy vài mục **làm mẫu** cho dễ hình dung; bấm **Delete sample rows** ở
+Overview là sạch.
