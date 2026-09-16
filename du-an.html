@@ -158,6 +158,7 @@
   .nhan.lam{color:var(--accent);background:var(--accent-soft);border-color:transparent}
   .nhan.xong{color:var(--xanh);background:var(--xanh-nen);border-color:transparent}
   .nhan.huy{color:var(--muted);text-decoration:line-through}
+  .nhan.hoan{color:var(--muted);border-style:dashed;border-color:var(--muted)}
   .nhan.vuong{color:var(--do);background:var(--do-nen);border-color:transparent}
   .nhan.tre{color:var(--do);background:var(--do-nen);border-color:transparent;font-weight:600}
   .nhan.hom-nay{color:var(--cam);background:var(--cam-nen);border-color:transparent;font-weight:600}
@@ -260,6 +261,7 @@
     { ma:"duyet",   ten:"Đã duyệt",   lop:"duyet"  },
     { ma:"tuchoi",  ten:"Từ chối",    lop:"tuchoi" },
     { ma:"lam",     ten:"Đang làm",   lop:"lam"    },
+    { ma:"hoan",    ten:"Tạm hoãn",   lop:"hoan"   },
     { ma:"xong",    ten:"Xong",       lop:"xong"   },
     { ma:"huy",     ten:"Huỷ",        lop:"huy"    }
   ];
@@ -267,9 +269,10 @@
   var CR_BUOC = {
     nhap:   [ { den:"cho",    ten:"Gửi duyệt" }, { den:"huy", ten:"Huỷ" } ],
     cho:    [ { den:"duyet",  ten:"Duyệt" }, { den:"tuchoi", ten:"Từ chối" }, { den:"nhap", ten:"Trả về nháp" } ],
-    duyet:  [ { den:"lam",    ten:"Bắt đầu làm" }, { den:"huy", ten:"Huỷ" } ],
+    duyet:  [ { den:"lam",    ten:"Bắt đầu làm" }, { den:"hoan", ten:"Tạm hoãn" }, { den:"huy", ten:"Huỷ" } ],
     tuchoi: [ { den:"nhap",   ten:"Sửa lại" }, { den:"huy", ten:"Huỷ" } ],
-    lam:    [ { den:"xong",   ten:"Đánh dấu xong" }, { den:"huy", ten:"Huỷ" } ],
+    lam:    [ { den:"xong",   ten:"Đánh dấu xong" }, { den:"hoan", ten:"Tạm hoãn" }, { den:"huy", ten:"Huỷ" } ],
+    hoan:   [ { den:"lam",    ten:"Làm tiếp" }, { den:"xong", ten:"Đánh dấu xong" }, { den:"huy", ten:"Huỷ" } ],
     xong:   [ { den:"lam",    ten:"Mở lại" } ],
     huy:    [ { den:"nhap",   ten:"Mở lại" } ]
   };
@@ -285,6 +288,7 @@
     { ma:"chualam", ten:"Chưa làm",  lop:"nhap"  },
     { ma:"lam",     ten:"Đang làm",  lop:"lam"   },
     { ma:"vuong",   ten:"Đang vướng",lop:"vuong" },
+    { ma:"hoan",    ten:"Tạm hoãn",  lop:"hoan"  },
     { ma:"xong",    ten:"Xong",      lop:"xong"  }
   ];
 
@@ -678,8 +682,10 @@
     var crCho = state.cr.filter(function(c){ return c.trangThai === "cho"; });
     var crDuyet = state.cr.filter(function(c){ return c.trangThai === "duyet"; });
     var crLam = state.cr.filter(function(c){ return c.trangThai === "lam"; });
+    var crHoan = state.cr.filter(function(c){ return c.trangThai === "hoan"; });
     var viecLam = state.viec.filter(function(v){ return v.trangThai === "lam"; });
     var viecVuong = state.viec.filter(function(v){ return v.trangThai === "vuong"; });
+    var viecHoan = state.viec.filter(function(v){ return v.trangThai === "hoan"; });
     var viecTre = state.viec.filter(treHan);
     var daChay = state.duAn.filter(function(d){ return d.trangThai === "chay"; });
 
@@ -692,8 +698,10 @@
       oSo(crCho.length, "Yêu cầu chờ duyệt", crCho.length ? "chu-y" : "", "cr:cho") +
       oSo(crDuyet.length, "Đã duyệt, chờ làm", "", "cr:duyet") +
       oSo(crLam.length, "Yêu cầu đang làm", "", "cr:lam") +
+      (crHoan.length ? oSo(crHoan.length, "Yêu cầu tạm hoãn", "chu-y", "cr:hoan") : "") +
       oSo(viecLam.length, "Việc đang làm", "", "viec:lam") +
       oSo(viecVuong.length, "Việc đang vướng", viecVuong.length ? "chu-y" : "", "viec:vuong") +
+      (viecHoan.length ? oSo(viecHoan.length, "Việc tạm hoãn", "", "viec:hoan") : "") +
       oSo(viecTre.length, "Việc trễ hạn", viecTre.length ? "canh" : "", "viec:tre") +
       "</div>";
 
@@ -770,7 +778,16 @@
   function bieuDoCr(){
     var tong = state.cr.length;
     if (!tong) return "";
-    var mau = { nhap:"--c-nhap", cho:"--c-cho", duyet:"--c-duyet", tuchoi:"--c-tuchoi", lam:"--c-lam", xong:"--c-xong", huy:"--c-huy" };
+    var mau = {
+      nhap:   "var(--c-nhap)",
+      cho:    "var(--c-cho)",
+      duyet:  "var(--c-duyet)",
+      tuchoi: "var(--c-tuchoi)",
+      lam:    "var(--c-lam)",
+      hoan:   "repeating-linear-gradient(45deg, var(--c-lam) 0 4px, var(--c-luoi) 4px 8px)",
+      xong:   "var(--c-xong)",
+      huy:    "var(--c-huy)"
+    };
     var dem = {}, co = 0;
     CR_TT.forEach(function(t){
       dem[t.ma] = state.cr.filter(function(c){ return c.trangThai === t.ma; }).length;
@@ -782,12 +799,12 @@
       if (!dem[t.ma]) return;
       var pct = dem[t.ma] * 100 / tong;
       h += '<div title="' + esc(t.ten) + ": " + dem[t.ma] + '" style="width:' + pct +
-           "%;background:var(" + mau[t.ma] + ')"></div>';
+           "%;background:" + mau[t.ma] + '"></div>';
     });
     h += "</div><div class=\"chu-thich\">";
     CR_TT.forEach(function(t){
       if (!dem[t.ma]) return;
-      h += '<span><i style="background:var(' + mau[t.ma] + ')"></i>' + esc(t.ten) + " · " + dem[t.ma] + "</span>";
+      h += '<span><i style="background:' + mau[t.ma] + '"></i>' + esc(t.ten) + " · " + dem[t.ma] + "</span>";
     });
     h += "</div>" + (co ? "" : "") + "</div>";
     return h;
@@ -865,7 +882,8 @@
       return b.taoLuc - a.taoLuc;
     });
     var h = '<div class="khoi"><div class="dau"><h2>Công việc <span class="mo">' + ds.length + " mục</span></h2>" +
-            '<button class="nho chinh" data-them="viec">+ Việc</button></div>';
+            '<div style="display:flex;gap:6px"><button class="nho" data-nhieu="1">+ Nhiều việc</button>' +
+            '<button class="nho chinh" data-them="viec">+ Việc</button></div></div>';
     if (!ds.length) {
       h += '<p class="trong">Không có việc nào khớp.</p></div>';
       $("noiDung").innerHTML = h;
@@ -1072,6 +1090,7 @@
          '<button data-them="tai-lieu" data-da="' + esc(d.id) + '">+ Tài liệu</button>' +
          '<button data-them="cr" data-da="' + esc(d.id) + '">+ Yêu cầu</button>' +
          '<button data-them="viec" data-da="' + esc(d.id) + '">+ Việc</button>' +
+         '<button data-nhieu="1" data-da="' + esc(d.id) + '">+ Nhiều việc</button>' +
          '<button data-sua="du-an" data-id="' + esc(d.id) + '">Sửa</button>' +
          '<button class="chinh" data-dong="1">Đóng</button></div>';
     moHop(h);
@@ -1198,6 +1217,7 @@
     h += '<div class="chan">';
     h += '<button data-them="tai-lieu" data-cr="' + esc(c.id) + '">+ Tài liệu</button>';
     h += '<button data-them="viec" data-cr="' + esc(c.id) + '">+ Việc</button>';
+    h += '<button data-nhieu="1" data-cr="' + esc(c.id) + '">+ Nhiều việc</button>';
     h += '<button data-sua="cr" data-id="' + esc(c.id) + '">Sửa</button>';
     buoc.forEach(function(b){
       var lop = b.den === "duyet" ? "chinh" : b.den === "tuchoi" || b.den === "huy" ? "nguy" : "";
@@ -1255,6 +1275,101 @@
     if (moi) ghiNhatKy(v, "Tạo việc");
     else if (ttCu !== v.trangThai) ghiNhatKy(v, tenTrangThai(VIEC_TT, ttCu) + " → " + tenTrangThai(VIEC_TT, v.trangThai));
     dongHop();
+    chamVao();
+  }
+
+  /* Mỗi dòng một việc. Muốn thêm hạn hay ưu tiên thì ngăn bằng dấu gạch đứng:
+     "Viết truy vấn tồn kho | 25/09 | cao". Thứ tự hai phần sau không quan trọng. */
+  function docDongViec(dong){
+    var s = String(dong).trim()
+      .replace(/^[-*•–]\s+/, "")
+      .replace(/^\d+[.)]\s+/, "");
+    if (!s) return null;
+    var phan = s.split("|");
+    var tieuDe = phan.shift().trim();
+    var uuTien = "thuong", han = "";
+    if (/^!/.test(tieuDe)) { uuTien = "cao"; tieuDe = tieuDe.replace(/^!+\s*/, ""); }
+    if (!tieuDe) return null;
+    phan.forEach(function(x){
+      var t = x.trim();
+      if (!t) return;
+      var ng = docNgay(t);
+      if (ng) { han = ng; return; }
+      var th = t.toLowerCase();
+      if (th === "cao" || th === "gấp" || th === "gap" || th === "high" || th === "!") uuTien = "cao";
+      else if (th === "thấp" || th === "thap" || th === "low") uuTien = "thap";
+    });
+    return { tieuDe: tieuDe, uuTien: uuTien, hanChot: han };
+  }
+
+  function docNgay(t){
+    var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t);
+    if (m) return m[1] + "-" + pad(Number(m[2])) + "-" + pad(Number(m[3]));
+    m = /^(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?$/.exec(t);
+    if (!m) return "";
+    var ngay = Number(m[1]), thang = Number(m[2]);
+    if (ngay < 1 || ngay > 31 || thang < 1 || thang > 12) return "";
+    var nam;
+    if (m[3]) nam = Number(m[3].length === 2 ? "20" + m[3] : m[3]);
+    else {
+      /* Không ghi năm thì lấy năm nay; nếu ngày đó đã qua lâu thì hiểu là sang năm. */
+      var n = new Date();
+      nam = n.getFullYear();
+      var thu = new Date(nam, thang - 1, ngay);
+      if ((thu - new Date(n.getFullYear(), n.getMonth(), n.getDate())) < -180 * 86400000) nam++;
+    }
+    return nam + "-" + pad(thang) + "-" + pad(ngay);
+  }
+
+  function formNhieuViec(gan){
+    gan = gan || {};
+    var cr = timCr(gan.crId);
+    moHop(
+      dauHop("Thêm nhiều việc một lúc", cr ? cr.ma : "") +
+      '<p class="mo" style="margin:0 0 10px">Mỗi dòng một việc. Muốn ghi thêm hạn hay ưu tiên thì ngăn bằng ' +
+      'dấu <b>|</b> — ví dụ <code>Viết truy vấn tồn kho | 25/09 | cao</code>. ' +
+      'Ngày viết kiểu <code>25/09</code>, <code>25/09/2026</code> hay <code>2026-09-25</code> đều được; ' +
+      'ưu tiên ghi <code>cao</code> / <code>thấp</code>, hoặc đặt dấu <b>!</b> ở đầu dòng.</p>' +
+      '<div class="hang2">' +
+        '<label class="o"><span>Dự án</span>' + chonDuAn(gan.duAnId || "", false) + "</label>" +
+        '<label class="o"><span>Thuộc yêu cầu thay đổi</span>' + chonCr(gan.crId || "", "") + "</label>" +
+      "</div>" +
+      '<label class="o"><span>Danh sách việc</span>' +
+        '<textarea id="fNhieu" style="min-height:190px" placeholder="Rà soát dữ liệu tồn kho | 20/09\n! Viết truy vấn theo kho | 25/09\nHọp chốt mẫu báo cáo | 28/09 | thấp"></textarea></label>' +
+      '<p class="mo" id="xemTruoc">Chưa có dòng nào.</p>' +
+      '<div class="chan"><button data-dong="1">Thôi</button>' +
+      '<button class="chinh" id="btLuuNhieu">Thêm hết</button></div>'
+    );
+    var o = $("fNhieu");
+    function demThu(){
+      var ds = o.value.split("\n").map(docDongViec).filter(Boolean);
+      var coHan = ds.filter(function(x){ return x.hanChot; }).length;
+      var coCao = ds.filter(function(x){ return x.uuTien === "cao"; }).length;
+      $("xemTruoc").innerHTML = ds.length
+        ? "Sẽ thêm <b>" + ds.length + " việc</b>" +
+          (coHan ? ", " + coHan + " việc có hạn" : "") +
+          (coCao ? ", " + coCao + " việc ưu tiên cao" : "") + "."
+        : "Chưa có dòng nào.";
+    }
+    o.addEventListener("input", demThu);
+    $("btLuuNhieu").onclick = function(){ luuNhieuViec(); };
+  }
+
+  function luuNhieuViec(){
+    var ds = $("fNhieu").value.split("\n").map(docDongViec).filter(Boolean);
+    if (!ds.length) { alert("Chưa có dòng việc nào để thêm."); $("fNhieu").focus(); return; }
+    var duAnId = $("fDuAn").value, crId = $("fCr").value;
+    ds.forEach(function(x){
+      var v = {
+        id: uid(), tieuDe: x.tieuDe, duAnId: duAnId, crId: crId,
+        trangThai: "chualam", uuTien: x.uuTien, hanChot: x.hanChot, ghiChu: "",
+        taoLuc: Date.now(), xongLuc: 0, nhatKy: []
+      };
+      ghiNhatKy(v, "Tạo việc (thêm hàng loạt)");
+      state.viec.push(v);
+    });
+    dongHop();
+    the = "viec";
     chamVao();
   }
 
@@ -1447,6 +1562,7 @@
       '<button data-them="du-an">📁 Dự án</button>' +
       '<button data-them="cr">📝 Yêu cầu thay đổi</button>' +
       '<button data-them="viec">✅ Công việc</button>' +
+      '<button data-nhieu="1">📋 Nhiều việc một lúc</button>' +
       '<button data-them="tai-lieu">📄 Tài liệu</button>' +
       "</div>"
     );
@@ -1467,6 +1583,15 @@
       else if (el.dataset.them === "cr") formCr(null, gan);
       else if (el.dataset.them === "viec") formViec(null, gan);
       else formTaiLieu(null, gan);
+      return;
+    }
+
+    el = t.closest("[data-nhieu]");
+    if (el) {
+      var ganN = { duAnId: el.dataset.da || "", crId: el.dataset.cr || "" };
+      if (!ganN.duAnId && ganN.crId) { var cn = timCr(ganN.crId); if (cn) ganN.duAnId = cn.duAnId; }
+      if (!ganN.duAnId) ganN.duAnId = loc.duAn || "";
+      formNhieuViec(ganN);
       return;
     }
 

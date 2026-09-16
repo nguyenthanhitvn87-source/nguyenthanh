@@ -747,19 +747,54 @@ nhiều **công việc**, và **tài liệu** gắn được vào dự án lẫn
 
 ## Luồng duyệt yêu cầu thay đổi
 
-```
-Nháp ──► Chờ duyệt ──► Đã duyệt ──► Đang làm ──► Xong
-           │  ▲            │            │
-           │  └─ Sửa lại ──┤            │
-           └──► Từ chối    └──► Huỷ ◄───┘
-```
+Đường đi chính: **Nháp → Chờ duyệt → Đã duyệt → Đang làm → Xong**. Ở mỗi bước, trang chỉ
+hiện đúng những nút đi tiếp được, nên không bao giờ nhảy lung tung:
+
+| Đang ở bước | Bấm được |
+| --- | --- |
+| Nháp | Gửi duyệt · Huỷ |
+| Chờ duyệt | Duyệt · Từ chối · Trả về nháp |
+| Đã duyệt | Bắt đầu làm · **Tạm hoãn** · Huỷ |
+| Từ chối | Sửa lại · Huỷ |
+| Đang làm | Đánh dấu xong · **Tạm hoãn** · Huỷ |
+| **Tạm hoãn** | Làm tiếp · Đánh dấu xong · Huỷ |
+| Xong | Mở lại |
+| Huỷ | Mở lại |
+
+**Tạm hoãn (pending)** dành cho yêu cầu đã duyệt hoặc đang làm mà phải treo lại — chờ
+ngân sách, chờ bên khác, chờ đợt phát hành sau. Từ đó quay lại **Làm tiếp**, đi thẳng
+**Xong**, hoặc **Huỷ**. Công việc cũng có trạng thái **Tạm hoãn** y như vậy, bên cạnh
+Chưa làm · Đang làm · Đang vướng · Xong.
 
 - Mỗi yêu cầu có **người yêu cầu, nội dung thay đổi, lý do, mức ảnh hưởng
   (Thấp / Trung bình / Cao), ước lượng ngày công, ngày mong muốn xong**.
 - Bấm **Duyệt** thì trang hỏi ai duyệt rồi ghi lại tên với giờ; bấm **Từ chối** thì hỏi
   lý do và giữ lại lý do đó.
 - Mọi lần đổi bước đều vào **nhật ký** của yêu cầu, xem lại được về sau.
-- Ở màn hình chi tiết một yêu cầu, thêm thẳng được **việc** và **tài liệu** gắn vào nó.
+- Ở màn hình chi tiết một yêu cầu, thêm thẳng được **việc**, **nhiều việc một lúc** và
+  **tài liệu** gắn vào nó.
+
+## Thêm nhiều việc một lúc
+
+Nút **+ Nhiều việc** có ở đầu khu vực Công việc, trong hộp chi tiết của một dự án, trong hộp
+chi tiết của một yêu cầu, và trong menu **+ Thêm**. Mở ra một ô lớn, **mỗi dòng một việc**:
+
+```
+Rà soát dữ liệu tồn kho | 20/09
+! Viết truy vấn theo kho | 25/09
+- Dựng mẫu báo cáo | 2026-10-02 | thấp
+2. Họp chốt với kế toán | 5/10/2026 | cao
+Nghiệm thu với chị Hà
+```
+
+- Hai phần sau dấu `|` là **hạn** và **ưu tiên**, viết thứ tự nào cũng được, thiếu cũng được.
+- Ngày nhận `25/09`, `25/09/2026`, `25-09` hay `2026-09-25`. Không ghi năm thì hiểu là năm nay;
+  nếu ngày đó đã qua quá lâu thì hiểu là sang năm.
+- Ưu tiên ghi `cao` / `gấp` / `thấp`, hoặc đặt dấu `!` ở đầu dòng cho việc gấp.
+- Gạch đầu dòng `-`, `*` hay số thứ tự `1.` đều tự bỏ, nên chép thẳng từ biên bản họp hay
+  Zalo vào là được. Dòng trống bị bỏ qua.
+- Dòng chữ dưới ô đếm sẵn **sẽ thêm bao nhiêu việc, mấy việc có hạn, mấy việc ưu tiên cao**
+  trước khi bấm **Thêm hết**. Cả mớ việc nhận chung dự án và yêu cầu đã chọn ở trên.
 
 ## Tài liệu dự án
 
@@ -776,6 +811,7 @@ kèm ghi chú. Chỗ để nội dung có hai kiểu, dùng một hay cả hai �
 
 - **Ô đếm bấm được** ở Tổng quan: Dự án đang chạy, Yêu cầu chờ duyệt, Đã duyệt chờ làm,
   Yêu cầu đang làm, Việc đang làm, Việc đang vướng, Việc trễ hạn — bấm vào là lọc luôn.
+  Hai ô **tạm hoãn** (yêu cầu và việc) chỉ hiện khi thật sự có mục đang treo.
 - **Nhãn hạn tự đổi màu**: đỏ khi trễ kèm số ngày trễ, cam khi còn trong 7 ngày.
 - **Tích một cái là xong việc** ngay trên bảng, không cần mở ra.
 - **Tìm và lọc** theo chữ, theo dự án, theo trạng thái.
