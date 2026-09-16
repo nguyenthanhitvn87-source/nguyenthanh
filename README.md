@@ -37,6 +37,7 @@ npx http-server .
 ```
 index.html               # toàn bộ game: giao diện, style và logic
 cong-viec.html           # theo dõi công việc của team (xem bên dưới)
+du-an.html               # dự án · yêu cầu thay đổi · công việc · tài liệu (xem bên dưới)
 lich-bieu.html           # lịch biểu chăm Bé Na hàng ngày (xem bên dưới)
 quan-ly-tre-em.html      # Bé Ngoan — quản lý trẻ em trên iPhone (xem bên dưới)
 dac-san.html             # Đặc Sản Việt — chợ đặc sản 63 tỉnh thành (xem bên dưới)
@@ -721,3 +722,77 @@ Các con số và mốc lịch trên trang là những thứ phổ thông, dễ 
 54 dân tộc, hơn 3.260 km bờ biển, các ngày lễ theo âm lịch, năm UNESCO ghi danh từng di sản.
 Còn mọi thông tin riêng của doanh nghiệp thì để trống chờ chủ trang điền — trang này không
 tự bịa ra thông tin pháp lý nào.
+
+---
+
+# 📋 Dự án · Yêu cầu thay đổi · Công việc
+
+Mở `du-an.html` bằng trình duyệt. Vẫn là **một file HTML duy nhất**, không cần cài, không
+cần build, không phụ thuộc thư viện nào. Khác `cong-viec.html` ở chỗ: bảng kia là bảng việc
+chung của team, còn trang này là sổ tay riêng của một người — quản dự án, giữ **hồ sơ yêu cầu
+thay đổi có duyệt đàng hoàng**, và cất **tài liệu dự án**.
+
+Bốn thứ nối với nhau: một **dự án** có nhiều **yêu cầu thay đổi**, mỗi yêu cầu đẻ ra
+nhiều **công việc**, và **tài liệu** gắn được vào dự án lẫn vào từng yêu cầu.
+
+## Năm khu vực
+
+| Khu vực | Để làm gì |
+| --- | --- |
+| **Tổng quan** | Ô đếm bấm được, danh sách sắp tới hạn và đã trễ, bảng tiến độ từng dự án, biểu đồ yêu cầu theo trạng thái |
+| **Dự án** | Mã, tên, khách hàng, thời gian, trạng thái, kèm số yêu cầu / việc / tài liệu của mỗi dự án |
+| **Yêu cầu thay đổi** | Sổ CR, mã tự sinh `CR-0001`, xếp theo bước duyệt |
+| **Công việc** | Việc riêng lẻ hoặc việc thuộc một yêu cầu, có ưu tiên và hạn chót |
+| **Tài liệu** | Link hoặc file đính kèm, có loại và phiên bản |
+
+## Luồng duyệt yêu cầu thay đổi
+
+```
+Nháp ──► Chờ duyệt ──► Đã duyệt ──► Đang làm ──► Xong
+           │  ▲            │            │
+           │  └─ Sửa lại ──┤            │
+           └──► Từ chối    └──► Huỷ ◄───┘
+```
+
+- Mỗi yêu cầu có **người yêu cầu, nội dung thay đổi, lý do, mức ảnh hưởng
+  (Thấp / Trung bình / Cao), ước lượng ngày công, ngày mong muốn xong**.
+- Bấm **Duyệt** thì trang hỏi ai duyệt rồi ghi lại tên với giờ; bấm **Từ chối** thì hỏi
+  lý do và giữ lại lý do đó.
+- Mọi lần đổi bước đều vào **nhật ký** của yêu cầu, xem lại được về sau.
+- Ở màn hình chi tiết một yêu cầu, thêm thẳng được **việc** và **tài liệu** gắn vào nó.
+
+## Tài liệu dự án
+
+Mỗi tài liệu có **tên, loại** (Đặc tả yêu cầu, Thiết kế, Hợp đồng, Báo giá, Biên bản họp,
+Kế hoạch, Báo cáo, Nghiệm thu, Khác), **phiên bản, ngày**, gắn vào dự án và/hoặc một yêu cầu,
+kèm ghi chú. Chỗ để nội dung có hai kiểu, dùng một hay cả hai đều được:
+
+- **Link** tới Google Drive, SharePoint hay ổ mạng — nhẹ, hợp với file lớn.
+- **File đính kèm** nằm luôn trong máy, bấm là tải về. Trang khuyên giữ dưới 1,5 MB mỗi file
+  và tổng dưới khoảng 4 MB, vì chỗ trống của trình duyệt có hạn. Số MB đang dùng hiện ngay
+  đầu khu vực **Tài liệu**.
+
+## Những thứ tiện tay
+
+- **Ô đếm bấm được** ở Tổng quan: Dự án đang chạy, Yêu cầu chờ duyệt, Đã duyệt chờ làm,
+  Yêu cầu đang làm, Việc đang làm, Việc đang vướng, Việc trễ hạn — bấm vào là lọc luôn.
+- **Nhãn hạn tự đổi màu**: đỏ khi trễ kèm số ngày trễ, cam khi còn trong 7 ngày.
+- **Tích một cái là xong việc** ngay trên bảng, không cần mở ra.
+- **Tìm và lọc** theo chữ, theo dự án, theo trạng thái.
+- **Xoá dự án không làm mất gì**: yêu cầu, việc và tài liệu của nó vẫn còn, chỉ là không
+  thuộc dự án nào nữa.
+- **Xuất / Nhập JSON** để sao lưu hoặc chuyển máy (có kèm cả file đính kèm).
+- **Gửi link**: gói toàn bộ vào một đường link để gửi qua Zalo hay email. Link không mang
+  theo file đính kèm — nhét file vào địa chỉ thì link dài quá, dễ bị cắt; muốn gửi cả file
+  thì dùng Xuất JSON.
+- **In / PDF**, tự đổi màu theo giao diện sáng/tối của máy, dùng được trên điện thoại.
+- Lưu ngay khi gõ, và lưu nốt lần sửa cuối khi đóng tab.
+
+## Dữ liệu nằm ở đâu
+
+Trong `localStorage` của chính trình duyệt trên máy này, khoá `du-an-v1`, kèm một bản sao lưu
+ở `du-an-backup-v1`. Không có máy chủ nào, không có tài khoản nào, không gì đi ra mạng.
+Đổi máy hay xoá dữ liệu duyệt web thì mất, nên thi thoảng bấm **Xuất JSON** giữ một bản.
+
+Mở trang lần đầu sẽ thấy vài mục **làm mẫu** cho dễ hình dung; bấm **Xoá các mục mẫu** ở
+Tổng quan là sạch.
