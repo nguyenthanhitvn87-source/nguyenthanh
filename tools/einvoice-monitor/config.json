@@ -7,8 +7,8 @@
       "remote_folder_template": "/PRODATA/{date}",
       "winscp_site_name": "",
       "servers": [
-        { "name": "VNSGNEIVAP05P", "host": "VNSGNEIVAP05P" },
-        { "name": "VNSGNEIVAP06P", "host": "VNSGNEIVAP06P", "exclude_bu_codes": ["VN57"] },
+        { "name": "VNSGNEIVAP05P", "host": "VNSGNEIVAP05P", "exclude_bu_codes": ["VN57"] },
+        { "name": "VNSGNEIVAP06P", "host": "VNSGNEIVAP06P" },
         { "name": "VNSGNEIVAP01P", "host": "VNSGNEIVAP01P" }
       ]
     },
