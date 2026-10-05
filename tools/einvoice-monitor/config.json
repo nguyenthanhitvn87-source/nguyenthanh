@@ -1,0 +1,62 @@
+{
+  "sap_to_pp": {
+    "sftp": {
+      "port": 21,
+      "protocol": "ftp",
+      "username": "Einvoice|Einvoiceppftp",
+      "remote_folder_template": "/PRODATA/{date}",
+      "winscp_site_name": "",
+      "servers": [
+        { "name": "VNSGNEIVAP05P", "host": "VNSGNEIVAP05P" },
+        { "name": "VNSGNEIVAP06P", "host": "VNSGNEIVAP06P" }
+      ]
+    },
+    "winscp_path": ".\\WinSCP\\WinSCP.com",
+    "max_file_age_minutes": 60
+  },
+  "pp_staging": {
+    "staging_folder": "\\\\vnsgneivap05p\\DKSH(VN)\\PROCESS\\DATA\\INV",
+    "use_date_subfolder": false,
+    "use_numbered_subfolders": true,
+    "max_stuck_minutes": 30
+  },
+  "pp_staging_pxk": {
+    "staging_folder": "\\\\vnsgneivap05p\\DKSH(VN)\\PROCESS\\DATA\\DO",
+    "use_numbered_subfolders": true,
+    "max_stuck_minutes": 30
+  },
+  "vnpt": {
+    "response_log_folder": "",
+    "sap_callback_folder": "",
+    "sap_callback_ftp_folder": "/PPTOSAP/Arcdata",
+    "sap_callback_ftp_enabled": true,
+    "max_callback_wait_minutes": 60
+  },
+  "pp_to_sap_unc": {
+    "servers": [
+      {
+        "name": "VNSGNEIVAP05P",
+        "arcdata": "\\\\vnsgneivap05p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata",
+        "bakup": "\\\\vnsgneivap05p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata"
+      },
+      {
+        "name": "VNSGNEIVAP06P",
+        "arcdata": "\\\\vnsgneivap06p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata",
+        "bakup": "\\\\vnsgneivap06p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata"
+      }
+    ]
+  },
+  "service_check": {
+    "enabled": true,
+    "file_pattern": "*.txt",
+    "max_file_age_minutes": 1,
+    "history_path": "",
+    "servers": [
+      { "name": "VNSGNEIVAP05P", "folder": "\\\\vnsgneivap05p\\PRODATA" },
+      { "name": "VNSGNEIVAP06P", "folder": "\\\\vnsgneivap06p\\PRODATA" }
+    ]
+  },
+  "dashboard": {
+    "output_path": "C:\\Users\\thanh.nguyen3\\OneDrive - DKSH\\Monitor billing\\Monitor\\dashboard.html"
+  }
+}
