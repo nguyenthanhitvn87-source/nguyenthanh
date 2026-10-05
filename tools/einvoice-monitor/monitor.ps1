@@ -178,6 +178,31 @@ function Get-FtpServerHost {
     return $null
 }
 
+# ------------------------------------------------------------
+# Loai ma BU (sales org VNxx) khoi 1 server
+#  Khai bao trong config.json, muc sap_to_pp.sftp.servers, them "exclude_bu_codes" cho server can loai.
+#  VD: VN57 da chuyen sang chay tren VNSGNEIVAP01P -> server cu them  "exclude_bu_codes": ["VN57"]
+#  File cua BU bi loai tren server do se KHONG duoc dem (SAP->PP, bao cao theo ngay).
+# ------------------------------------------------------------
+function Get-ServerExcludedBuCodes {
+    param($ServerKey)
+    if (-not $ServerKey) { return @() }
+    $entry = $Config.sap_to_pp.sftp.servers | Where-Object { $_.name -eq $ServerKey -or $_.host -eq $ServerKey } | Select-Object -First 1
+    if (-not $entry) {
+        $entry = $Config.sap_to_pp.sftp.servers | Where-Object { $_.name -match [regex]::Escape($ServerKey) -or $_.host -match [regex]::Escape($ServerKey) } | Select-Object -First 1
+    }
+    if ($entry -and $entry.exclude_bu_codes) { return @($entry.exclude_bu_codes | ForEach-Object { "$_".ToUpper() }) }
+    return @()
+}
+
+function Test-BuExcluded {
+    # True neu ten file thuoc 1 ma BU nam trong danh sach loai tru
+    param($FileName, $ExcludedCodes)
+    if (-not $ExcludedCodes -or $ExcludedCodes.Count -eq 0) { return $false }
+    if ($FileName -match 'VN(\d{2})') { return ("VN$($Matches[1])" -in $ExcludedCodes) }
+    return $false
+}
+
 function Invoke-FtpList {
     # Liet ke 1 thu muc qua WinSCP. Tra ve @{ Ok; Error; Items = [ {Name; IsDir; Time; Size} ] }
     param($ServerHost, $RemotePath)
@@ -319,6 +344,7 @@ if (-not (Test-Path $WinSCPPath)) {
         foreach ($server in $Config.sap_to_pp.sftp.servers) {
             $sftpHost = $server.host
             $serverLabel = $server.name
+            $serverExcludedBu = @(Get-ServerExcludedBuCodes -ServerKey $serverLabel)
             try {
                 $tmpScript = [System.IO.Path]::GetTempFileName()
                 if ($siteName) {
@@ -344,7 +370,17 @@ if (-not (Test-Path $WinSCPPath)) {
                     Add-Result -Stage "SAP->PP" -Name "Thu muc ($serverLabel)" -Severity "ERROR" `
                         -Message "Khong tim thay thu muc '$remoteFolder' tren $serverLabel."
                 } else {
-                    $fileLines = $output | Where-Object { $_ -match '\.txt\s*$' }
+                    $fileLines = @($output | Where-Object { $_ -match '\.txt\s*$' })
+                    if ($serverExcludedBu.Count -gt 0) {
+                        # Bo cac file thuoc BU da chuyen sang server khac (VD: VN57 -> VNSGNEIVAP01P)
+                        $keptLines = @($fileLines | Where-Object { -not (Test-BuExcluded -FileName (($_ -split '\s+' | Where-Object { $_ -ne "" })[-1]) -ExcludedCodes $serverExcludedBu) })
+                        $exclLineCount = $fileLines.Count - $keptLines.Count
+                        $fileLines = $keptLines
+                        if ($exclLineCount -gt 0) {
+                            Add-Result -Stage "SAP->PP" -Name "Loai BU ($serverLabel)" -Severity "OK" `
+                                -Message "Bo qua $exclLineCount file thuoc $($serverExcludedBu -join ', ') tren $serverLabel (BU nay khong con chay tren server nay)."
+                        }
+                    }
                     if (-not $fileLines -or $fileLines.Count -eq 0) {
                         Add-Result -Stage "SAP->PP" -Name "File tu SAP ($serverLabel)" -Severity "WARNING" `
                             -Message "Khong co file .txt nao trong '$remoteFolder' tren $serverLabel."
@@ -645,8 +681,8 @@ if ($Config.search_folders) { $ExtraSearchFolders += $Config.search_folders }
 # Chi lay file sua trong $ErrorFolderMaxAgeDays ngay gan nhat de khong bi cham khi thu muc loi tich tu lau.
 $ErrorFolderMaxAgeDays = 30
 $DefaultErrorFolders = @()
-foreach ($errSrv in @("vnsgneivap05p", "vnsgneivap06p")) {
-    $srvShort = $errSrv.Substring($errSrv.Length - 3).ToUpper()   # 05P / 06P
+foreach ($errSrv in @("vnsgneivap05p", "vnsgneivap06p", "vnsgneivap01p")) {
+    $srvShort = $errSrv.Substring($errSrv.Length - 3).ToUpper()   # 05P / 06P / 01P
     foreach ($errKind in @("INV", "DO")) {
         $DefaultErrorFolders += [PSCustomObject]@{
             name = "Loi $errKind ($srvShort)"; path = "\\$errSrv\DKSH(VN)\ERROR\$errKind"
@@ -703,8 +739,9 @@ foreach ($sf in $ExtraSearchFolders) {
 }
 
 # ------------------------------------------------------------
-# BUOC D: Bao cao tong billing 5 ngay gan nhat (dem trong PRODATA theo ngay, ca 2 server)
-#  Mac dinh: \\vnsgneivap05p\PRODATA\yyyyMMdd va \\vnsgneivap06p\PRODATA\yyyyMMdd (quet ca thu muc con, ca BAK).
+# BUOC D: Bao cao tong billing 5 ngay gan nhat (dem trong PRODATA theo ngay, ca 3 server)
+#  Mac dinh: \\vnsgneivap05p, \\vnsgneivap06p, \\vnsgneivap01p \PRODATA\yyyyMMdd (quet ca thu muc con, ca BAK).
+#  Ma BU khai bao trong "exclude_bu_codes" cua server (sap_to_pp.sftp.servers) se khong duoc dem cho server do.
 #  Doi duong dan / so ngay trong config.json neu can:
 #   "daily_report": { "days": 5, "folders": [ { "name": "05P", "path_template": "\\\\vnsgneivap05p\\PRODATA\\{date}",
 #                     "ftp_server": "05P", "ftp_path_template": "/PRODATA/{date}" }, ... ] }
@@ -716,6 +753,7 @@ $DailyReportFolders = if ($Config.daily_report -and $Config.daily_report.folders
     @(
         [PSCustomObject]@{ name = "05P"; path_template = '\\vnsgneivap05p\PRODATA\{date}'; ftp_server = "05P"; ftp_path_template = $Config.sap_to_pp.sftp.remote_folder_template }
         [PSCustomObject]@{ name = "06P"; path_template = '\\vnsgneivap06p\PRODATA\{date}'; ftp_server = "06P"; ftp_path_template = $Config.sap_to_pp.sftp.remote_folder_template }
+        [PSCustomObject]@{ name = "01P"; path_template = '\\vnsgneivap01p\PRODATA\{date}'; ftp_server = "01P"; ftp_path_template = $Config.sap_to_pp.sftp.remote_folder_template }
     )
 }
 $DailyReport = @()
@@ -730,6 +768,7 @@ for ($i = 0; $i -lt $DailyReportDays; $i++) {
     foreach ($df in $DailyReportFolders) {
         $dPath = $df.path_template -replace '\{date\}', $dayStr
         $srvBn = @{}; $srvNoBn = 0
+        $dfExclBu = if ($df.exclude_bu_codes) { @($df.exclude_bu_codes | ForEach-Object { "$_".ToUpper() }) } else { @(Get-ServerExcludedBuCodes -ServerKey $(if ($df.ftp_server) { $df.ftp_server } else { $df.name })) }
         if (Test-Path $dPath -ErrorAction SilentlyContinue) {
             $dfFiles = @(Get-ChildItem -Path $dPath -Filter "*.txt" -File -Recurse -ErrorAction SilentlyContinue)
         } else {
@@ -741,6 +780,7 @@ for ($i = 0; $i -lt $DailyReportDays; $i++) {
             $dfFiles = @($ftpRes.Files | Where-Object { $_.Name -like "*.txt" })
         }
         foreach ($f in $dfFiles) {
+            if (Test-BuExcluded -FileName $f.Name -ExcludedCodes $dfExclBu) { continue }
             $dayFiles++
             $bn = Get-BillingNumber -FileName $f.Name
             if ($bn) {
