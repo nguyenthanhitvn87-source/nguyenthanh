@@ -8,7 +8,8 @@
       "winscp_site_name": "",
       "servers": [
         { "name": "VNSGNEIVAP05P", "host": "VNSGNEIVAP05P" },
-        { "name": "VNSGNEIVAP06P", "host": "VNSGNEIVAP06P" }
+        { "name": "VNSGNEIVAP06P", "host": "VNSGNEIVAP06P", "exclude_bu_codes": ["VN57"] },
+        { "name": "VNSGNEIVAP01P", "host": "VNSGNEIVAP01P" }
       ]
     },
     "winscp_path": ".\\WinSCP\\WinSCP.com",
@@ -43,6 +44,11 @@
         "name": "VNSGNEIVAP06P",
         "arcdata": "\\\\vnsgneivap06p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata",
         "bakup": "\\\\vnsgneivap06p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata"
+      },
+      {
+        "name": "VNSGNEIVAP01P",
+        "arcdata": "\\\\vnsgneivap01p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata",
+        "bakup": "\\\\vnsgneivap01p\\Interface\\Localuser\\Pia4\\VN\\PPTOSAP\\Arcdata"
       }
     ]
   },
@@ -53,7 +59,8 @@
     "history_path": "",
     "servers": [
       { "name": "VNSGNEIVAP05P", "folder": "\\\\vnsgneivap05p\\PRODATA" },
-      { "name": "VNSGNEIVAP06P", "folder": "\\\\vnsgneivap06p\\PRODATA" }
+      { "name": "VNSGNEIVAP06P", "folder": "\\\\vnsgneivap06p\\PRODATA" },
+      { "name": "VNSGNEIVAP01P", "folder": "\\\\vnsgneivap01p\\PRODATA" }
     ]
   },
   "dashboard": {
