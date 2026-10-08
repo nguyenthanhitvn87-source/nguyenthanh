@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sửa Font Tiếng Việt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Bố cục: một cột công cụ, hai khối "dán chữ" và "tải file", kết quả đặt cạnh nguồn */
+:root {
+  --bg: #F3F6F5; --panel: #FFFFFF; --ink: #15211D; --muted: #5A6B65; --line: #D5DFDB;
+  --accent: #107C41; --accent-ink: #FFFFFF; --bad: #B4232C; --bad-bg: #FBECEC; --warn: #8A5A00; --warn-bg: #FFF4D6; --good-bg: #E7F3EC;
+  --f-ui: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1614; --panel: #17211E; --ink: #E3ECE8; --muted: #93A59E; --line: #2A3833;
+  --accent: #3DBB76; --accent-ink: #06130C; --bad: #F08A8F; --bad-bg: #3A1D20; --warn: #F2C35B; --warn-bg: #3A2F12; --good-bg: #16301F; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0F1614; --panel: #17211E; --ink: #E3ECE8; --muted: #93A59E; --line: #2A3833;
+  --accent: #3DBB76; --accent-ink: #06130C; --bad: #F08A8F; --bad-bg: #3A1D20; --warn: #F2C35B; --warn-bg: #3A2F12; --good-bg: #16301F; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.55; margin: 0 }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 22px }
+header h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 6px; font-weight: 700; text-wrap: balance }
+header p { margin: 0; color: var(--muted); max-width: 68ch }
+.demo { font-family: var(--f-mono); font-size: .9rem; display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px }
+.demo .from { color: var(--bad); text-decoration: line-through }
+.demo .to { color: var(--accent); font-weight: 500 }
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; min-width: 0 }
+.card h2 { margin: 0; font-size: 1.05rem; font-weight: 600; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.card h2 small { font-weight: 400; color: var(--muted); font-size: .85rem }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px }
+@media (max-width: 720px) { .pair { grid-template-columns: 1fr } }
+.pair > div { display: grid; gap: 6px; min-width: 0 }
+label { font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
+textarea { width: 100%; min-height: 220px; resize: vertical; font-family: var(--f-mono); font-size: .85rem; line-height: 1.6; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); white-space: pre; overflow: auto }
+textarea:focus-visible, button:focus-visible, .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center }
+button { font: inherit; font-weight: 600; font-size: .9rem; padding: 9px 16px; border-radius: 7px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer }
+button.ghost { background: transparent; color: var(--accent) }
+button:disabled { opacity: .45; cursor: not-allowed }
+.status { font-size: .88rem; color: var(--muted) }
+.status b { color: var(--ink) }
+.drop { text-transform: none; letter-spacing: 0; font-size: inherit; font-weight: 400; color: var(--ink); border: 1.5px dashed var(--line); border-radius: 10px; padding: 26px 16px; text-align: center; display: grid; gap: 6px; justify-items: center; cursor: pointer; background: var(--bg) }
+.drop.over { border-color: var(--accent); background: var(--good-bg) }
+.drop strong { font-size: 1rem }
+.drop span { color: var(--muted); font-size: .88rem }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0 }
+.chips { display: flex; gap: 8px; flex-wrap: wrap }
+.chip { font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--good-bg); color: var(--accent); font-variant-numeric: tabular-nums }
+.chip.warn { background: var(--warn-bg); color: var(--warn) }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 460px; overflow-y: auto }
+table { border-collapse: collapse; width: 100%; font-size: .84rem; min-width: 640px }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { position: sticky; top: 0; background: var(--panel); font-size: .74rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
+td.cell { font-family: var(--f-mono); font-size: .78rem; white-space: nowrap; color: var(--muted) }
+td.old { color: var(--bad); font-family: var(--f-mono); font-size: .8rem }
+tr.guess td.new { background: var(--warn-bg) }
+tr.guess td.new::after { content: " • kiểm tra lại"; color: var(--warn); font-size: .74rem; font-weight: 600 }
+.note { font-size: .86rem; color: var(--muted); max-width: 75ch; margin: 0 }
+.note mark { background: var(--warn-bg); color: var(--warn); padding: 0 4px; border-radius: 3px }
+.err { color: var(--bad); background: var(--bad-bg); padding: 8px 12px; border-radius: 7px; font-size: .88rem }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Sửa Font Tiếng Việt</h1>
+    <p>Sửa chữ bị lỗi khi mở file xuất từ SAP hoặc CSV bằng Excel. Mọi xử lý chạy ngay trên máy bạn, dữ liệu không gửi đi đâu.</p>
+    <div class="demo"><span class="from">Chá»‰ gá»­i KH xÃ¡c nháº­n</span><span aria-hidden="true">→</span><span class="to">Chỉ gửi KH xác nhận</span></div>
+  </header>
+
+  <section class="card" id="paste-card">
+    <h2>Cách nhanh: dán chữ <small>Copy cột bị lỗi trong Excel, dán vào ô bên trái, rồi copy kết quả dán ngược lại</small></h2>
+    <div class="pair">
+      <div>
+        <label for="src">Chữ bị lỗi (ví dụ mẫu, thay bằng dữ liệu của bạn)</label>
+        <textarea id="src" spellcheck="false"></textarea>
+      </div>
+      <div>
+        <label for="dst">Chữ đã sửa</label>
+        <textarea id="dst" spellcheck="false" readonly></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <button id="copy">Copy kết quả</button>
+      <button id="clear" class="ghost">Xóa ô nhập</button>
+      <span class="status" id="paste-status"></span>
+    </div>
+  </section>
+
+  <section class="card" id="file-card">
+    <h2>Sửa cả file <small>.xlsx, .xls, .csv — sửa tất cả các ô trong mọi sheet</small></h2>
+    <label class="drop" id="drop" for="file">
+      <strong>Chọn file hoặc kéo thả vào đây</strong>
+      <span>Kết quả là file .xlsx mới, giữ nguyên vị trí các ô</span>
+      <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv,.txt">
+    </label>
+    <div id="file-result" hidden>
+      <div class="row" style="justify-content:space-between">
+        <div class="chips" id="chips"></div>
+        <div class="row">
+          <button id="dl">Tải file đã sửa</button>
+        </div>
+      </div>
+    </div>
+    <div class="err" id="file-err" hidden></div>
+    <div class="tablebox" id="tablebox" hidden>
+      <table>
+        <thead><tr><th>Ô</th><th>Trước</th><th>Sau</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">Một số ký tự bị Excel xóa hẳn khi mở sai bảng mã (thường là <b>ề, ọ, ỏ, ờ, Ố, à, Á, Ý, Đ</b>). Công cụ sẽ đoán theo chữ xung quanh và tô <mark>màu vàng</mark> những ô cần bạn kiểm tra lại. Bản tải về chỉ giữ dữ liệu, không giữ định dạng màu và cỡ chữ của file gốc.</p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// Sửa chữ tiếng Việt UTF-8 bị đọc nhầm thành Windows-1252 (lỗi kiểu "Chá»‰" -> "Chỉ").
+const CP1252_HIGH = {
+  0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86,
+  0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C,
+  0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95,
+  0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B,
+  0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+};
+
+function toByte(ch) {
+  const c = ch.codePointAt(0);
+  if (c < 0x100) return c; // ASCII, Latin-1 và các mã điều khiển 0x80-0x9F
+  return CP1252_HIGH[c] ?? -1;
+}
+
+const isCont = b => b >= 0x80 && b <= 0xBF;
+const isLetter = ch => !!ch && /\p{L}/u.test(ch);
+const isUpper = ch => isLetter(ch) && ch === ch.toUpperCase() && ch !== ch.toLowerCase();
+
+// Byte thứ 3 của "á»?" bị mất: đoán theo chữ đứng trước/sau.
+function guessE1BB(prev, prev2, next, next2) {
+  const p = (prev || '').toLowerCase(), p2 = (prev2 || '').toLowerCase();
+  const n = (next || '').toLowerCase(), n2 = (next2 || '').toLowerCase();
+  if (n === 'u') return 'ề';
+  if (n === 'c') return 'ọ';
+  if (n === 'n') return (n2 !== 'g' && 'iynđb'.includes(p)) ? 'ề' : 'ọ';
+  if (n === 'i') return 'ưhlr'.includes(p) ? 'ờ' : 'ọ';
+  if (isLetter(next)) return 'ọ';
+  if (p === 'v' || p === 'đ') return 'ề';
+  if (p === 'h' && p2 === 'n') return 'ỏ';
+  if (p === 'i' || p === 'c') return 'ờ';
+  if (p === 'h') return 'ọ';
+  return 'ờ';
+}
+
+// Trả về {text, changed, guessed}
+function fixVN(input) {
+  if (input == null) return { text: input, changed: false, guessed: false };
+  const s = String(input);
+  const chars = Array.from(s);
+  const bytes = chars.map(toByte);
+  const out = [];
+  let decodedSeq = 0, guessed = 0;
+  const pending = []; // vị trí cần đoán, chỉ áp dụng khi chắc chắn ô bị lỗi font
+  let i = 0;
+  while (i < chars.length) {
+    const b = bytes[i];
+    if (b < 0x80) { out.push(chars[i]); i++; continue; }
+    const b1 = bytes[i + 1], b2 = bytes[i + 2];
+    if (b >= 0xC2 && b <= 0xDF) {
+      if (isCont(b1)) {
+        out.push(String.fromCodePoint(((b & 0x1F) << 6) | (b1 & 0x3F)));
+        decodedSeq++; i += 2; continue;
+      }
+      // Byte thứ 2 bị mất hoặc NBSP đã thành dấu cách
+      const sp = chars[i + 1] === ' ';
+      let rep = null, eat = 1;
+      if (b === 0xC3) {
+        const prev = out[out.length - 1], prev2 = out[out.length - 2];
+        // "Đà", "Hà" -> à ; "GIÁ" (chữ in hoa) -> Á
+        if (sp && isLetter(prev) && !(isUpper(prev) && isUpper(prev2))) { rep = 'à'; eat = 2; }
+        else if (sp && !isLetter(prev)) rep = 'Ý';
+        else rep = 'Á';
+      }
+      else if (b === 0xC6 && sp) { rep = 'Ơ'; eat = 2; }
+      else if (b === 0xC4 && !sp) { rep = 'Đ'; }
+      if (rep) { pending.push({ at: out.length, orig: chars.slice(i, i + eat).join(''), rep }); out.push(chars.slice(i, i + eat).join('')); i += eat; continue; }
+      out.push(chars[i]); i++; continue;
+    }
+    if (b >= 0xE0 && b <= 0xEF) {
+      if (isCont(b1) && isCont(b2)) {
+        const cp = ((b & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F);
+        if (cp >= 0x800) { out.push(String.fromCodePoint(cp)); decodedSeq++; i += 3; continue; }
+      }
+      if (isCont(b1) && !isCont(b2)) {
+        const orig = chars[i] + chars[i + 1];
+        let rep = null, eat = 2;
+        if (b === 0xE1 && b1 === 0xBB) {
+          // chữ trước lấy từ out (đã giải mã), chữ sau lấy từ chuỗi gốc
+          const prev = out[out.length - 1], prev2 = out[out.length - 2];
+          const next = chars[i + 2], next2 = chars[i + 3];
+          rep = guessE1BB(prev, prev2, next, next2);
+          // Chữ hoa Ề Ọ Ỏ Ờ không bị mất byte, nên chữ hoa bị mất chỉ có thể là Ố
+          if (isUpper(next) || (isUpper(prev) && (isUpper(prev2) || !isLetter(next)))) rep = 'Ố';
+        } else if (b === 0xE1 && b1 === 0xBA && chars[i + 2] === ' ') { rep = 'Ạ'; eat = 3; }
+        else if (b === 0xE2 && b1 === 0x80) { rep = '”'; }
+        if (rep) { pending.push({ at: out.length, orig: chars.slice(i, i + eat).join(''), rep }); out.push(chars.slice(i, i + eat).join('')); i += eat; continue; }
+      }
+      out.push(chars[i]); i++; continue;
+    }
+    out.push(chars[i]); i++;
+  }
+  // Chỉ coi là lỗi font khi có ít nhất 1 chuỗi UTF-8 hợp lệ được giải mã
+  if (decodedSeq === 0) return { text: s, changed: false, guessed: false };
+  for (const p of pending) { out[p.at] = p.rep; guessed++; }
+  const text = out.join('').replace(/[\u0080-\u009F]/g, '');
+  return { text, changed: text !== s, guessed: guessed > 0 };
+}
+
+if (typeof module !== 'undefined') module.exports = { fixVN };
+
+
+const SAMPLE = [
+  'Chá»‰ gá»­i KH xÃ¡c nháº­n láº¡i giÃ¡ (HÃ£ng B.Braun) khi "GIÃ TRáº¦N Há»† THá»NG CAO',
+  'Chá»‰nh tay route VNH229 Ms Phung Wed 9/9/2026 3:17 PM)-BV nhan hang thu 7',
+  'KH xá»­ lÃ½ route VNH618 (NLIEN OP - Mon 5/18/2026 4:59 PM)',
+  'Táº¥t cáº£ cÃ¡c Ä‘Æ¡n hÃ ng TDV Ä‘áº·t pháº£i xÃ¡c nháº­n láº¡i vá»›i KH 90962866694 C',
+  'LiÃªn há»‡ vá»›i KH trÆ°á»›c khi xuáº¥t back order (KH C LINH:',
+  'CHECK DATE > 12 THANG (Nghi 23.08.2024)'
+].join('\n');
+
+const $ = id => document.getElementById(id);
+const src = $('src'), dst = $('dst');
+
+function runPaste() {
+  const lines = src.value.split('\n');
+  let changed = 0, guessed = 0;
+  dst.value = lines.map(l => l.split('\t').map(c => {
+    const r = fixVN(c); if (r.changed) changed++; if (r.guessed) guessed++; return r.text;
+  }).join('\t')).join('\n');
+  $('paste-status').innerHTML = src.value.trim()
+    ? `Đã sửa <b>${changed}</b> ô` + (guessed ? ` · <b>${guessed}</b> ô có chữ đoán, nên đọc lại` : '')
+    : 'Dán chữ vào ô bên trái';
+}
+src.addEventListener('input', runPaste);
+src.value = SAMPLE; runPaste();
+
+$('clear').onclick = () => { src.value = ''; runPaste(); src.focus(); };
+$('copy').onclick = async () => {
+  const btn = $('copy');
+  try { await navigator.clipboard.writeText(dst.value); btn.textContent = 'Đã copy'; }
+  catch { dst.focus(); dst.select(); btn.textContent = 'Nhấn Ctrl+C để copy'; }
+  setTimeout(() => btn.textContent = 'Copy kết quả', 1800);
+};
+
+// ---- File ----
+let outWb = null, outName = 'da-sua-font.xlsx';
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) handleFile(f); });
+$('file').addEventListener('change', ev => { const f = ev.target.files[0]; if (f) handleFile(f); ev.target.value = ''; });
+
+function decodeText(buf) {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch { return new TextDecoder('windows-1252').decode(buf); }
+}
+
+async function handleFile(f) {
+  $('file-err').hidden = true;
+  if (typeof XLSX === 'undefined') return showErr('Chưa tải được thư viện đọc Excel. Kiểm tra kết nối mạng rồi tải lại trang.');
+  try {
+    const buf = await f.arrayBuffer();
+    const isText = /\.(csv|txt)$/i.test(f.name);
+    const wb = isText ? XLSX.read(decodeText(buf), { type: 'string', raw: true })
+                      : XLSX.read(buf, { type: 'array', cellDates: true });
+    let changed = 0, guessed = 0, total = 0;
+    const rows = [];
+    for (const name of wb.SheetNames) {
+      const ws = wb.Sheets[name];
+      for (const addr of Object.keys(ws)) {
+        if (addr[0] === '!') continue;
+        const cell = ws[addr];
+        if (cell.t !== 's' || typeof cell.v !== 'string') continue;
+        total++;
+        const r = fixVN(cell.v);
+        if (!r.changed) continue;
+        changed++; if (r.guessed) guessed++;
+        if (rows.length < 500) rows.push({ at: (wb.SheetNames.length > 1 ? name + '!' : '') + addr, old: cell.v, nw: r.text, g: r.guessed });
+        cell.v = r.text; delete cell.w; delete cell.h; delete cell.r;
+      }
+    }
+    outWb = wb;
+    outName = f.name.replace(/\.[^.]+$/, '') + '_da-sua-font.xlsx';
+    $('chips').innerHTML = `<span class="chip">${changed} ô đã sửa</span>` +
+      (guessed ? `<span class="chip warn">${guessed} ô cần kiểm tra</span>` : '') +
+      `<span class="chip" style="background:transparent;color:var(--muted)">${total} ô chữ · ${wb.SheetNames.length} sheet</span>`;
+    const tb = $('tbody'); tb.textContent = '';
+    for (const r of rows) {
+      const tr = document.createElement('tr'); if (r.g) tr.className = 'guess';
+      for (const [cls, v] of [['cell', r.at], ['old', r.old], ['new', r.nw]]) {
+        const td = document.createElement('td'); td.className = cls; td.textContent = v; tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+    $('file-result').hidden = false;
+    $('tablebox').hidden = rows.length === 0;
+    $('dl').disabled = changed === 0;
+    $('dl').textContent = changed ? 'Tải file đã sửa' : 'File không có chữ bị lỗi';
+  } catch (e) {
+    showErr('Không đọc được file này. Hãy thử lưu lại thành .xlsx hoặc .csv rồi chọn lại. (' + (e.message || e) + ')');
+  }
+}
+function showErr(msg) { const el = $('file-err'); el.textContent = msg; el.hidden = false; }
+
+$('dl').onclick = async () => {
+  if (!outWb) return;
+  const data = XLSX.write(outWb, { type: 'array', bookType: 'xlsx' });
+  const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const dl = window.claude ? await window.claude.use('downloads').catch(() => null) : null;
+  if (dl) {
+    try { await dl.save({ filename: outName, data: blob }); }
+    catch (e) { if (e && e.code !== 'declined') showErr('Không tải được file: ' + (e.message || e.code)); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = outName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+</script>
+
+</body>
+</html>
