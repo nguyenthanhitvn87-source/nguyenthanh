@@ -2606,6 +2606,9 @@ try { buildSlowList(); showSlowTab('pending'); } catch (e) {
 $html = $html.Replace("###UNMATCHED_TIME_LIST_PLACEHOLDER###", $unmatchedTimeRowsHtml)
 
 $dashOutputPath = $Config.dashboard.output_path
+if ([string]::IsNullOrWhiteSpace($dashOutputPath)) { $dashOutputPath = "dashboard.html" }
+# Cho phep dung bien moi truong trong config.json (VD: "%USERPROFILE%\\Desktop\\dashboard.html") de chay duoc tren nhieu may
+$dashOutputPath = [Environment]::ExpandEnvironmentVariables($dashOutputPath)
 if ($CheckDate -ne (Get-Date -Format "yyyyMMdd")) {
     # Ngay qua khu -- ghi ra file rieng, khong de len dashboard hom nay
     $ext = [System.IO.Path]::GetExtension($dashOutputPath)
@@ -2622,7 +2625,17 @@ if ($dashOutputPath -match '^[A-Za-z]:\\' -or $dashOutputPath -match '^\\\\') {
 } else {
     $dashboardPath = Join-Path $ScriptDir $dashOutputPath
 }
-$html | Out-File -FilePath $dashboardPath -Encoding UTF8
+try {
+    $html | Out-File -FilePath $dashboardPath -Encoding UTF8 -ErrorAction Stop
+} catch {
+    # Khong ghi duoc vao output_path (VD: copy sang may khac, khong co thu muc OneDrive cua user cu)
+    # -> ghi tam vao thu muc chua tool thay vi dung han.
+    $fallbackPath = Join-Path $ScriptDir ([System.IO.Path]::GetFileName($dashboardPath))
+    Write-Host "[CANH BAO] Khong ghi duoc dashboard vao '$dashboardPath' ($($_.Exception.Message))."
+    Write-Host "           Da ghi vao '$fallbackPath'. Sua 'dashboard.output_path' trong config.json cho dung may nay."
+    $dashboardPath = $fallbackPath
+    $html | Out-File -FilePath $dashboardPath -Encoding UTF8
+}
 # Ghi lai duong dan thuc te vua xuat ra, de run.bat biet chinh xac file nao can mo
 # (tranh truong hop output_path da doi sang noi khac nhung run.bat van mo file cu).
 # Dung ASCII (khong BOM) de batch (set /p) doc dung, khong bi lech ky tu dau do BOM cua UTF8
